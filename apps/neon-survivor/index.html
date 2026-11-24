@@ -215,7 +215,7 @@
       </button>
     </div>
     <button id="startBtn" class="bigbtn">开始游戏</button>
-    <p class="tip">武器自动攻击 · 按住左键瞄准 · 升级三选一<br>同类武器 / 被动叠加可激活<b style="color:#7dd3fc">流派羁绊</b>，5 大流派自由 build<br>限时 3:00 / 5:30 有领主，波次第 10 / 20 波有领主</p>
+    <p class="tip">武器自动攻击 · 按住左键瞄准 · 升级三选一<br>同类武器 / 被动叠加可激活<b style="color:#7dd3fc">流派羁绊</b>，6 大流派自由 build<br>限时 3:00 / 5:30 有领主，波次第 10 / 20 波有领主</p>
   </div>
 </div>
 
@@ -365,7 +365,31 @@ const WDEF = {
     cd:(l,e)=> wCd(5.2,l,e) },
   frost:{ name:'寒霜领域', evo:'绝对零度', ic:'❄', c:'#67e8f9', max:5,
     desc:(l,e)=> e ? '范围更大，冻结时间翻倍' : `释放寒气造成 ${wDmg(16,l)} 伤害并大幅减速范围内敌人`,
-    cd:(l,e)=> wCd(4.4,l,e) }
+    cd:(l,e)=> wCd(4.4,l,e) },
+  whip:{ name:'霓虹长鞭', evo:'撕裂虚空鞭', ic:'〰', c:'#fb7185', max:5,
+    desc:(l,e)=> e ? '扇面更宽，命中全部敌人并造成流血' : `向瞄准方向挥出扇面鞭击，造成 ${wDmg(30,l)} 范围伤害`,
+    cd:(l,e)=> wCd(1.35,l,e) },
+  boomerang:{ name:'回旋巨刃', evo:'无限回旋', ic:'⟳', c:'#38bdf8', max:5,
+    desc:(l,e)=> e ? '同时投出 3 把巨刃，去回都造成伤害' : `投出巨型飞刃，飞出后返回，两次命中各 ${wDmg(45,l)} 伤害`,
+    cd:(l,e)=> wCd(1.9,l,e) },
+  blackhole:{ name:'引力黑洞', evo:'奇点坍缩', ic:'◍', c:'#a78bfa', max:5,
+    desc:(l,e)=> e ? '持续吸入更多敌人，伤害范围大幅提升' : `在瞄准处生成黑洞，持续吸引敌人并每 0.4 秒造成 ${wDmg(14,l)} 伤害`,
+    cd:(l,e)=> wCd(6,l,e) },
+  spikes:{ name:'地刺陷阱', evo:'荆棘炼狱', ic:'▲', c:'#fbbf24', max:5,
+    desc:(l,e)=> e ? '地刺数量+2，爆发频率翻倍' : `在周围布下地刺，每 0.6 秒爆发造成 ${wDmg(20,l)} 伤害`,
+    cd:(l,e)=> wCd(5,l,e) },
+  flame:{ name:'烈焰喷射', evo:'炼狱火海', ic:'♨', c:'#f97316', max:5,
+    desc:(l,e)=> e ? '喷射更宽更远，灼烧伤害翻倍' : `向瞄准方向喷射锥形烈焰，造成 ${wDmg(9,l)} 伤害并点燃`,
+    cd:(l,e)=> wCd(1.1,l,e) },
+  shield:{ name:'能量护盾', evo:'绝对屏障', ic:'⬢', c:'#22d3ee', max:5,
+    desc:(l,e)=> e ? '护盾数量+2，可反弹敌方弹幕' : `${1+Math.floor((l+1)/2)} 面护盾环绕身体，挡下弹幕并灼伤敌人`,
+    cd:()=> 999 },
+  tesla:{ name:'特斯拉线圈', evo:'雷云矩阵', ic:'⌁', c:'#fde047', max:5,
+    desc:(l,e)=> e ? '线圈数量+2，连锁目标+3' : `${1+Math.floor(l/3)} 座线圈自动向附近敌人放电，每道 ${wDmg(18,l)} 伤害`,
+    cd:()=> 999 },
+  bat:{ name:'血蝠群', evo:'吸血鬼之拥', ic:'🦇', c:'#f43f5e', max:5,
+    desc:(l,e)=> e ? '蝠群数量+2，吸血效果翻倍' : `${2+Math.floor(l/2)} 只血蝠追踪敌人，命中吸取生命`,
+    cd:(l,e)=> wCd(1.7,l,e) }
 };
 const PAS = {
   might:{ name:'力量', ic:'⚔', c:'#f87171', desc:l=>`伤害 +${l*18}%` },
@@ -388,23 +412,30 @@ const PAS = {
   element:{ name:'元素亲和', ic:'💫', c:'#67e8f9', desc:l=>`火焰/毒/冰/雷伤害 +${l*25}%` },
   duration:{ name:'持续增幅', ic:'⏳', c:'#a78bfa', desc:l=>`异常状态与领域持续时间 +${l*30}%` },
   summon:{ name:'召唤强化', ic:'🤖', c:'#34d399', desc:l=>`无人机/环绕飞刀 +${l} 个，召唤伤害 +${l*25}%` },
-  lifesteal:{ name:'吸血', ic:'🩸', c:'#f87171', desc:l=>`造成伤害的 ${(l*1.5).toFixed(1)}% 转化为生命` }
+  lifesteal:{ name:'吸血', ic:'🩸', c:'#f87171', desc:l=>`造成伤害的 ${(l*1.5).toFixed(1)}% 转化为生命` },
+  aoeDmg:{ name:'爆裂增幅', ic:'✺', c:'#fb923c', desc:l=>`范围技能伤害 +${l*30}%` },
+  control:{ name:'控制强化', ic:'🔒', c:'#a78bfa', desc:l=>`减速/麻痹时长 +${l*40}%，牵引力 +${l*30}%` },
+  block:{ name:'护盾强化', ic:'⬢', c:'#22d3ee', desc:l=>`护盾数量 +${l}，反弹伤害 +${l*50}%` },
+  burn:{ name:'灼烧强化', ic:'🔥', c:'#f97316', desc:l=>`灼烧/中毒伤害 +${l*40}%` },
+  killHeal:{ name:'击杀回血', ic:'💚', c:'#4ade80', desc:l=>`每次击杀恢复 ${(l*.6).toFixed(1)} 点生命` }
 };
 
 /* ---- 流派羁绊：同类武器/被动累计等级达标后解锁 ---- */
 const CAT_W = {
-  barrage:['shuriken','scatter','drone','laser'],
-  element:['fireball','poison','frost','thunder','meteor'],
-  summon:['drone','orbit'],
-  crit:['laser','thunder','shuriken','nova'],
-  blood:[]
+  barrage:['shuriken','scatter','drone','laser','boomerang','bat'],
+  element:['fireball','poison','frost','thunder','meteor','flame','tesla'],
+  summon:['drone','orbit','shield','tesla'],
+  crit:['laser','thunder','shuriken','nova','whip'],
+  blood:['bat','lifesteal'],
+  control:['blackhole','spikes','frost']
 };
 const CAT_P = {
   barrage:['bulletDmg','multi','rapid','pierce','range','bigshot'],
-  element:['element','duration','area'],
-  summon:['summon','area','rapid'],
+  element:['element','duration','area','burn'],
+  summon:['summon','area','rapid','block'],
   crit:['luck','crit','might'],
-  blood:['lifesteal','vital','regen','armor']
+  blood:['lifesteal','vital','regen','armor','killHeal'],
+  control:['control','area','duration']
 };
 const BONDS = {
   barrage:{ name:'弹幕风暴', ic:'✦', c:'#7dd3fc', need:[6,12],
@@ -416,7 +447,9 @@ const BONDS = {
   crit:{ name:'致命节奏', ic:'💥', c:'#fbbf24', need:[6,12],
     desc:['暴击率+10% · 暴击伤害+40%','暴击率+20% · 暴伤+100% · 暴击引爆'] },
   blood:{ name:'血怒', ic:'🩸', c:'#f43f5e', need:[5,10],
-    desc:['吸血+2% · 生命上限+10%','吸血+5% · 受伤转化为攻击力'] }
+    desc:['吸血+2% · 生命上限+10%','吸血+5% · 受伤转化为攻击力'] },
+  control:{ name:'领域支配', ic:'◍', c:'#a78bfa', need:[5,10],
+    desc:['控制时长+50% · 领域范围+20%','控制时长+100% · 领域范围+40% · 牵引增强'] }
 };
 const ETYPE = {
   slime:   {name:'史莱姆',   hp:22,  sp:52,  dmg:8,  xp:3,  r:12, c:'#4ade80', shape:'blob',    w:40},
@@ -445,7 +478,7 @@ function newGame(mode){
     wave:1, totalWaves:20, waveState:'fighting', waveRemaining:0, breakTimer:0, wavesCleared:0,
     p:{ x:W/2, y:H/2, r:13, hp:100, maxHp:100, speed:230, invuln:0, dashCd:0, dashT:0,
         xp:0, xpNext:12, dashReadyFx:0, baseMaxHp:100, dvx:0, dvy:0, lastDX:0, lastDY:1,
-        weapons:{}, passives:{}, orbit:[], drones:[],
+        weapons:{}, passives:{}, orbit:[], drones:[], shields:[], teslas:[],
         dmgMul:1, cdMul:1, crit:.05, critMul:2, armor:0, magnet:90, pierceBonus:0, regen:0, xpMul:1, areaMul:1 },
     enemies:[], bullets:[], ebullets:[], gems:[], particles:[], texts:[], effects:[], burn:[],
     zones:[], pending:[], bonds:{}, bondScores:{},
@@ -499,9 +532,15 @@ function recalc(){
   p.regen = 1.0*(s.regen||0);
   p.xpMul = 1 + .20*(s.xp||0);
   p.areaMul = (1 + .15*(s.area||0)) * (1 + .15*(s.bigshot||0));
+  p.aoeMul = 1 + .30*(s.aoeDmg||0);
+  p.controlMul = 1 + .40*(s.control||0);
+  p.burnMul = 1 + .40*(s.burn||0);
+  p.blockExtra = s.block||0;
+  p.blockReflect = 1 + .50*(s.block||0);
+  p.killHeal = .6*(s.killHeal||0);
   // 羁绊加成（每次重算都从基础值开始叠加）
   p.elemMul = 1; p.statusMul = 1; p.summonExtra = 0; p.summonMul = 1;
-  p.summonCdMul = 1; p.critBoom = false; p.lifeSteal = .015*(s.lifesteal||0);
+  p.pullMul = 1; p.summonCdMul = 1; p.critBoom = false; p.lifeSteal = .015*(s.lifesteal||0);
   const b = computeBonds();
   if(b.barrage >= 1){ p.extraProj += 1; p.bulletMul *= 1.25; p.pierceBonus += 1; }
   if(b.barrage >= 2){ p.extraProj += 2; p.bulletMul *= 1.28; p.pierceBonus += 1; p.cdMul *= .75; }
@@ -513,6 +552,8 @@ function recalc(){
   if(b.crit >= 2){ p.crit = Math.min(.95, p.crit + .2); p.critMul += 1; p.critBoom = true; }
   if(b.blood >= 1) p.lifeSteal += .02;
   if(b.blood >= 2) p.lifeSteal += .03;
+  if(b.control >= 1){ p.statusMul *= 1.5; p.areaMul *= 1.2; p.pullMul *= 1.5; }
+  if(b.control >= 2){ p.statusMul *= 2; p.areaMul *= 1.4; p.pullMul *= 2; }
   p.maxHp = p.baseMaxHp + 35*(s.vital||0) + (b.blood>=1 ? Math.round(p.baseMaxHp*.1) : 0);
   p.hp = Math.min(p.hp, p.maxHp);
   syncCompanions();
@@ -633,13 +674,20 @@ function gainXP(n){
 }
 function syncCompanions(){
   const p = G.p, ow = p.weapons.orbit, dw = p.weapons.drone;
+  const sw = p.weapons.shield, tw = p.weapons.tesla;
   const extra = p.summonExtra || 0;
   const oc = ow ? (ow.evolved ? ow.level + 3 : 1 + ow.level) + extra : 0;
   const dc = dw ? (dw.evolved ? 4 : Math.ceil(dw.level/2)) + extra : 0;
+  const sc = sw ? 1 + Math.floor((sw.level+1)/2) + (sw.evolved?2:0) + extra + (p.blockExtra||0) : 0;
+  const tc = tw ? 1 + Math.floor(tw.level/3) + (tw.evolved?2:0) + extra : 0;
   while(p.orbit.length < oc) p.orbit.push({a:(p.orbit.length/oc)*Math.PI*2, hit:new Map()});
   p.orbit.length = oc;
   while(p.drones.length < dc) p.drones.push({a:(p.drones.length/dc)*Math.PI*2, t:rand(0,.6)});
   p.drones.length = dc;
+  while(p.shields.length < sc) p.shields.push({a:(p.shields.length/sc)*Math.PI*2, hit:new Map()});
+  p.shields.length = sc;
+  while(p.teslas.length < tc) p.teslas.push({a:(p.teslas.length/tc)*Math.PI*2, t:rand(0,.5)});
+  p.teslas.length = tc;
 }
 
 /* ---------------- 生成与敌人 ---------------- */
@@ -744,12 +792,13 @@ function damageEnemy(e, dmg, opts){
   if(crit) d *= p.critMul;
   d = Math.round(d);
   if(e.armor) d = Math.max(1, Math.round(d * (1 - e.armor)));
-  e.hp -= d; e.flash = .12; e.hitCd = .09; G.damageDealt += d;
+  e.hp -= d; e.flash = .12; e.hitCd = .09; G.dmgDealt += d;
   addText(e.x + rand(-6,6), e.y - e.r - 4, (crit ? '暴击 ' : '') + d, crit ? '#ffd166' : '#ffffff', crit ? 17 : 12);
   burst(e.x, e.y, crit ? '#ffd166' : e.c, crit ? 7 : 3, 120);
   if(crit) sfxTry('crit', .09, SFX.crit); else sfxTry('hit', .07, SFX.hit);
   // 吸血 / 暴击引爆（致命节奏Ⅱ）
   if(p.lifeSteal > 0) p.hp = Math.min(p.maxHp, p.hp + d*p.lifeSteal);
+  if(opts.vamp) p.hp = Math.min(p.maxHp, p.hp + d*.12*opts.vamp);
   if(crit && p.critBoom && !opts.noBoom)
     explode(e.x, e.y, 52, Math.round(d*.45), '#fbbf24', false);
   if(opts.knock){
@@ -762,6 +811,7 @@ function damageEnemy(e, dmg, opts){
 function killEnemy(e){
   if(e.dead) return;
   e.dead = true; G.kills++;
+  if(G.p.killHeal > 0) G.p.hp = Math.min(G.p.maxHp, G.p.hp + G.p.killHeal);
   G.combo++; G.comboTimer = 3;
   if(G.combo > G.maxCombo) G.maxCombo = G.combo;
   if(G.combo >= 5 && G.combo % 5 === 0){
@@ -845,7 +895,7 @@ function aimTarget(range, maxAngle){
 function shoot(x, y, vx, vy, opt){
   const p = G.p, b = Object.assign({x, y, vx, vy, r:5, dmg:10, pierce:0, life:4.5, age:0,
     color:'#fff', type:'normal', hit:new Set(), explode:0, home:false, burn:false,
-    homing:false, target:null}, opt);
+    homing:false, target:null, vamp:0}, opt);
   // 弹道强化：伤害 / 体积 / 射程（弹丸可飞到屏幕任何角落）
   b.dmg *= p.bulletMul; b.r *= p.bulletSize; b.life *= p.bulletRange;
   G.bullets.push(b);
@@ -948,7 +998,7 @@ function fireWeapon(id, w){
       G.effects.push({type:'ring', x:p.x, y:p.y, r:0, max:R, life:.4, maxLife:.4, color:WDEF.nova.c});
       for(const en of G.enemies){
         if(!en.dead && dist2(p.x,p.y,en.x,en.y) < (R+en.r)**2)
-          damageEnemy(en, wDmg(18,l)*(e?1.6:1), {knock:e?360:260});
+          damageEnemy(en, wDmg(18,l)*(e?1.6:1)*p.aoeMul, {knock:e?360:260});
       }
       burst(p.x, p.y, WDEF.nova.c, 20, 260); G.shake = Math.max(G.shake, 6);
       sfxTry('shoot', .15, SFX.boom); break;
@@ -960,7 +1010,7 @@ function fireWeapon(id, w){
       G.effects.push({type:'strike', x:tx, y:ty, r:R, life:.4, maxLife:.4, color:'#fde047'});
       for(const en of G.enemies){
         if(!en.dead && dist2(tx,ty,en.x,en.y) < (R+en.r)**2){
-          damageEnemy(en, wDmg(40,l)*(e?1.5:1), {elem:true});
+          damageEnemy(en, wDmg(40,l)*(e?1.5:1)*p.aoeMul, {elem:true});
           en.stun = Math.max(en.stun, (e?.5:.22)*p.statusMul);
         }
       }
@@ -972,7 +1022,7 @@ function fireWeapon(id, w){
       const zx = pt.x, zy = pt.y;
       const R = (86+l*16) * (e?1.4:1) * p.areaMul, dur = (3 + l*.4 + (e?2:0)) * p.statusMul;
       G.zones.push({x:zx, y:zy, r:R, life:dur, max:dur, tick:0,
-        dmg:wDmg(8,l)*(e?1.5:1), color:'#4ade80'});
+        dmg:wDmg(8,l)*(e?1.5:1)*p.aoeMul, color:'#4ade80'});
       sfxTry('shoot', .2, SFX.shoot); break;
     }
     case 'meteor': {
@@ -983,7 +1033,7 @@ function fireWeapon(id, w){
       for(let i = 0; i < n; i++){
         // 以光标为中心的小范围散布，不再按玩家朝向固定偏移
         const x = pt.x + rand(-spread,spread), y = pt.y + rand(-spread,spread);
-        G.pending.push({t:i*.13, fn:()=> explode(x, y, R, wDmg(26,l)*(e?1.5:1), '#fb923c', false, true)});
+        G.pending.push({t:i*.13, fn:()=> explode(x, y, R, wDmg(26,l)*(e?1.5:1)*p.aoeMul, '#fb923c', false, true)});
       }
       sfxTry('shoot', .25, SFX.boom); break;
     }
@@ -992,14 +1042,95 @@ function fireWeapon(id, w){
       G.effects.push({type:'ring', x:p.x, y:p.y, r:0, max:R, life:.5, maxLife:.5, color:'#67e8f9'});
       for(const en of G.enemies){
         if(!en.dead && dist2(p.x,p.y,en.x,en.y) < (R+en.r)**2){
-          damageEnemy(en, wDmg(16,l)*(e?1.5:1), {elem:true, knock:120});
+          damageEnemy(en, wDmg(16,l)*(e?1.5:1)*p.aoeMul, {elem:true, knock:120});
           en.slow = Math.max(en.slow, (e?2.4:1.3)*p.statusMul);
         }
       }
       burst(p.x, p.y, '#67e8f9', 18, 200); G.shake = Math.max(G.shake, 5);
       sfxTry('shoot', .15, SFX.boom); break;
     }
-    case 'orbit': case 'drone': syncCompanions(); break;
+    case 'whip': {
+      const tgt = aimTarget(999);
+      const a = getAimAngle(tgt ? Math.atan2(tgt.y-p.y, tgt.x-p.x) : 0);
+      const R = (120+l*22)*(e?1.4:1)*p.areaMul, half = e?1.0:.65;
+      G.effects.push({type:'arc', x:p.x, y:p.y, a, half, r:R, life:.28, maxLife:.28, color:WDEF.whip.c});
+      for(const en of G.enemies){
+        if(en.dead) continue;
+        const d = Math.hypot(en.x-p.x, en.y-p.y);
+        if(d > R+en.r) continue;
+        const diff = Math.abs(((Math.atan2(en.y-p.y,en.x-p.x)-a+Math.PI*3)%(Math.PI*2))-Math.PI);
+        if(diff < half){
+          damageEnemy(en, wDmg(30,l)*p.aoeMul*(e?1.5:1), {knock:180});
+          if(e) en.slow = Math.max(en.slow, .5*p.statusMul);
+        }
+      }
+      burst(p.x+Math.cos(a)*R*.6, p.y+Math.sin(a)*R*.6, '#fb7185', 12, 200);
+      sfxTry('shoot', .12, SFX.shoot); break;
+    }
+    case 'boomerang': {
+      const n = (e?3:1) + p.extraProj;
+      const tgt = aimTarget(999);
+      const base = getAimAngle(tgt ? Math.atan2(tgt.y-p.y, tgt.x-p.x) : 0);
+      const offs = spreadOffsets(n, .26);
+      for(let i = 0; i < n; i++){
+        const a = base + offs[i];
+        shoot(p.x, p.y, Math.cos(a)*600, Math.sin(a)*600, {
+          dmg:wDmg(45,l)*(e?1.3:1), r:11, color:WDEF.boomerang.c, type:'blade',
+          pierce:99, home:true, life:4
+        });
+      }
+      sfxTry('shoot', .1, SFX.shoot); break;
+    }
+    case 'blackhole': {
+      const pt = aimPoint(220);
+      const R = (120+l*18)*(e?1.4:1)*p.areaMul, dur = (4+l*.5+(e?2:0))*p.statusMul;
+      G.zones.push({type:'gravity', x:pt.x, y:pt.y, r:R, life:dur, max:dur, tick:0,
+        dmg:wDmg(14,l)*p.aoeMul, color:'#a78bfa', pull:p.pullMul});
+      sfxTry('shoot', .2, SFX.boom); break;
+    }
+    case 'spikes': {
+      const n = 1 + Math.floor(l/2) + (e?2:0);
+      for(let i = 0; i < n; i++){
+        const a = i/n*Math.PI*2 + rand(0,.6), d = rand(50,130);
+        const x = p.x+Math.cos(a)*d, y = p.y+Math.sin(a)*d;
+        const R = (70+l*10)*(e?1.4:1)*p.areaMul, dur = (6+l+(e?3:0))*p.statusMul;
+        G.zones.push({type:'spike', x, y, r:R, life:dur, max:dur, tick:rand(0,.3),
+          dmg:wDmg(20,l)*p.aoeMul, color:'#fbbf24'});
+      }
+      sfxTry('shoot', .2, SFX.shoot); break;
+    }
+    case 'flame': {
+      const tgt = aimTarget(999);
+      const a = getAimAngle(tgt ? Math.atan2(tgt.y-p.y, tgt.x-p.x) : 0);
+      const R = (140+l*20)*(e?1.4:1)*p.areaMul, half = e?1.0:.6;
+      G.effects.push({type:'cone', x:p.x, y:p.y, a, half, r:R, life:.22, maxLife:.22, color:'#f97316'});
+      for(const en of G.enemies){
+        if(en.dead) continue;
+        const d = Math.hypot(en.x-p.x, en.y-p.y);
+        if(d > R+en.r) continue;
+        const diff = Math.abs(((Math.atan2(en.y-p.y,en.x-p.x)-a+Math.PI*3)%(Math.PI*2))-Math.PI);
+        if(diff < half){
+          damageEnemy(en, wDmg(9,l)*p.aoeMul, {elem:true});
+          G.burn.push({x:en.x, y:en.y, t:.9*p.statusMul, tick:.2, dmg:wDmg(4,l)*p.burnMul});
+        }
+      }
+      sfxTry('shoot', .1, SFX.shoot); break;
+    }
+    case 'bat': {
+      const n = 2 + Math.floor(l/2) + (e?2:0) + p.extraProj;
+      const tgt = aimTarget(999);
+      const base = getAimAngle(tgt ? Math.atan2(tgt.y-p.y, tgt.x-p.x) : 0);
+      const offs = spreadOffsets(n, .2);
+      for(let i = 0; i < n; i++){
+        const a = base + offs[i];
+        shoot(p.x, p.y, Math.cos(a)*480, Math.sin(a)*480, {
+          dmg:wDmg(18,l)*(e?1.4:1), r:5, color:WDEF.bat.c, type:'normal',
+          homing:true, target:tgt, life:4, vamp:e?2:1
+        });
+      }
+      sfxTry('shoot', .1, SFX.shoot); break;
+    }
+    case 'orbit': case 'drone': case 'shield': case 'tesla': syncCompanions(); break;
   }
 }
 function updateWeapons(dt){
@@ -1053,6 +1184,62 @@ function updateWeapons(dt){
           });
         }
         d.t = (dw.evolved ? .45 : .85) * p.cdMul * p.summonCdMul;
+      }
+    }
+  }
+  // 能量护盾：环绕阻挡敌方弹幕，并灼伤靠近的敌人
+  const sw = p.weapons.shield;
+  if(sw){
+    const rad = (p.r+34+sw.level*3)*p.areaMul;
+    for(const s of p.shields){
+      s.a += dt*1.1;
+      s.x = p.x+Math.cos(s.a)*rad; s.y = p.y+Math.sin(s.a)*rad;
+      for(const b of G.ebullets){
+        if(b.life > 0 && dist2(s.x,s.y,b.x,b.y) < (12+b.r)**2){
+          b.life = 0; burst(s.x,s.y,'#22d3ee',4,90);
+          if(p.blockExtra > 0){
+            const a2 = Math.atan2(-b.vy,-b.vx);
+            shoot(s.x,s.y,Math.cos(a2)*520,Math.sin(a2)*520,{
+              dmg:Math.round(wDmg(10,sw.level)*p.blockReflect), r:4, life:1.4, color:'#22d3ee'
+            });
+          }
+        }
+      }
+      for(const en of G.enemies){
+        if(en.dead) continue;
+        if(dist2(s.x,s.y,en.x,en.y) < (12+en.r)**2 && (G.t-(s.hit.get(en)||-9)) > .45){
+          s.hit.set(en,G.t);
+          damageEnemy(en, wDmg(12,sw.level)*p.summonMul, {summon:true, knock:90});
+        }
+      }
+    }
+  }
+  // 特斯拉线圈：自动向附近敌人连锁放电
+  const tw = p.weapons.tesla;
+  if(tw){
+    const rad = (58+tw.level*5)*p.areaMul;
+    for(const t of p.teslas){
+      t.a += dt*.7;
+      t.x = p.x+Math.cos(t.a)*rad; t.y = p.y+Math.sin(t.a)*rad;
+      t.t -= dt*p.cdMul*p.summonCdMul;
+      if(t.t <= 0){
+        const n = 1+tw.level+(tw.evolved?3:0), hit = new Set();
+        let sx = t.x, sy = t.y;
+        for(let i = 0; i < n; i++){
+          let best = null, bd = (200*p.areaMul)**2;
+          for(const en of G.enemies){
+            if(en.dead || hit.has(en)) continue;
+            const d = dist2(sx,sy,en.x,en.y);
+            if(d < bd){ bd = d; best = en; }
+          }
+          if(!best) break;
+          hit.add(best);
+          G.effects.push({type:'bolt', x1:sx, y1:sy, x2:best.x, y2:best.y, life:.2, maxLife:.2, color:'#fde047'});
+          damageEnemy(best, wDmg(18,tw.level)*p.elemMul*p.summonMul, {elem:true, summon:true});
+          if(tw.evolved) best.stun = Math.max(best.stun, .3*p.statusMul);
+          sx = best.x; sy = best.y;
+        }
+        t.t = .7*p.cdMul*p.summonCdMul;
       }
     }
   }
@@ -1167,7 +1354,7 @@ function updateEnemies(dt){
     b.t -= dt; b.tick -= dt;
     if(b.t <= 0){ G.effects.push({type:'ring', x:b.x, y:b.y, r:0, max:34, life:.25, maxLife:.25, color:'#f97316'}); b.dead = true; }
     for(const e of G.enemies){
-      if(!e.dead && b.tick <= 0 && dist2(b.x,b.y,e.x,e.y) < 34**2) damageEnemy(e, 6, {noCrit:true, noBoom:true, elem:true});
+      if(!e.dead && b.tick <= 0 && dist2(b.x,b.y,e.x,e.y) < 34**2) damageEnemy(e, b.dmg||6, {noCrit:true, noBoom:true, elem:true});
     }
     if(b.tick <= 0) b.tick = .4;
   }
@@ -1199,7 +1386,7 @@ function updateBullets(dt){
       if(e.dead || b.hit.has(e)) continue;
       if(dist2(b.x,b.y,e.x,e.y) < (b.r+e.r)**2){
         b.hit.add(e);
-        damageEnemy(e, b.dmg, {knock:60, elem:!!b.elem, summon:!!b.summon});
+        damageEnemy(e, b.dmg, {knock:60, elem:!!b.elem, summon:!!b.summon, vamp:b.vamp||0});
         if(b.explode){ explode(b.x, b.y, b.expR || 52, b.dmg*.6, b.color, false, !!b.elem); if(b.burn) G.burn.push({x:b.x,y:b.y,t:2.4*p.statusMul,tick:0}); }
         if(b.pierce > 0) b.pierce--; else b.life = 0;
         if(b.life <= 0) break;
@@ -1251,12 +1438,23 @@ function updatePending(dt){
 function updateZones(dt){
   for(const z of G.zones){
     z.life -= dt; z.tick -= dt;
+    // 引力黑洞：持续把范围内敌人拉向中心
+    if(z.type === 'gravity'){
+      for(const e of G.enemies){
+        if(e.dead) continue;
+        const dx = z.x-e.x, dy = z.y-e.y, d = Math.hypot(dx,dy);
+        if(d > z.r || d < 8) continue;
+        const a = Math.atan2(dy,dx), force = 150*(z.pull||1)*(1-d/z.r);
+        e.x += Math.cos(a)*force*dt; e.y += Math.sin(a)*force*dt;
+      }
+    }
     if(z.tick <= 0){
       for(const e of G.enemies){
-        if(!e.dead && dist2(z.x,z.y,e.x,e.y) < (z.r+e.r)**2) damageEnemy(e, z.dmg, {noCrit:true, noBoom:true, elem:true});
+        if(!e.dead && dist2(z.x,z.y,e.x,e.y) < (z.r+e.r)**2)
+          damageEnemy(e, z.dmg, {noCrit:true, noBoom:true, elem:z.type!=='spike'});
       }
       if(Math.random() < .7) burst(z.x+rand(-z.r,z.r), z.y+rand(-z.r,z.r), z.color, 2, 60);
-      z.tick = .5;
+      z.tick = z.type === 'spike' ? .6 : .5;
     }
   }
   G.zones = G.zones.filter(z => z.life > 0);
@@ -1617,6 +1815,21 @@ function draw(){
     ctx.beginPath(); ctx.arc(z.x,z.y,z.r,0,Math.PI*2); ctx.fill();
     ctx.globalAlpha = .6*fade; ctx.strokeStyle = z.color; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.arc(z.x,z.y,z.r*(.97+Math.sin(G.t*4)*.03),0,Math.PI*2); ctx.stroke();
+    if(z.type === 'gravity'){
+      ctx.globalAlpha = .85*fade; ctx.strokeStyle = '#c4b5fd'; ctx.lineWidth = 2;
+      for(let i = 0; i < 3; i++){
+        const rr = z.r*(.24+i*.22), a0 = G.t*(i%2?2:-2)+i;
+        ctx.beginPath(); ctx.arc(z.x,z.y,rr,a0,a0+1.9); ctx.stroke();
+      }
+    }
+    if(z.type === 'spike'){
+      ctx.globalAlpha = .8*fade; ctx.fillStyle = z.color;
+      for(let i = 0; i < 8; i++){
+        const aa = i/8*Math.PI*2, rr = z.r*.72;
+        const x = z.x+Math.cos(aa)*rr, y = z.y+Math.sin(aa)*rr;
+        ctx.beginPath(); ctx.moveTo(x,y-7); ctx.lineTo(x-5,y+5); ctx.lineTo(x+5,y+5); ctx.closePath(); ctx.fill();
+      }
+    }
     ctx.restore();
   }
   // effects
@@ -1653,6 +1866,16 @@ function draw(){
       ctx.strokeStyle = '#fff'; ctx.lineWidth = 2*a; ctx.stroke();
       ctx.strokeStyle = f.color; ctx.lineWidth = 4*a;
       ctx.beginPath(); ctx.arc(f.x, f.y, f.r*(1-a*.35), 0, Math.PI*2); ctx.stroke();
+    }else if(f.type === 'arc' || f.type === 'cone'){
+      // 鞭击扇面 / 喷火锥形
+      ctx.fillStyle = f.color; ctx.shadowBlur = 18; ctx.shadowColor = f.color;
+      ctx.globalAlpha = a*.5;
+      ctx.beginPath(); ctx.moveTo(f.x,f.y);
+      ctx.arc(f.x,f.y,f.r*(1-a*.15),f.a-f.half,f.a+f.half);
+      ctx.closePath(); ctx.fill();
+      ctx.globalAlpha = a; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(f.x,f.y,f.r*(1-a*.15),f.a-f.half,f.a+f.half); ctx.stroke();
     }
     ctx.restore();
   }
@@ -1698,6 +1921,24 @@ function draw(){
     ctx.save(); ctx.translate(d.x,d.y); ctx.rotate(G.t*3);
     ctx.shadowBlur = 16; ctx.shadowColor = '#34d399'; ctx.fillStyle = '#6ee7b7';
     ctx.fillRect(-7,-7,14,14); ctx.fillStyle = '#065f46'; ctx.fillRect(-3,-3,6,6); ctx.restore();
+  }
+  for(const s of p.shields){
+    ctx.save(); ctx.translate(s.x,s.y); ctx.rotate(G.t*1.5);
+    ctx.shadowBlur = 14; ctx.shadowColor = '#22d3ee'; ctx.strokeStyle = '#67e8f9'; ctx.lineWidth = 3;
+    ctx.beginPath();
+    for(let i = 0; i < 6; i++){
+      const aa = i/6*Math.PI*2, x = Math.cos(aa)*11, y = Math.sin(aa)*11;
+      i ? ctx.lineTo(x,y) : ctx.moveTo(x,y);
+    }
+    ctx.closePath(); ctx.stroke(); ctx.restore();
+  }
+  for(const t of p.teslas){
+    ctx.save(); ctx.translate(t.x,t.y);
+    ctx.shadowBlur = 16; ctx.shadowColor = '#fde047'; ctx.fillStyle = '#fde047';
+    ctx.beginPath(); ctx.arc(0,0,6,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle = 'rgba(253,224,71,.6)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(0,0,10+Math.sin(G.t*10+t.a)*2,0,Math.PI*2); ctx.stroke();
+    ctx.restore();
   }
   drawPlayer();
   drawAim();
