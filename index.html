@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>游戏库 · Game Hub</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --surface: #131b30;
+      --surface-2: #18223c;
+      --line: #263253;
+      --text: #e8edff;
+      --muted: #94a3c4;
+      --accent: #7aa2ff;
+      --accent-2: #a78bfa;
+      --green: #34d399;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+      background:
+        radial-gradient(900px 500px at 80% -10%, rgba(90, 125, 255, .18), transparent 70%),
+        radial-gradient(700px 400px at 0% 30%, rgba(167, 139, 250, .10), transparent 70%),
+        var(--bg);
+    }
+    img { display: block; }
+    .shell { width: 100%; max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+
+    /* ---------- 顶栏 ---------- */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(11, 16, 32, .82);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(38, 50, 83, .8);
+    }
+    .nav { height: 66px; display: flex; align-items: center; gap: 34px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; letter-spacing: 1.2px; font-size: 16px; }
+    .brand .logo {
+      width: 32px; height: 32px; display: grid; place-items: center;
+      border-radius: 9px; font-size: 17px; color: #fff;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      box-shadow: 0 5px 16px rgba(122, 162, 255, .35);
+    }
+    .brand em { font-style: normal; color: var(--accent); }
+    .nav-links { display: flex; gap: 26px; font-size: 14px; color: var(--muted); }
+    .nav-links .active { color: var(--text); font-weight: 600; position: relative; }
+    .nav-links .active::after {
+      content: ""; position: absolute; left: 0; right: 0; bottom: -22px;
+      height: 2px; border-radius: 2px; background: var(--accent);
+    }
+    .status { margin-left: auto; font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 7px; }
+    .status i { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); }
+
+    /* ---------- Hero ---------- */
+    .hero {
+      position: relative;
+      margin-top: 34px;
+      min-height: 246px;
+      padding: 38px 42px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: linear-gradient(120deg, #1b2b58 0%, #151d36 60%, #111830 100%);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+    }
+    .hero::after {
+      content: ""; position: absolute; inset: 0; pointer-events: none;
+      background-image: linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+      background-size: 28px 28px;
+    }
+    .hero-copy { position: relative; z-index: 2; max-width: 560px; }
+    .eyebrow { font-size: 11px; letter-spacing: 2.4px; color: var(--accent); font-weight: 700; }
+    .hero h1 { margin: 12px 0 10px; font-size: clamp(30px, 4.4vw, 46px); line-height: 1.15; letter-spacing: -.5px; }
+    .hero h1 span {
+      background: linear-gradient(90deg, #8ab4ff, #c4b5fd);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .hero p { margin: 0; color: #b9c6e6; font-size: 15px; line-height: 1.7; }
+    .stats { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+    .stat { padding: 8px 13px; border: 1px solid rgba(122,162,255,.28); border-radius: 99px; background: rgba(122,162,255,.08); font-size: 12px; color: #cdd8f5; }
+    .stat b { color: #fff; font-size: 14px; }
+    .hero-art { position: absolute; right: -4%; top: -12%; width: 52%; height: 124%; opacity: .72; }
+    .hero-art img { width: 100%; height: 100%; object-fit: cover; object-position: center; }
+    .hero-art::after {
+      content: ""; position: absolute; inset: 0;
+      background: linear-gradient(90deg, #16203d 0%, rgba(22,32,61,.55) 35%, transparent 75%);
+    }
+
+    /* ---------- 库 ---------- */
+    .library { margin: 38px 0 60px; }
+    .section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+    .section-head h2 { margin: 0 0 5px; font-size: 22px; }
+    .section-head p { margin: 0; font-size: 13px; color: var(--muted); }
+    .search {
+      display: flex; align-items: center; gap: 9px;
+      width: min(280px, 100%); padding: 9px 13px;
+      background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+      color: var(--muted);
+    }
+    .search:focus-within { border-color: var(--accent); }
+    .search svg { width: 16px; height: 16px; flex: none; }
+    .search input { width: 100%; border: 0; outline: 0; background: transparent; color: var(--text); font-size: 13px; }
+    .search input::placeholder { color: #6d7c9e; }
+    .filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0 22px; }
+    .chip {
+      padding: 7px 16px; border-radius: 99px; cursor: pointer;
+      border: 1px solid var(--line); background: transparent;
+      color: var(--muted); font-size: 12px; transition: .18s;
+    }
+    .chip:hover { color: var(--text); border-color: #3d4f7f; }
+    .chip.active { color: #fff; background: linear-gradient(135deg, #4a6cf0, #7a5cf0); border-color: transparent; }
+
+    .grid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+    .game-card {
+      display: block; text-decoration: none; color: inherit;
+      background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+      overflow: hidden; transition: transform .2s, border-color .2s, box-shadow .2s;
+    }
+    .game-card[hidden] { display: none; }
+    .game-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(122,162,255,.65);
+      box-shadow: 0 18px 40px rgba(0,0,0,.4), 0 0 0 1px rgba(122,162,255,.15);
+    }
+    .thumb { position: relative; aspect-ratio: 16 / 9; overflow: hidden; background: #0d1428; }
+    .thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s ease; }
+    .game-card:hover .thumb img { transform: scale(1.06); }
+    .thumb::after { content: ""; position: absolute; inset: 0; background: linear-gradient(transparent 55%, rgba(8,12,25,.55)); }
+    .thumb-fallback::before {
+      content: "⚡"; position: absolute; inset: 0; display: grid; place-items: center;
+      font-size: 56px; color: #7aa2ff;
+      background: radial-gradient(circle at 50% 40%, #1b2b58, #0d1428);
+    }
+    .play {
+      position: absolute; z-index: 2; left: 16px; bottom: 14px;
+      padding: 7px 14px; border-radius: 99px; font-size: 12px; font-weight: 700;
+      color: #0b1020; background: #fff;
+      opacity: 0; transform: translateY(6px); transition: .2s;
+    }
+    .game-card:hover .play { opacity: 1; transform: translateY(0); }
+    .info { padding: 16px 18px 14px; }
+    .tags { display: flex; gap: 7px; margin-bottom: 9px; }
+    .tag { font-size: 10px; padding: 3px 9px; border-radius: 99px; color: #a9b8dc; background: var(--surface-2); border: 1px solid var(--line); }
+    .tag.hot { color: #ffd7a8; border-color: rgba(255,167,90,.35); background: rgba(255,167,90,.10); }
+    .tag.retro { color: #a7f3d0; border-color: rgba(52,211,153,.3); background: rgba(52,211,153,.1); }
+    .info h3 { margin: 0 0 6px; font-size: 19px; }
+    .info p { margin: 0; min-height: 42px; font-size: 13px; line-height: 1.6; color: var(--muted); }
+    .card-foot {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line);
+      font-size: 11px; color: #7182a8;
+    }
+    .arrow { width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; background: var(--surface-2); color: var(--accent); font-size: 14px; }
+    .game-card:hover .arrow { background: var(--accent); color: #0b1020; }
+    .empty { text-align: center; color: var(--muted); padding: 50px 0; }
+    .empty[hidden] { display: none; }
+
+    footer { padding: 26px 0 40px; border-top: 1px solid var(--line); color: #7182a8; font-size: 12px; line-height: 1.8; }
+
+    @media (max-width: 720px) {
+      .nav-links { display: none; }
+      .hero { padding: 28px 24px; }
+      .hero-art { opacity: .25; width: 80%; }
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="shell nav">
+      <div class="brand"><span class="logo">G</span><span>GAME<em>HUB</em></span></div>
+      <div class="nav-links"><span class="active">游戏库</span><span>精选</span><span>关于</span></div>
+      <div class="status"><i></i>本地离线可玩</div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="hero">
+      <div class="hero-copy">
+        <span class="eyebrow">WELCOME TO YOUR LIBRARY</span>
+        <h1>我的<span>游戏库</span></h1>
+        <p>即开即玩的单文件小游戏与互动工具。点开卡片就能玩，也可以直接进入应用文件夹单独打开。</p>
+        <div class="stats">
+          <span class="stat"><b id="count">2</b> 款游戏</span>
+          <span class="stat">纯前端 · 无需安装</span>
+          <span class="stat">离线可用</span>
+        </div>
+      </div>
+      <div class="hero-art"><img src="apps/one-punch/thumbnail.jpg" alt=""></div>
+    </section>
+
+    <section class="library">
+      <div class="section-head">
+        <div><h2>全部游戏</h2><p>选择一款，马上开始</p></div>
+        <label class="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input id="q" type="search" placeholder="搜索游戏…" aria-label="搜索游戏">
+        </label>
+      </div>
+
+      <div class="filters">
+        <button class="chip active" data-filter="all">全部</button>
+        <button class="chip" data-filter="action">动作</button>
+        <button class="chip" data-filter="idle">放置</button>
+        <button class="chip" data-filter="sim">模拟</button>
+        <button class="chip" data-filter="retro">复古</button>
+      </div>
+
+      <!-- 新增游戏：复制一张 .game-card，缩略图放在该应用自己的文件夹里 -->
+      <div class="grid" id="grid">
+        <a class="game-card" href="apps/one-punch/index.html" target="_blank" rel="noopener"
+           data-title="一拳 一拳小游戏" data-tags="action idle" data-desc="点击打击怪物，升级力量与暴击，一路突破境界。">
+          <div class="thumb">
+            <img src="apps/one-punch/thumbnail.jpg" alt="一拳游戏画面：绿色史莱姆和出拳按钮">
+            <span class="play">▶ 开始游戏</span>
+          </div>
+          <div class="info">
+            <div class="tags"><span class="tag hot">动作</span><span class="tag">放置</span></div>
+            <h3>一拳</h3>
+            <p>点击打击怪物，升级力量与暴击，一路突破境界。</p>
+            <div class="card-foot"><span>单文件 HTML</span><span class="arrow">→</span></div>
+          </div>
+        </a>
+
+        <a class="game-card" href="apps/winxp-c-drive/index.html" target="_blank" rel="noopener"
+           data-title="Windows XP C盘考古 复古桌面" data-tags="sim retro" data-desc="走进复古 XP 桌面，翻找 C 盘里的文件与彩蛋小游戏。">
+          <div class="thumb">
+            <img src="apps/winxp-c-drive/thumbnail.jpg" alt="Windows XP 桌面与我的电脑窗口">
+            <span class="play">▶ 开始游戏</span>
+          </div>
+          <div class="info">
+            <div class="tags"><span class="tag">模拟</span><span class="tag retro">复古</span></div>
+            <h3>Windows XP · C盘考古</h3>
+            <p>走进复古 XP 桌面，翻找 C 盘里的文件与彩蛋小游戏。</p>
+            <div class="card-foot"><span>单文件 HTML</span><span class="arrow">→</span></div>
+          </div>
+        </a>
+
+        <a class="game-card" href="apps/neon-survivor/index.html" target="_blank" rel="noopener"
+           data-title="霓虹幸存者 Neon Survivor 弹幕割草 双模式" data-tags="action sim" data-desc="限时生存或 20 波挑战，瞄准射击、三选一升级、武器进化，满屏割草。">
+          <div class="thumb">
+            <img src="apps/neon-survivor/thumbnail.jpg" alt="霓虹幸存者游戏画面：满屏怪物与子弹" onerror="this.style.display='none';this.parentNode.classList.add('thumb-fallback')">
+            <span class="play">▶ 开始游戏</span>
+          </div>
+          <div class="info">
+            <div class="tags"><span class="tag hot">动作</span><span class="tag">模拟</span></div>
+            <h3>霓虹幸存者</h3>
+            <p>限时生存 / 20 波挑战双模式，12 种武器自由进化，瞄准射击满屏割草。</p>
+            <div class="card-foot"><span>单文件 HTML</span><span class="arrow">→</span></div>
+          </div>
+        </a>
+      </div>
+
+      <p class="empty" id="empty" hidden>没有找到匹配的游戏</p>
+    </section>
+  </main>
+
+  <footer>
+    <div class="shell">
+      每个游戏都是独立文件夹，入口为 <code>apps/应用名/index.html</code>；缩略图放在各自文件夹内。<br>
+      新增游戏后记得在此页添加卡片，并在 README.md 中登记。
+    </div>
+  </footer>
+
+  <script>
+    const cards = [...document.querySelectorAll('.game-card')];
+    const chips = [...document.querySelectorAll('.chip')];
+    const search = document.getElementById('q');
+    const empty = document.getElementById('empty');
+    let activeTag = 'all';
+
+    document.getElementById('count').textContent = cards.length;
+
+    function applyFilters() {
+      const q = search.value.trim().toLowerCase();
+      let shown = 0;
+      cards.forEach(card => {
+        const tagOk = activeTag === 'all' || card.dataset.tags.split(' ').includes(activeTag);
+        const text = (card.dataset.title + ' ' + card.dataset.desc).toLowerCase();
+        const searchOk = !q || text.includes(q);
+        card.hidden = !(tagOk && searchOk);
+        if (tagOk && searchOk) shown++;
+      });
+      empty.hidden = shown > 0;
+    }
+
+    search.addEventListener('input', applyFilters);
+    chips.forEach(chip => chip.addEventListener('click', () => {
+      activeTag = chip.dataset.filter;
+      chips.forEach(c => c.classList.toggle('active', c === chip));
+      applyFilters();
+    }));
+  </script>
+</body>
+</html>

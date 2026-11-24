@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>一拳</title>
+<style>
+  :root {
+    --panel: #14142c;
+    --border: #2c2c55;
+    --accent: #ff4655;
+    --gold: #ffd166;
+    --text: #eaeaf8;
+    --dim: #8a8aae;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: #05050c;
+    color: var(--text);
+    font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+    user-select: none;
+    overflow: hidden;
+  }
+  body { display: flex; justify-content: center; }
+
+  #app {
+    width: 1040px;
+    max-width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  /* ---------- HUD ---------- */
+  #hud {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 16px;
+  }
+  .hud-item { display: flex; flex-direction: column; gap: 2px; min-width: 64px; }
+  .hud-label { font-size: 10px; color: var(--dim); letter-spacing: 1px; }
+  .hud-value { font-size: 20px; font-weight: 800; line-height: 1.1; }
+  #gold { color: var(--gold); }
+  #monsterName { color: var(--accent); font-size: 17px; }
+  #hpWrap {
+    flex: 1;
+    height: 16px;
+    background: #1c1c34;
+    border: 1px solid #34345c;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  #hpBar {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, #ff4655, #ff9a5b);
+    transition: width .1s linear;
+  }
+
+  /* ---------- battlefield ---------- */
+  #battlefield {
+    position: relative;
+    flex: 1;
+    min-height: 260px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: #05050e;
+    cursor: pointer;
+  }
+  #game { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  #combo {
+    position: absolute;
+    top: 14px;
+    left: 18px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gold);
+    letter-spacing: 1px;
+    pointer-events: none;
+  }
+
+  /* ---------- controls ---------- */
+  #controls { display: flex; gap: 12px; align-items: stretch; }
+  #punchBtn {
+    flex: 1;
+    padding: 16px;
+    font-size: 26px;
+    font-weight: 900;
+    letter-spacing: 8px;
+    color: #fff;
+    background: linear-gradient(180deg, #ff5563, #c22334);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: inherit;
+    box-shadow: 0 5px 0 #7a1220, 0 10px 24px rgba(255, 70, 85, .28);
+    transition: transform .05s, box-shadow .05s, filter .1s;
+  }
+  #punchBtn:hover { filter: brightness(1.08); }
+  #punchBtn:active { transform: translateY(5px); box-shadow: 0 0 0 #7a1220; }
+  .hint {
+    width: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--dim);
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+  }
+
+  /* ---------- shop ---------- */
+  #shop { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .upg {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+    text-align: left;
+    color: var(--text);
+    cursor: pointer;
+    font-family: inherit;
+    transition: border-color .15s, background .15s, transform .05s;
+  }
+  .upg:hover:not(:disabled) { border-color: var(--accent); background: #1c1c3c; }
+  .upg:active:not(:disabled) { transform: scale(.97); }
+  .upg:disabled { opacity: .45; cursor: not-allowed; }
+  .upg-name { font-size: 13px; font-weight: 800; }
+  .upg-lv { font-size: 10px; color: var(--dim); font-weight: 500; }
+  .upg-effect { font-size: 10px; color: #9a9ac0; margin-top: 6px; min-height: 14px; }
+  .upg-cost { font-size: 12px; color: var(--gold); margin-top: 6px; font-weight: 700; }
+
+  /* ---------- prestige ---------- */
+  #prestigeBar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 14px;
+  }
+  #prestigeInfo { flex: 1; font-size: 12px; color: var(--dim); }
+  #prestigeBtn {
+    padding: 8px 20px;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: #fff;
+    background: linear-gradient(180deg, #7a4dff, #4a1fd0);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  #prestigeBtn:disabled { background: #2c2c4a; color: #6a6a8a; cursor: not-allowed; }
+  #prestigeBtn:not(:disabled):hover { filter: brightness(1.15); }
+
+  /* ---------- toast ---------- */
+  #toast {
+    position: fixed;
+    top: 24px;
+    left: 50%;
+    transform: translate(-50%, -16px);
+    background: #1c1c3c;
+    border: 1px solid var(--accent);
+    padding: 10px 22px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    opacity: 0;
+    pointer-events: none;
+    transition: .25s;
+    z-index: 99;
+    box-shadow: 0 8px 30px rgba(0,0,0,.5);
+  }
+  #toast.show { opacity: 1; transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="hud">
+    <div class="hud-item"><span class="hud-label">阶段</span><span class="hud-value" id="stage">1</span></div>
+    <div class="hud-item"><span class="hud-label">目标</span><span class="hud-value" id="monsterName">史莱姆</span></div>
+    <div id="hpWrap"><div id="hpBar"></div></div>
+    <div class="hud-item"><span class="hud-label">金币</span><span class="hud-value" id="gold">0</span></div>
+    <div class="hud-item"><span class="hud-label">每拳伤害</span><span class="hud-value" id="dps">1</span></div>
+    <div class="hud-item"><span class="hud-label">境界</span><span class="hud-value" id="realm">0</span></div>
+  </div>
+
+  <div id="battlefield">
+    <canvas id="game"></canvas>
+    <div id="combo"></div>
+  </div>
+
+  <div id="controls">
+    <button id="punchBtn">打</button>
+    <div class="hint">点击怪物<br>或按空格键</div>
+  </div>
+
+  <div id="shop"></div>
+
+  <div id="prestigeBar">
+    <span id="prestigeInfo"></span>
+    <button id="prestigeBtn" disabled>突破极限</button>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+"use strict";
+
+const SAVE_KEY = "onePunchSave_v1";
+
+const MONSTERS = [
+  { name: "史莱姆",   color: "#5fe08a" },
+  { name: "哥布林",   color: "#a8e05f" },
+  { name: "巨龙",     color: "#ff5f5f" },
+  { name: "山岳巨人", color: "#d0a060" },
+  { name: "星球",     color: "#5fa8ff" },
+  { name: "宇宙",     color: "#c05fff" },
+];
+
+const UPGRADES = [
+  { id: "power",   name: "力量",     base: 10,  growth: 1.55,
+    desc: () => "每拳 +" + fmt(getDamage() * 0.4) + " 伤害" },
+  { id: "crit",    name: "暴击率",   base: 30,  growth: 1.7,
+    desc: () => "暴击率 " + (getCritChance() * 100).toFixed(0) + "%" },
+  { id: "critDmg", name: "暴击伤害", base: 55,  growth: 1.7,
+    desc: () => "暴击 " + getCritMult().toFixed(1) + " 倍" },
+  { id: "combo",   name: "连击",     base: 140, growth: 1.95,
+    desc: () => "每次 " + (1 + state.comboLv) + " 段" },
+  { id: "auto",    name: "自动出拳", base: 320, growth: 2.15,
+    desc: () => state.autoLv + " 次/秒" },
+];
+
+function defaultState() {
+  return {
+    stage: 1,
+    runMaxStage: 1,
+    gold: 0,
+    realm: 0,
+    powerLv: 0,
+    critLv: 0,
+    critDmgLv: 0,
+    comboLv: 0,
+    autoLv: 0,
+    monsterHp: 10,
+    lastSeen: Date.now(),
+  };
+}
+
+let state = loadGame();
+
+function loadGame() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return defaultState();
+    return Object.assign(defaultState(), JSON.parse(raw));
+  } catch (e) {
+    return defaultState();
+  }
+}
+
+function saveGame() {
+  state.lastSeen = Date.now();
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) {}
+}
+
+/* ---------- formulas ---------- */
+function monsterHpFor(stage) {
+  return Math.floor(10 * Math.pow(1.3, stage - 1));
+}
+function goldFor(stage) {
+  return Math.ceil(2 * Math.pow(1.27, stage - 1));
+}
+function prestigeMult() {
+  return 1 + state.realm * 0.35;
+}
+function getDamage() {
+  return (1 + state.powerLv) * Math.pow(1.28, state.powerLv) * prestigeMult();
+}
+function getCritChance() {
+  return Math.min(1, 0.05 + state.critLv * 0.05);
+}
+function getCritMult() {
+  return 2 + state.critDmgLv * 0.5;
+}
+function upgradeCost(u) {
+  return Math.ceil(u.base * Math.pow(u.growth, state[u.id + "Lv"]));
+}
+function prestigeGain() {
+  return Math.max(1, Math.floor(Math.pow(state.runMaxStage, 0.6)));
+}
+function fmt(n) {
+  if (!isFinite(n)) return "∞";
+  if (n < 1000) return Math.floor(n).toString();
+  const units = ["", "K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "No", "Dc"];
+  const i = Math.floor(Math.log10(n) / 3);
+  if (i >= units.length) return n.toExponential(2).replace("e+", "e");
+  return (n / Math.pow(1000, i)).toFixed(2) + units[i];
+}
+
+/* ---------- canvas setup ---------- */
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+let W = 0, H = 0;
+let stars = [];
+
+function resizeCanvas() {
+  const bf = document.getElementById("battlefield");
+  W = canvas.width = bf.clientWidth;
+  H = canvas.height = bf.clientHeight;
+  stars = [];
+  for (let i = 0; i < 170; i++) {
+    stars.push({
+      x: Math.random() * W,
+      y: Math.random() * H * 0.85,
+      r: Math.random() * 1.5 + 0.3,
+      phase: Math.random() * 10,
+    });
+  }
+}
+window.addEventListener("resize", resizeCanvas);
+
+/* ---------- animation state ---------- */
+let hitT = 0;     // monster white flash, 1 -> 0
+let punchT = 0;   // fist thrust, 1 -> 0
+let spawnT = 0;   // monster spawn scale, 1 -> 0
+let shakeT = 0;   // screen shake, 1 -> 0
+
+/* ---------- procedural art: background ---------- */
+function drawBackground() {
+  const g = ctx.createRadialGradient(W / 2, H * 0.45, 20, W / 2, H * 0.45, Math.max(W, H) * 0.75);
+  g.addColorStop(0, "#161638");
+  g.addColorStop(1, "#05050e");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+
+  const t = performance.now() / 620;
+  for (const s of stars) {
+    ctx.globalAlpha = 0.25 + 0.45 * (0.5 + 0.5 * Math.sin(t + s.phase));
+    ctx.fillStyle = "#cdd6ff";
+    ctx.fillRect(s.x, s.y, s.r, s.r);
+  }
+  ctx.globalAlpha = 1;
+
+  ctx.strokeStyle = "rgba(120,100,255,.10)";
+  ctx.lineWidth = 1;
+  const hy = H * 0.64;
+  for (let i = 0; i <= 12; i++) {
+    const y = hy + Math.pow(i / 12, 1.6) * (H - hy);
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(W, y);
+    ctx.stroke();
+  }
+  for (let i = -12; i <= 12; i++) {
+    ctx.beginPath();
+    ctx.moveTo(W / 2 + i * 16, hy);
+    ctx.lineTo(W / 2 + i * 170, H);
+    ctx.stroke();
+  }
+}
+
+/* ---------- procedural art: monsters ---------- */
+function drawSlime(cx, cy, s) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.shadowColor = "#5fe08a";
+  ctx.shadowBlur = 30;
+  ctx.beginPath();
+  ctx.moveTo(-s, s * 0.5);
+  ctx.bezierCurveTo(-s, -s * 0.6, -s * 0.5, -s, 0, -s);
+  ctx.bezierCurveTo(s * 0.5, -s, s, -s * 0.6, s, s * 0.5);
+  ctx.bezierCurveTo(s, s * 0.82, -s, s * 0.82, -s, s * 0.5);
+  ctx.closePath();
+  const g = ctx.createLinearGradient(0, -s, 0, s);
+  g.addColorStop(0, "#7cf0a8");
+  g.addColorStop(1, "#249a58");
+  ctx.fillStyle = g;
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = "rgba(255,255,255,.4)";
+  ctx.beginPath();
+  ctx.ellipse(-s * 0.32, -s * 0.42, s * 0.22, s * 0.11, -0.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#08221a";
+  ctx.beginPath(); ctx.ellipse(-s * 0.3, s * 0.04, s * 0.09, s * 0.13, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(s * 0.3, s * 0.04, s * 0.09, s * 0.13, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = "#08221a";
+  ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.arc(0, s * 0.2, s * 0.2, 0.12 * Math.PI, 0.88 * Math.PI); ctx.stroke();
+  ctx.restore();
+}
+
+function drawGoblin(cx, cy, s) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.shadowColor = "#a8e05f";
+  ctx.shadowBlur = 24;
+  ctx.fillStyle = "#5a9e3a";
+  ctx.beginPath(); ctx.moveTo(-s * 0.5, -s * 0.45); ctx.lineTo(-s * 1.05, -s * 0.9); ctx.lineTo(-s * 0.45, -s * 0.05); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(s * 0.5, -s * 0.45); ctx.lineTo(s * 1.05, -s * 0.9); ctx.lineTo(s * 0.45, -s * 0.05); ctx.closePath(); ctx.fill();
+  const g = ctx.createLinearGradient(0, -s, 0, s);
+  g.addColorStop(0, "#8fd45a"); g.addColorStop(1, "#3f7a28");
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.ellipse(0, -s * 0.2, s * 0.6, s * 0.56, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = "#5a9e3a";
+  ctx.beginPath(); ctx.ellipse(0, s * 0.55, s * 0.4, s * 0.38, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = "#ffdd55";
+  ctx.beginPath(); ctx.ellipse(-s * 0.23, -s * 0.28, s * 0.12, s * 0.09, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(s * 0.23, -s * 0.28, s * 0.12, s * 0.09, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = "#111";
+  ctx.fillRect(-s * 0.26, -s * 0.32, s * 0.055, s * 0.08);
+  ctx.fillRect(s * 0.205, -s * 0.32, s * 0.055, s * 0.08);
+  ctx.strokeStyle = "#1b3a12";
+  ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.arc(0, -s * 0.02, s * 0.23, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke();
+  ctx.save();
+  ctx.translate(s * 0.78, s * 0.3);
+  ctx.rotate(-0.5);
+  ctx.fillStyle = "#7a5230"; ctx.fillRect(-s * 0.055, 0, s * 0.11, s * 0.85);
+  ctx.fillStyle = "#9a6a3c";
+  ctx.beginPath(); ctx.ellipse(0, -s * 0.08, s * 0.19, s * 0.25, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+  ctx.restore();
+}
+
+function drawDragon(cx, cy, s) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.shadowColor = "#ff5f5f";
+  ctx.shadowBlur = 26;
+  ctx.fillStyle = "#8b1e2d";
+  ctx.beginPath(); ctx.moveTo(-s * 0.2, -s * 0.05); ctx.lineTo(-s * 1.3, -s * 0.95); ctx.lineTo(-s * 0.95, s * 0.12); ctx.lineTo(-s * 1.18, s * 0.5); ctx.lineTo(-s * 0.22, s * 0.3); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(s * 0.2, -s * 0.05); ctx.lineTo(s * 1.3, -s * 0.95); ctx.lineTo(s * 0.95, s * 0.12); ctx.lineTo(s * 1.18, s * 0.5); ctx.lineTo(s * 0.22, s * 0.3); ctx.closePath(); ctx.fill();
+  const g = ctx.createLinearGradient(0, -s, 0, s);
+  g.addColorStop(0, "#ff6b5b"); g.addColorStop(1, "#9b1626");
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.ellipse(0, 0, s * 0.6, s * 0.68, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = "#ffd166";
+  ctx.beginPath(); ctx.moveTo(-s * 0.34, -s * 0.5); ctx.lineTo(-s * 0.48, -s * 1.02); ctx.lineTo(-s * 0.09, -s * 0.6); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(s * 0.34, -s * 0.5); ctx.lineTo(s * 0.48, -s * 1.02); ctx.lineTo(s * 0.09, -s * 0.6); ctx.closePath(); ctx.fill();
+  ctx.shadowColor = "#ffe066"; ctx.shadowBlur = 14; ctx.fillStyle = "#ffe066";
+  ctx.beginPath(); ctx.ellipse(-s * 0.24, -s * 0.1, s * 0.1, s * 0.07, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(s * 0.24, -s * 0.1, s * 0.1, s * 0.07, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = "#5a0c16";
+  ctx.beginPath(); ctx.ellipse(0, s * 0.3, s * 0.3, s * 0.17, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = "#fff";
+  for (let i = -2; i <= 2; i++) {
+    ctx.beginPath();
+    ctx.moveTo(i * s * 0.1 - 4, s * 0.24);
+    ctx.lineTo(i * s * 0.1 + 4, s * 0.24);
+    ctx.lineTo(i * s * 0.1, s * 0.36);
+    ctx.closePath(); ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawGiant(cx, cy, s) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.shadowColor = "#d0a060";
+  ctx.shadowBlur = 20;
+  const g = ctx.createLinearGradient(0, -s, 0, s);
+  g.addColorStop(0, "#8d8d99"); g.addColorStop(1, "#43434f");
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.moveTo(-s * 0.8, -s * 0.5); ctx.lineTo(-s * 0.4, -s * 0.95); ctx.lineTo(s * 0.35, -s * 0.9); ctx.lineTo(s * 0.85, -s * 0.4);
+  ctx.lineTo(s * 0.7, s * 0.8); ctx.lineTo(-s * 0.7, s * 0.8); ctx.closePath(); ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = "#ff8a3d"; ctx.lineWidth = 3;
+  ctx.shadowColor = "#ff8a3d"; ctx.shadowBlur = 10;
+  ctx.beginPath(); ctx.moveTo(-s * 0.4, -s * 0.9); ctx.lineTo(-s * 0.15, -s * 0.2); ctx.lineTo(-s * 0.45, s * 0.2); ctx.lineTo(-s * 0.1, s * 0.78); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(s * 0.35, -s * 0.85); ctx.lineTo(s * 0.1, -s * 0.25); ctx.lineTo(s * 0.4, s * 0.3); ctx.stroke();
+  ctx.fillStyle = "#ff8a3d"; ctx.shadowColor = "#ff8a3d"; ctx.shadowBlur = 12;
+  ctx.fillRect(-s * 0.32, -s * 0.25, s * 0.18, s * 0.08);
+  ctx.fillRect(s * 0.14, -s * 0.25, s * 0.18, s * 0.08);
+  ctx.shadowBlur = 0;
+  ctx.restore();
+}
+
+function drawPlanet(cx, cy, s) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.strokeStyle = "rgba(150,200,255,.65)"; ctx.lineWidth = 8;
+  ctx.beginPath(); ctx.ellipse(0, 0, s * 1.25, s * 0.38, -0.35, Math.PI, Math.PI * 2); ctx.stroke();
+  const g = ctx.createRadialGradient(-s * 0.3, -s * 0.3, s * 0.1, 0, 0, s);
+  g.addColorStop(0, "#8fd0ff"); g.addColorStop(0.6, "#3a7fd5"); g.addColorStop(1, "#16306e");
+  ctx.fillStyle = g; ctx.shadowColor = "#5fa8ff"; ctx.shadowBlur = 28;
+  ctx.beginPath(); ctx.arc(0, 0, s, 0, Math.PI * 2); ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = "rgba(120,220,180,.5)";
+  ctx.beginPath(); ctx.ellipse(-s * 0.3, -s * 0.1, s * 0.28, s * 0.14, 0.4, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(s * 0.35, s * 0.3, s * 0.22, s * 0.12, -0.3, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = "rgba(190,220,255,.85)"; ctx.lineWidth = 8;
+  ctx.beginPath(); ctx.ellipse(0, 0, s * 1.25, s * 0.38, -0.35, 0, Math.PI); ctx.stroke();
+  ctx.restore();
+}
+
+function drawCosmos(cx, cy, s) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(performance.now() / 2000 * 0.15);
+  ctx.shadowColor = "#c05fff";
+  ctx.shadowBlur = 24;
+  for (let arm = 0; arm < 3; arm++) {
+    for (let i = 0; i < 48; i++) {
+      const a = arm * Math.PI * 2 / 3 + i * 0.09;
+      const r = s * 0.08 + i * s * 0.021;
+      ctx.fillStyle = i % 4 === 0 ? "#ffffff" : (arm === 0 ? "#c05fff" : arm === 1 ? "#5f8fff" : "#ff7fd0");
+      ctx.globalAlpha = 1 - i / 55;
+      ctx.beginPath();
+      ctx.arc(Math.cos(a) * r, Math.sin(a) * r * 0.7, Math.max(0.6, 3 - i * 0.04), 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.globalAlpha = 1;
+  const g = ctx.createRadialGradient(0, 0, 0, 0, 0, s * 0.3);
+  g.addColorStop(0, "#fff"); g.addColorStop(0.3, "#ffd6ff"); g.addColorStop(1, "rgba(192,95,255,0)");
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(0, 0, s * 0.3, 0, Math.PI * 2); ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.restore();
+}
+
+const MONSTER_DRAWERS = [drawSlime, drawGoblin, drawDragon, drawGiant, drawPlanet, drawCosmos];
+
+function drawFist(px, py, scale) {
+  ctx.save();
+  ctx.translate(px, py);
+  ctx.scale(scale, scale);
+  ctx.rotate(-0.25);
+  ctx.shadowColor = "#ff9a3d";
+  ctx.shadowBlur = 22;
+  const g = ctx.createLinearGradient(0, -40, 0, 60);
+  g.addColorStop(0, "#ffb347"); g.addColorStop(1, "#8a3b0c");
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.roundRect(-26, -10, 52, 86, 14); ctx.fill();
+  ctx.fillStyle = "#ffcd6b";
+  for (let i = 0; i < 4; i++) {
+    ctx.beginPath(); ctx.arc(-22 + i * 15, -22, 11, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.beginPath(); ctx.ellipse(-30, 6, 12, 18, -0.4, 0, Math.PI * 2); ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = "#6b2a08"; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.roundRect(-26, -10, 52, 86, 14); ctx.stroke();
+  ctx.restore();
+}
+
+/* ---------- particles & damage text ---------- */
+let texts = [];
+let particles = [];
+
+function spawnDamage(dmg, crit, index) {
+  texts.push({
+    x: W / 2 + (Math.random() - 0.5) * 140,
+    y: H * 0.46 - 30 - index * 16,
+    vy: -0.65 - Math.random() * 0.45,
+    life: 1,
+    txt: (crit ? "暴击 " : "") + fmt(dmg),
+    crit: crit,
+  });
+}
+
+function spawnExplosion(color) {
+  for (let i = 0; i < 46; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const sp = 2 + Math.random() * 8;
+    particles.push({
+      x: W / 2, y: H * 0.46,
+      vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+      life: 1, color: color, size: 2 + Math.random() * 6,
+    });
+  }
+}
+
+function updateFx(dt) {
+  for (const t of texts) {
+    t.y += t.vy * dt;
+    t.life -= dt / 950;
+  }
+  texts = texts.filter(t => t.life > 0);
+
+  for (const p of particles) {
+    p.x += p.vx * dt / 16;
+    p.y += p.vy * dt / 16;
+    p.vy += 0.18 * dt / 16;
+    p.life -= dt / 720;
+  }
+  particles = particles.filter(p => p.life > 0);
+
+  if (hitT > 0) hitT = Math.max(0, hitT - dt / 120);
+  if (punchT > 0) punchT = Math.max(0, punchT - dt / 180);
+  if (spawnT > 0) spawnT = Math.max(0, spawnT - dt / 350);
+  if (shakeT > 0) shakeT = Math.max(0, shakeT - dt / 180);
+}
+
+function drawFx() {
+  for (const p of particles) {
+    ctx.globalAlpha = Math.max(0, p.life);
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.textAlign = "center";
+  for (const t of texts) {
+    ctx.globalAlpha = Math.min(1, t.life * 2.2);
+    const sz = (t.crit ? 38 : 24) * (0.65 + 0.35 * t.life);
+    ctx.font = "900 " + sz + "px 'Segoe UI', sans-serif";
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = "#05050c";
+    ctx.strokeText(t.txt, t.x, t.y);
+    ctx.fillStyle = t.crit ? "#ff4655" : "#ffffff";
+    ctx.fillText(t.txt, t.x, t.y);
+  }
+  ctx.globalAlpha = 1;
+}
+
+/* ---------- master draw ---------- */
+function draw() {
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  drawBackground();
+
+  ctx.save();
+  if (shakeT > 0) {
+    ctx.translate((Math.random() - 0.5) * shakeT * 11, (Math.random() - 0.5) * shakeT * 11);
+  }
+
+  const cx = W / 2;
+  const cy = H * 0.46;
+  const s = Math.min(120, H * 0.2);
+
+  ctx.save();
+  if (spawnT > 0) {
+    const sc = 0.35 + 0.65 * (1 - spawnT);
+    ctx.translate(cx, cy); ctx.scale(sc, sc); ctx.translate(-cx, -cy);
+  }
+  MONSTER_DRAWERS[(state.stage - 1) % MONSTERS.length](cx, cy, s);
+  if (hitT > 0) {
+    ctx.globalAlpha = hitT * 0.55;
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath(); ctx.arc(cx, cy, s * 0.78, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+  ctx.restore();
+
+  const p = 1 - punchT;
+  const thrust = punchT > 0 ? Math.sin(p * Math.PI) : 0;
+  drawFist(W * 0.82 - W * 0.34 * thrust, H * 0.8 - H * 0.2 * thrust, 1 + 0.3 * thrust);
+
+  drawFx();
+  ctx.restore();
+}
+
+/* ---------- core actions ---------- */
+function attack() {
+  const crit = Math.random() < getCritChance();
+  const hits = 1 + state.comboLv;
+  const perHit = getDamage() * (crit ? getCritMult() : 1);
+  let total = 0;
+  for (let i = 0; i < hits; i++) {
+    total += perHit;
+    spawnDamage(perHit, crit, i);
+  }
+  state.monsterHp -= total;
+
+  const power = perHit;
+  shakeT = Math.min(1, 0.35 + Math.log10(1 + power) * 0.12);
+  hitT = 1;
+  punchT = 1;
+
+  if (state.monsterHp <= 0) killMonster();
+  renderHud();
+}
+
+function killMonster() {
+  const m = MONSTERS[(state.stage - 1) % MONSTERS.length];
+  spawnExplosion(m.color);
+  state.gold += goldFor(state.stage);
+  state.stage += 1;
+  if (state.stage > state.runMaxStage) state.runMaxStage = state.stage;
+  state.monsterHp = monsterHpFor(state.stage);
+  spawnT = 1;
+  render();
+}
+
+function buy(u) {
+  const cost = upgradeCost(u);
+  if (state.gold < cost) return;
+  state.gold -= cost;
+  state[u.id + "Lv"] += 1;
+  render();
+  saveGame();
+}
+
+function doPrestige() {
+  if (state.runMaxStage < 15) return;
+  const gain = prestigeGain();
+  state.realm += gain;
+  state.stage = 1;
+  state.runMaxStage = 1;
+  state.gold = 0;
+  state.powerLv = 0;
+  state.critLv = 0;
+  state.critDmgLv = 0;
+  state.comboLv = 0;
+  state.autoLv = 0;
+  state.monsterHp = monsterHpFor(1);
+  spawnT = 1;
+  toast("突破成功！境界 +" + gain + " · 新倍率 x" + prestigeMult().toFixed(1));
+  render();
+  saveGame();
+}
+
+/* ---------- rendering UI ---------- */
+function renderHud() {
+  document.getElementById("stage").textContent = fmt(state.stage);
+  document.getElementById("gold").textContent = fmt(state.gold);
+  document.getElementById("realm").textContent = state.realm;
+  document.getElementById("dps").textContent = fmt(getDamage());
+  document.getElementById("monsterName").textContent = MONSTERS[(state.stage - 1) % MONSTERS.length].name;
+  const maxHp = monsterHpFor(state.stage);
+  const pct = Math.max(0, Math.min(100, state.monsterHp / maxHp * 100));
+  document.getElementById("hpBar").style.width = pct + "%";
+  document.getElementById("combo").textContent =
+    state.comboLv > 0 ? "连击 " + (1 + state.comboLv) + " 段" : "";
+}
+
+function renderShop() {
+  const shop = document.getElementById("shop");
+  shop.innerHTML = "";
+  for (const u of UPGRADES) {
+    const lv = state[u.id + "Lv"];
+    const cost = upgradeCost(u);
+    const btn = document.createElement("button");
+    btn.className = "upg";
+    btn.disabled = state.gold < cost;
+    btn.innerHTML =
+      '<div class="upg-name">' + u.name + ' <span class="upg-lv">Lv.' + lv + '</span></div>' +
+      '<div class="upg-effect">' + u.desc() + '</div>' +
+      '<div class="upg-cost">' + fmt(cost) + ' 金</div>';
+    btn.addEventListener("click", () => buy(u));
+    shop.appendChild(btn);
+  }
+}
+
+function renderPrestige() {
+  const btn = document.getElementById("prestigeBtn");
+  const info = document.getElementById("prestigeInfo");
+  const ok = state.runMaxStage >= 15;
+  btn.disabled = !ok;
+  if (ok) {
+    const nextMult = 1 + (state.realm + prestigeGain()) * 0.35;
+    info.textContent = "可突破：境界 +" + prestigeGain() +
+      " · 新倍率 x" + nextMult.toFixed(1) + " · 当前最高阶段 " + state.runMaxStage;
+  } else {
+    info.textContent = "突破极限需本轮达到阶段 15（当前最高 " + state.runMaxStage + "）";
+  }
+}
+
+function render() {
+  renderHud();
+  renderShop();
+  renderPrestige();
+}
+
+function toast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => el.classList.remove("show"), 2600);
+}
+
+/* ---------- offline progress ---------- */
+function applyOffline() {
+  const now = Date.now();
+  const away = Math.min((now - state.lastSeen) / 1000, 3600);
+  if (away > 10 && state.autoLv > 0) {
+    const avgDmg = getDamage() * (1 - getCritChance() + getCritChance() * getCritMult());
+    const gps = state.autoLv * avgDmg / monsterHpFor(state.stage) * goldFor(state.stage);
+    const earned = Math.floor(gps * away * 0.5);
+    if (earned > 0) {
+      state.gold += earned;
+      setTimeout(() => toast("离线收益 +" + fmt(earned) + " 金"), 400);
+    }
+  }
+  state.lastSeen = now;
+}
+
+/* ---------- main loop ---------- */
+let lastTs = performance.now();
+let autoAcc = 0;
+
+function loop(ts) {
+  const dt = Math.min(50, ts - lastTs);
+  lastTs = ts;
+
+  if (state.autoLv > 0) {
+    const interval = 1000 / state.autoLv;
+    autoAcc += dt;
+    let n = 0;
+    while (autoAcc >= interval && n < 30) {
+      attack();
+      autoAcc -= interval;
+      n++;
+    }
+    if (n >= 30) autoAcc = 0;
+  } else {
+    autoAcc = 0;
+  }
+
+  updateFx(dt);
+  draw();
+  requestAnimationFrame(loop);
+}
+
+/* ---------- events ---------- */
+document.getElementById("punchBtn").addEventListener("click", attack);
+document.getElementById("battlefield").addEventListener("click", attack);
+document.getElementById("prestigeBtn").addEventListener("click", doPrestige);
+document.addEventListener("keydown", e => {
+  if (e.code === "Space") {
+    e.preventDefault();
+    attack();
+  }
+});
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) saveGame();
+});
+window.addEventListener("beforeunload", saveGame);
+
+/* ---------- init ---------- */
+applyOffline();
+state.monsterHp = monsterHpFor(state.stage);
+resizeCanvas();
+render();
+saveGame();
+requestAnimationFrame(loop);
+setInterval(saveGame, 5000);
+</script>
+</body>
+</html>

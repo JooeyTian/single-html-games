@@ -1,0 +1,43 @@
+<!doctype html>
+<!--
+  新应用模板。
+  用法：复制整个 _template 文件夹并改名，或修改其中的内容。
+  约定：HTML / CSS / JS 都写在这一个文件里；如需拆分成多个文件，资源只放在本应用文件夹内。
+-->
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>应用名称</title>
+  <style>
+    /* 样式写在这里，不引用外部 CSS */
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+    }
+    .app { text-align: center; }
+    h1 { margin: 0 0 8px; font-size: 28px; }
+    p { margin: 0; color: #94a3b8; }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>应用名称</h1>
+    <p>从这里开始写你的游戏或工具 🎉</p>
+    <!-- 游戏画布、工具界面等写在 <main> 里 -->
+  </main>
+
+  <script>
+    // 脚本写在这里，不引用外部 JS
+    // 如果是游戏，可以用下面的循环骨架：
+    // function update(t) { /* 逻辑 */ requestAnimationFrame(update); }
+    // requestAnimationFrame(update);
+  </script>
+</body>
+</html>

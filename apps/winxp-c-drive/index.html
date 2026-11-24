@@ -1,0 +1,2010 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#245edb">
+<title>Windows XP · C盘考古</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;font-family:Tahoma,"Microsoft YaHei",SimSun,sans-serif;font-size:12px;color:#000;user-select:none;-webkit-user-select:none;background:#000}
+button,input{font-family:inherit;font-size:inherit}
+#desktop{position:fixed;left:0;right:0;top:0;bottom:40px;overflow:hidden}
+.wallpaper{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+.desk-icons{position:absolute;top:14px;left:12px;display:flex;flex-direction:column;gap:10px;z-index:1}
+.dicon{width:78px;text-align:center;color:#fff;cursor:default;text-shadow:0 1px 2px #000,0 0 3px rgba(0,0,0,.8)}
+.dicon .ic{width:42px;height:42px;margin:0 auto 3px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(1px 2px 2px rgba(0,0,0,.45))}
+.dicon .ic svg{width:42px;height:42px}
+.dicon .lb{padding:2px 3px;border:1px solid transparent;font-size:12px;line-height:1.2;display:inline-block}
+.dicon.sel .lb{background:#124db8;border:1px dotted #bcd8ff}
+
+/* ---------- windows ---------- */
+.win{position:absolute;background:#ece9d8;border:1px solid #0054e3;border-radius:8px 8px 3px 3px;box-shadow:2px 4px 14px rgba(0,0,0,.38);display:flex;flex-direction:column;min-width:240px;min-height:150px;overflow:hidden;z-index:100}
+.win.inactive{border-color:#8294ad;box-shadow:1px 2px 8px rgba(0,0,0,.28)}
+.win.minimized{display:none}
+.title-bar{height:29px;flex-shrink:0;background:linear-gradient(to bottom,#0a5ce6 0%,#3f93ea 8%,#2b7fe0 48%,#1e6fd0 90%,#1558b8 100%);border-radius:7px 7px 0 0;display:flex;align-items:center;padding:0 4px 0 7px;color:#fff;cursor:default}
+.win.inactive .title-bar{background:linear-gradient(to bottom,#9ab5d4,#7693bd)}
+.title-bar .ti{font-weight:bold;font-size:12px;text-shadow:1px 1px 1px rgba(0,0,0,.45);flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;display:flex;align-items:center;gap:5px}
+.title-bar .ti svg{width:16px;height:16px;flex-shrink:0}
+.win-btns{display:flex;gap:3px}
+.wbtn{width:21px;height:21px;border:1px solid #fff;border-radius:4px;background:linear-gradient(to bottom,#5aa4ff,#1b5fd0);color:#fff;font-size:11px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;text-shadow:0 1px 1px #000;font-weight:bold}
+.wbtn.close{background:linear-gradient(to bottom,#ff9c80,#e03b1e)}
+.wbtn:active{filter:brightness(.78)}
+.menu-bar{height:23px;flex-shrink:0;background:#faf9f4;border-bottom:1px solid #d6d2c4;display:flex;align-items:center;padding:0 6px;gap:15px;font-size:12px}
+.menu-bar span{cursor:default}
+.menu-bar span:hover{color:#0057d8}
+.tool-bar{height:37px;flex-shrink:0;background:linear-gradient(to bottom,#fdfcf7,#e7e4d9);border-bottom:1px solid #cfcbbb;display:flex;align-items:center;gap:4px;padding:0 6px}
+.tb-btn{height:26px;min-width:26px;padding:0 5px;border:1px solid transparent;border-radius:3px;background:transparent;display:flex;align-items:center;gap:4px;cursor:pointer;color:#333}
+.tb-btn:hover{border-color:#a8c4ee;background:linear-gradient(to bottom,#fff,#dce9ff)}
+.tb-btn:active{background:#c5daf7}
+.tb-btn:disabled{opacity:.35;cursor:default}
+.tb-btn svg{width:20px;height:20px}
+.tb-sep{width:1px;height:22px;background:#c9c5b7;margin:0 3px}
+.addr-bar{height:26px;flex-shrink:0;background:#fff;border-top:1px solid #fff;border-bottom:1px solid #d6d2c4;display:flex;align-items:center;gap:6px;padding:0 6px}
+.addr-bar .lbl{color:#666}
+.addr-field{flex:1;height:20px;background:#fff;border:1px solid #7f9db9;display:flex;align-items:center;padding:0 5px;overflow:hidden;white-space:nowrap;font-size:12px}
+.win-body{flex:1;overflow:auto;background:#fff;position:relative;min-height:0}
+.status-bar{height:22px;flex-shrink:0;background:#ece9d8;border-top:1px solid #fff;display:flex;align-items:center;gap:3px;padding:0 3px;font-size:11px;color:#333}
+.status-cell{padding:2px 7px;border:1px solid #fff;min-width:70px;background:#f7f5ec}
+.status-cell.grow{flex:1}
+.status-cell button{border:0;background:transparent;color:#0057d8;cursor:pointer;padding:0;margin-right:16px;text-decoration:underline;font-size:11px}
+.files{display:flex;flex-wrap:wrap;align-content:flex-start;gap:3px;padding:10px 8px;min-height:100%}
+.file{width:86px;min-height:82px;padding:6px 2px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:default;border:1px solid transparent;border-radius:2px}
+.file:hover{background:#edf3ff}
+.file.sel{background:#cfe0ff;border:1px dotted #3465c0}
+.file .ic{width:38px;height:38px;display:flex;align-items:center;justify-content:center}
+.file .ic svg{width:38px;height:38px}
+.file .nm{font-size:12px;text-align:center;line-height:1.25;word-break:break-all;max-height:33px;overflow:hidden}
+.file.locked .nm{color:#8a5a00}
+.info-pane{padding:10px 14px;line-height:1.9;color:#444}
+.info-pane b{color:#154bbb}
+.empty{padding:30px;text-align:center;color:#888}
+
+/* notepad */
+.win.notepad .win-body{background:#fff;font-family:"Courier New","SimSun",monospace}
+.typed{white-space:pre-wrap;word-break:break-all;padding:10px 14px 30px;font-size:14px;line-height:1.75;color:#111;min-height:100%}
+.tline{min-height:1.75em}
+.caret{display:inline-block;width:7px;height:14px;background:#222;vertical-align:-2px;animation:blink .7s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* minesweeper */
+.win.mines .win-body{background:#c0c0c0;padding:6px}
+.mine-panel{border:3px solid #fff;border-right-color:#7b7b7b;border-bottom-color:#7b7b7b;background:#c0c0c0;padding:5px;display:inline-block}
+.mine-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;border:2px solid #7b7b7b;border-right-color:#fff;border-bottom-color:#fff;padding:2px 4px}
+.digital{font-family:"Courier New",monospace;font-weight:bold;font-size:20px;color:#f00;background:#000;padding:0 3px;letter-spacing:2px;text-shadow:0 0 4px #f00}
+.smiley{width:28px;height:28px;border:2px solid #fff;border-right-color:#7b7b7b;border-bottom-color:#7b7b7b;font-size:16px;line-height:1;cursor:pointer;background:#c0c0c0;display:flex;align-items:center;justify-content:center}
+.grid{display:grid;grid-template-columns:repeat(9,22px);gap:0;border:2px solid #7b7b7b;border-right-color:#fff;border-bottom-color:#fff}
+.cell{width:22px;height:22px;border:2px solid #fff;border-right-color:#7b7b7b;border-bottom-color:#7b7b7b;background:#c0c0c0;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:13px;cursor:pointer;font-family:Tahoma}
+.cell.rev{border:1px solid #808080;font-size:13px}
+.cell.boom{background:#f00;color:#000}
+.cell.flag{color:#e00}
+
+/* ---------- taskbar ---------- */
+#taskbar{position:fixed;left:0;right:0;bottom:0;height:40px;background:linear-gradient(to bottom,#3f8ef0 0%,#245edb 14%,#1a4fc4 100%);border-top:1px solid #8bc0ff;display:flex;align-items:center;gap:4px;padding:2px 4px;z-index:9000;box-shadow:0 -1px 4px rgba(0,0,0,.2)}
+.start-btn{height:32px;display:flex;align-items:center;gap:6px;padding:0 10px 0 6px;border-radius:0 10px 10px 0;background:linear-gradient(to bottom,#7bcb0c,#4a9b06);border:1px solid #2f6b00;color:#fff;font-weight:bold;font-size:15px;cursor:pointer;text-shadow:1px 1px 1px rgba(0,0,0,.45);flex-shrink:0}
+.start-btn.open{background:linear-gradient(to bottom,#4a9b06,#2f6b00)}
+.start-btn .flag{width:18px;height:18px}
+.quick{display:flex;gap:2px;padding-left:7px;border-left:1px solid rgba(255,255,255,.35);flex-shrink:0}
+.qbtn{width:26px;height:26px;display:flex;align-items:center;justify-content:center;border:1px solid transparent;border-radius:3px;cursor:pointer;background:transparent}
+.qbtn:hover{border-color:#a8c8ff;background:rgba(255,255,255,.18)}
+.qbtn svg{width:18px;height:18px}
+.tasks{flex:1;display:flex;gap:3px;overflow:hidden;padding-left:7px;min-width:0}
+.task-btn{height:30px;max-width:165px;min-width:80px;background:linear-gradient(to bottom:#5aa0ff,#2b6fd8);border:1px solid #1c4fa8;border-radius:3px;color:#fff;display:flex;align-items:center;gap:5px;padding:0 8px;cursor:pointer;font-size:12px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex-shrink:1}
+.task-btn.active{background:linear-gradient(to bottom,#2b5db8,#17429a);box-shadow:inset 1px 1px 3px rgba(0,0,0,.45)}
+.task-btn svg{width:16px;height:16px;flex-shrink:0}
+.tray{height:30px;min-width:118px;background:linear-gradient(to bottom,#45a8f8,#1d6fd0);border:1px solid #164e9e;border-radius:3px;display:flex;align-items:center;justify-content:flex-end;gap:9px;padding:0 9px;color:#fff;font-size:12px;flex-shrink:0;cursor:default}
+.tray .ti{width:16px;height:16px}
+.tray .vol{cursor:pointer}
+
+/* ---------- start menu ---------- */
+#startMenu{position:fixed;left:0;bottom:40px;width:390px;background:#fff;border:2px solid #1451b8;border-radius:8px 8px 0 0;z-index:9500;display:none;flex-direction:column;box-shadow:3px -3px 14px rgba(0,0,0,.4);overflow:hidden}
+#startMenu.show{display:flex}
+.sm-head{height:60px;flex-shrink:0;background:linear-gradient(to bottom,#2c5fd0,#1a4bb0);display:flex;align-items:center;gap:10px;padding:8px 12px;color:#fff;border-bottom:2px solid #103985}
+.sm-avatar{width:40px;height:40px;border:2px solid #fff;border-radius:5px;background:linear-gradient(135deg,#ffd75e,#f08c2a);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 1px 3px rgba(0,0,0,.4)}
+.sm-user{font-size:15px;font-weight:bold;text-shadow:1px 1px 2px rgba(0,0,0,.5)}
+.sm-body{display:flex;min-height:300px}
+.sm-left{width:152px;flex-shrink:0;background:linear-gradient(to bottom,#4a92ef 0%,#2a68cf 22%,#1c56bd 100%);padding:9px 0 9px 0;display:flex;flex-direction:column}
+.sm-banner{flex:1;display:flex;align-items:flex-end;padding:0 0 8px 14px;pointer-events:none}
+.sm-banner b{font-size:22px;color:rgba(255,255,255,.92);text-shadow:2px 2px 1px rgba(0,0,0,.35);letter-spacing:1px}
+.sm-item{height:34px;display:flex;align-items:center;gap:8px;padding:0 13px;color:#fff;font-size:14px;cursor:pointer;text-shadow:1px 1px 1px rgba(0,0,0,.35)}
+.sm-item:hover{background:#1652bd}
+.sm-item svg{width:20px;height:20px;flex-shrink:0}
+.sm-right{flex:1;background:#fff;padding:8px 7px;display:flex;flex-direction:column;gap:1px;min-width:0}
+.sm-sep{height:1px;background:#d9d9d9;margin:5px 4px}
+.sm-right .r{height:34px;display:flex;align-items:center;gap:10px;padding:0 9px;cursor:pointer;border-radius:3px;font-size:12px}
+.sm-right .r:hover{background:#deebff}
+.sm-right .r svg{width:22px;height:22px;flex-shrink:0}
+.sm-right .r .arrow{margin-left:auto;color:#888}
+.sm-foot{height:36px;flex-shrink:0;background:#d3e5ff;border-top:1px solid #a8c6ef;display:flex;align-items:center;justify-content:flex-end;gap:16px;padding:0 12px}
+.sm-foot span{display:flex;align-items:center;gap:5px;cursor:pointer;color:#234}
+.sm-foot span:hover{color:#0057d8}
+.sm-foot svg{width:16px;height:16px}
+
+/* ---------- context menu ---------- */
+#contextMenu{position:fixed;z-index:9800;background:#fff;border:1px solid #7f9db9;box-shadow:2px 3px 9px rgba(0,0,0,.3);padding:3px;display:none;min-width:142px}
+#contextMenu.show{display:block}
+.cm-item{padding:6px 22px;cursor:pointer;font-size:12px;white-space:nowrap}
+.cm-item:hover{background:#316ac5;color:#fff}
+.cm-sep{height:1px;background:#ddd;margin:3px 5px}
+
+/* ---------- clippy ---------- */
+#clippy{position:fixed;right:8px;bottom:46px;z-index:8000;display:flex;align-items:flex-end;gap:6px;flex-direction:row-reverse;pointer-events:none;max-width:calc(100vw - 12px)}
+.clip-body{width:38px;height:54px;flex-shrink:0;margin-bottom:2px;pointer-events:auto;cursor:pointer;filter:drop-shadow(1px 1px 2px rgba(0,0,0,.4))}
+.clip-body svg{width:100%;height:100%;display:block}
+.clip-body.talk{animation:hop .4s ease}
+@keyframes hop{0%,100%{transform:translateY(0)}40%{transform:translateY(-7px) rotate(-4deg)}70%{transform:translateY(-2px) rotate(2deg)}}
+.speech{max-width:min(210px,calc(100vw - 62px));background:#fffbe6;border:2px solid #d4a017;border-radius:8px;padding:7px 9px;box-shadow:2px 3px 9px rgba(0,0,0,.3);font-size:11px;line-height:1.5;display:none;position:relative;color:#4a3a10;overflow-wrap:anywhere}
+.speech.show{display:block}
+.speech:after{content:"";position:absolute;right:-8px;bottom:7px;border:7px solid transparent;border-left-color:#d4a017}
+.speech:before{content:"";position:absolute;right:-5px;bottom:8px;border:6px solid transparent;border-left-color:#fffbe6;z-index:1}
+
+/* ---------- screensaver ---------- */
+#ss{position:fixed;inset:0;background:#000;z-index:9900;display:none;overflow:hidden;cursor:none}
+#ss.show{display:block}
+.sslogo{position:absolute;width:230px;text-align:center;color:#fff;will-change:transform;pointer-events:none}
+.ssflag{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;width:74px;height:74px;margin:0 auto 10px;transform:skewY(-8deg);filter:drop-shadow(2px 3px 4px rgba(0,0,0,.8))}
+.ssflag i{display:block}
+.ssflag i:nth-child(1){background:#f25022}.ssflag i:nth-child(2){background:#7fba00}.ssflag i:nth-child(3){background:#00a4ef}.ssflag i:nth-child(4){background:#ffb900}
+.sstext{font-size:30px;font-weight:bold;letter-spacing:1px;text-shadow:2px 3px 3px rgba(0,0,0,.9)}
+.sstext small{font-size:13px;font-weight:normal;display:block;opacity:.85;letter-spacing:3px;margin-top:2px}
+
+/* ---------- modal ---------- */
+#modalLayer{position:fixed;inset:0;background:rgba(0,0,0,.48);z-index:9600;display:none;align-items:center;justify-content:center;padding:20px}
+#modalLayer.show{display:flex}
+.modal{background:#ece9d8;border:1px solid #0054e3;border-radius:8px;box-shadow:0 12px 40px rgba(0,0,0,.55);min-width:min(440px,94vw);max-width:min(720px,94vw);max-height:88vh;display:flex;flex-direction:column;overflow:hidden}
+.modal .title-bar{height:34px;border-radius:6px 6px 0 0;font-size:13px}
+.modal-content{padding:24px 28px;background:#f7f5ee;overflow:auto;flex:1;font-size:13px;line-height:1.9}
+.modal-btns{display:flex;justify-content:flex-end;gap:10px;padding:14px 24px 22px;background:#f7f5ee;flex-shrink:0}
+.xbtn{min-width:88px;height:32px;padding:0 18px;border:1px solid #7f9db9;border-radius:3px;background:linear-gradient(to bottom,#fff,#e2e6ec);cursor:pointer;font-size:13px}
+.xbtn:hover{background:linear-gradient(to bottom,#fff,#d3e5ff)}
+.xbtn.primary{border-color:#1c4fa8;background:linear-gradient(to bottom,#6aa8ff,#2b6fd8);color:#fff}
+.modal input[type=text]{width:100%;height:32px;border:1px solid #7f9db9;padding:0 10px;background:#fff;outline:none;font-size:13px}
+.modal-content .info-pane{padding:2px 0;line-height:2;font-size:13px}
+.report-wrap{display:flex;flex-direction:column;align-items:center;gap:14px}
+#reportCanvas{width:320px;height:427px;max-width:100%;box-shadow:0 5px 18px rgba(0,0,0,.45);border:1px solid #b9a986;cursor:pointer}
+.report-tip{font-size:12px;color:#665;line-height:1.7;text-align:center}
+.report-actions{display:flex;gap:10px;justify-content:center;padding-bottom:4px}
+
+.win-grip{position:absolute;right:0;bottom:0;width:16px;height:16px;z-index:6;cursor:nwse-resize;
+  background:linear-gradient(135deg,transparent 42%,#b9b9b9 42%,#b9b9b9 50%,transparent 50%,transparent 64%,#b9b9b9 64%,#b9b9b9 72%,transparent 72%,transparent 86%,#b9b9b9 86%,#b9b9b9 94%,transparent 94%)}
+
+/* ---------- responsive ---------- */
+@media (max-width:760px) and (pointer:fine){
+  .quick{display:none}
+  .tray{min-width:100px;padding:0 6px}
+  .task-btn{min-width:38px;max-width:110px;padding:0 6px}
+  .start-btn{font-size:13px;padding:0 8px}
+  #startMenu{width:min(390px,100vw)}
+}
+body.phone #desktop{bottom:46px}
+body.phone #taskbar{height:46px;padding:2px 3px}
+body.phone .start-btn{font-size:13px;padding:0 8px}
+body.phone .start-btn .flag{width:16px;height:16px}
+body.phone .quick{display:none}
+body.phone .tray{min-width:92px;padding:0 6px;gap:6px;font-size:11px}
+body.phone .tasks{padding-left:3px}
+body.phone .task-btn{min-width:34px;width:38px;padding:0;justify-content:center;font-size:0}
+body.phone .task-btn svg{width:18px;height:18px}
+body.phone .win{position:fixed!important;left:0!important;top:0!important;width:100%!important;height:calc(100% - 46px)!important;border-radius:0;border:0;box-shadow:none;min-width:0;min-height:0}
+body.phone .win-grip{display:none}
+body.phone .title-bar{border-radius:0;height:34px}
+body.phone .menu-bar{overflow-x:auto;white-space:nowrap}
+body.phone .files{padding:8px 4px;gap:2px}
+body.phone .file{width:76px}
+body.phone #startMenu{width:100%;bottom:46px;border-radius:10px 10px 0 0}
+body.phone .sm-body{min-height:270px}
+body.phone #clippy{right:6px;bottom:52px}
+body.phone .clip-body{width:32px;height:46px}
+body.phone .speech{max-width:min(165px,calc(100vw - 54px));font-size:10.5px;padding:6px 8px}
+body.phone .sm-foot span{font-size:11px}
+
+/* ================= 仿真应用界面 ================= */
+.ie-win .win-body{background:#fff}
+.qz{min-height:100%;background:#eef3fa;color:#333;font-family:SimSun,"Microsoft YaHei",serif;font-size:12px;padding:8px}
+.qz-banner{height:66px;border:2px ridge #9cc;background:linear-gradient(115deg,#ffd9ec,#d9e9ff 45%,#d9ffd9);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:bold;color:#d2378b;text-shadow:1px 1px 0 #fff;letter-spacing:2px}
+.qz-marquee{margin-top:5px;border:1px dashed #f9a;background:#fff6fa;color:#d2378b;padding:3px;overflow:hidden;white-space:nowrap}
+.qz-nav{display:flex;gap:4px;margin:6px 0}
+.qz-nav span{padding:3px 12px;background:#fff;border:1px solid #a9c4e8;color:#1461b8;cursor:default}
+.qz-nav span:hover{background:#d8e9ff}
+.qz-main{display:flex;gap:8px}
+.qz-left{flex:1;min-width:0}
+.qz-right{width:132px;flex-shrink:0}
+.qz-box{border:1px solid #b8cbe4;background:#fff;margin-bottom:7px}
+.qz-box h4{margin:0;padding:4px 7px;background:linear-gradient(to right,#6a9fd8,#a8cdf2);color:#fff;font-size:12px}
+.qz-box .bd{padding:7px}
+.qz-log{border-bottom:1px dotted #ccd;padding:4px 0}
+.qz-log b{color:#1461b8}
+.qz-log .tm{color:#999;font-size:11px;float:right}
+.qz-msg{border-bottom:1px dotted #ddd;padding:4px 0;line-height:1.5}
+.qz-msg b{color:#d2378b}
+.qz-msg .tm{color:#999;font-size:11px}
+.qz-form{display:flex;gap:5px;margin-top:6px}
+.qz-form input{flex:1;min-width:0;height:23px;border:1px solid #8fb0d8;padding:0 5px;font-size:12px}
+.qz-form button{height:23px;border:1px solid #5c8bc7;background:linear-gradient(#fff,#dbe9ff);cursor:pointer;font-size:12px;padding:0 8px}
+.qz-counter{font-family:"Courier New",monospace;background:#000;color:#0f0;text-align:center;font-size:16px;letter-spacing:3px;padding:2px}
+.qz-badge{margin-top:8px;font-family:Tahoma;font-size:10px;color:#668;text-align:center}
+.qz-hint{color:#d2378b;font-weight:bold;margin:4px 0}
+
+.wizard .win-body{background:#ece9d8}
+.wz{display:flex;min-height:100%;font-size:12px}
+.wz-side{width:110px;flex-shrink:0;background:linear-gradient(to bottom,#3f8ee0,#1c56bd);color:#fff;padding:14px 10px;display:flex;align-items:flex-start}
+.wz-side b{writing-mode:vertical-rl;font-size:18px;letter-spacing:4px;opacity:.9}
+.wz-main{flex:1;display:flex;flex-direction:column;min-width:0}
+.wz-body{flex:1;padding:14px 16px;background:#fff;margin:10px;border:1px solid #a7b8cc;min-height:0;overflow:auto}
+.wz-body h3{margin:0 0 10px;font-size:15px;color:#154bbb}
+.wz-body p{line-height:1.8;margin:6px 0}
+.wz-license{height:96px;overflow:auto;border:1px inset #ddd;background:#fafafa;padding:7px;color:#555;font-size:11px;line-height:1.6}
+.wz-opts label{display:block;padding:4px 0}
+.wz-btns{display:flex;justify-content:flex-end;gap:8px;padding:0 12px 12px}
+.wz-bar{height:16px;border:2px inset #fff;background:#e8e8e8;margin:10px 0;overflow:hidden}
+.wz-bar i{display:block;height:100%;background:repeating-linear-gradient(45deg,#2b8cf0,#2b8cf0 10px,#1c6fd0 10px,#1c6fd0 20px);width:0}
+
+.qql .win-body{background:linear-gradient(to bottom,#8fd0ff,#4a9fe8);padding:12px;display:flex;flex-direction:column;align-items:center;gap:9px}
+.qql-logo{font-size:18px;font-weight:bold;color:#fff;text-shadow:1px 2px 2px #14509e}
+.qql-field{display:flex;align-items:center;gap:6px;width:100%}
+.qql-field span{color:#124b96;font-size:12px;width:42px}
+.qql-field input{flex:1;min-width:0;height:24px;border:2px inset #fff;padding:0 6px}
+.qql-btns{display:flex;gap:8px;margin-top:4px}
+.qql-btns button{height:26px;padding:0 14px;border:1px solid #2f6fb8;border-radius:3px;background:linear-gradient(#fff,#d7e8ff);cursor:pointer}
+.qql-status{margin-top:4px;color:#fff;font-size:11px}
+.buddy .win-body{background:#fff;display:flex;flex-direction:column}
+.buddy-top{height:52px;background:linear-gradient(115deg,#8ec9ff,#3e8fe0);display:flex;align-items:center;gap:8px;padding:0 10px;color:#fff;font-weight:bold}
+.buddy-list{flex:1;overflow:auto;padding:6px 8px}
+.buddy-group{color:#777;font-size:11px;padding:5px 0 3px;border-bottom:1px dotted #ddd}
+.buddy-row{display:flex;align-items:center;gap:8px;padding:5px 6px;cursor:default;border:1px solid transparent}
+.buddy-row:hover{background:#e8f1ff;border-color:#bcd4f5}
+.buddy-row .dot{width:9px;height:9px;border-radius:50%;background:#3ac33a;flex-shrink:0}
+.buddy-row.off .dot{background:#bbb}
+.buddy-row .nick{flex:1;font-size:12px}
+.buddy-row.off .nick{color:#aaa}
+.buddy-row .sign{font-size:10px;color:#999;max-width:110px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.buddy-foot{height:26px;border-top:1px solid #ddd;display:flex;align-items:center;justify-content:flex-end;gap:6px;padding:0 8px;background:#f5f5f5}
+.buddy-foot button{height:20px;font-size:11px;border:1px solid #a8b8c8;background:#fff;cursor:pointer}
+.chat .win-body{display:flex;flex-direction:column;background:#fff}
+.chat-log{flex:1;overflow:auto;padding:8px;font-size:12px;line-height:1.7}
+.chat-log div{margin-bottom:4px}
+.chat-log .me{color:#1a5fc8}
+.chat-log .her{color:#c2387c}
+.chat-log .sys{color:#999;font-size:11px;text-align:center}
+.chat-bar{border-top:1px solid #ddd;padding:5px;display:flex;gap:5px;background:#f6f6f6}
+.chat-bar textarea{flex:1;height:44px;resize:none;border:1px solid #9fb8d8;padding:4px;font-size:12px}
+.chat-bar button{width:52px;border:1px solid #3f7fc8;background:linear-gradient(#fff,#d9e9ff);cursor:pointer;font-size:12px}
+
+.wmp .win-body{background:#111;display:flex;flex-direction:column}
+.wmp-screen{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:#000;overflow:hidden}
+.wmp-screen canvas{max-width:100%;max-height:100%;display:block}
+.wmp-ctrl{background:linear-gradient(#f6f6f6,#dcdcdc);border-top:1px solid #999;padding:5px 8px;display:flex;flex-direction:column;gap:5px}
+.wmp-row{display:flex;align-items:center;gap:6px}
+.wmp-row button{height:22px;min-width:26px;border:1px solid #99a;border-radius:3px;background:linear-gradient(#fff,#dcdcdc);cursor:pointer;font-size:11px;padding:0 6px}
+.wmp-time{font-family:"Courier New",monospace;font-size:11px;color:#333}
+.wmp-track{flex:1;height:10px;border:1px inset #fff;background:#eee;cursor:pointer}
+.wmp-track i{display:block;height:100%;background:linear-gradient(#5fb0ff,#1c6fd0);width:0}
+.wmp-list{max-height:76px;overflow:auto;background:#fff;border:1px inset #ddd;font-size:11px}
+.wmp-list div{padding:3px 7px;cursor:default;border-bottom:1px dotted #eee}
+.wmp-list div.on{background:#d7e8ff;color:#154bbb}
+.wmp-vis{width:100%;height:46px;display:block;background:#0b1a2c}
+
+.photo .win-body{background:#333;display:flex;flex-direction:column}
+.photo-stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#222}
+.photo-stage canvas{max-width:100%;max-height:100%;display:block;box-shadow:0 4px 18px rgba(0,0,0,.7)}
+.photo-bar{background:linear-gradient(#f5f5f5,#d8d8d8);border-top:1px solid #999;padding:5px 8px;display:flex;align-items:center;gap:7px;font-size:11px}
+.photo-bar button{height:22px;border:1px solid #99a;background:linear-gradient(#fff,#dedede);cursor:pointer;padding:0 8px;font-size:11px}
+.photo-cap{flex:1;color:#444;text-align:center}
+
+.evt .win-body{display:flex;background:#fff}
+.evt-tree{width:140px;flex-shrink:0;border-right:1px solid #ccc;background:#f7f7f7;padding:6px;font-size:11px}
+.evt-tree div{padding:4px 5px}
+.evt-tree div.sel{background:#d7e8ff}
+.evt-main{flex:1;display:flex;flex-direction:column;min-width:0}
+.evt-list{height:52%;overflow:auto;border-bottom:2px solid #ccc;font-size:11px}
+.evt-row{display:flex;gap:7px;padding:4px 7px;border-bottom:1px solid #eee;cursor:default}
+.evt-row:hover{background:#e8f1ff}
+.evt-row.sel{background:#d7e8ff}
+.evt-ic{width:14px;height:14px;border-radius:50%;flex-shrink:0;margin-top:1px}
+.evt-detail{flex:1;overflow:auto;padding:10px;font-size:11px;line-height:1.8;color:#444}
+.evt-detail b{color:#154bbb}
+
+.zipwin .win-body{background:#fff}
+.zip-head{padding:9px 12px;background:#f6f6f6;border-bottom:1px solid #ccc;font-size:11px;color:#555}
+.zip-list{height:120px;overflow:auto;border:1px inset #ddd;margin:9px 10px;font-size:11px}
+.zip-list div{padding:3px 7px;border-bottom:1px dotted #eee}
+.zip-bar{height:15px;border:2px inset #fff;background:#eee;margin:0 10px;overflow:hidden}
+.zip-bar i{display:block;height:100%;width:0;background:repeating-linear-gradient(45deg,#f0b429,#f0b429 10px,#df9510 10px,#df9510 20px)}
+.zip-btns{display:flex;justify-content:flex-end;gap:8px;padding:10px}
+.zip-btns button{height:25px;padding:0 12px;border:1px solid #a8b8c8;background:linear-gradient(#fff,#dcdcdc);cursor:pointer;font-size:12px}
+.zip-btns button.primary{border-color:#2f6fb8;background:linear-gradient(#fff,#cfe2ff)}
+
+/* ---------- 攻略帮助窗口 ---------- */
+.guidewin .win-body{display:flex;background:#fff}
+.guide-toc{width:176px;flex-shrink:0;background:linear-gradient(to bottom,#eaf2ff,#d6e6ff);border-right:1px solid #a8c4e8;padding:10px 6px;overflow:auto}
+.guide-toc h4{margin:2px 8px 8px;font-size:12px;color:#1c56a8}
+.guide-toc div{padding:7px 9px;margin:1px 4px;border-radius:3px;font-size:12px;cursor:default;color:#234}
+.guide-toc div:hover{background:#c3d9ff}
+.guide-toc div.sel{background:#316ac5;color:#fff}
+.guide-doc{flex:1;min-width:0;overflow:auto;padding:20px 26px 28px;font-family:"Microsoft YaHei",SimSun,sans-serif;font-size:13px;line-height:1.95;color:#2b2b2b}
+.guide-doc h2{margin:0 0 12px;font-size:20px;color:#154bbb;border-bottom:2px solid #c9d9f2;padding-bottom:7px}
+.guide-doc h3{margin:18px 0 6px;font-size:15px;color:#1b5aa8}
+.guide-doc p{margin:7px 0}
+.guide-doc ol,.guide-doc ul{margin:7px 0 7px 22px;padding:0}
+.guide-doc li{margin:4px 0}
+.guide-doc b{color:#a2321e}
+.guide-doc .tip{background:#fff8dc;border:1px solid #e8cf82;border-left:4px solid #e0a800;padding:10px 14px;margin:12px 0;border-radius:3px}
+.guide-doc .key{display:inline-block;background:#e8eef7;border:1px solid #9ab;border-radius:3px;padding:0 6px;font-family:Tahoma,monospace;color:#154bbb}
+.guide-doc table{border-collapse:collapse;width:100%;margin:10px 0;font-size:12px}
+.guide-doc th,.guide-doc td{border:1px solid #c8d4e4;padding:6px 9px;text-align:left;vertical-align:top}
+.guide-doc th{background:#e6efff;color:#154bbb}
+.guide-go{margin-top:18px;height:32px;padding:0 18px;border:1px solid #2f6fb8;border-radius:3px;background:linear-gradient(#fff,#cfe2ff);cursor:pointer;font-size:13px}
+
+/* ---------- IE 浏览器 ---------- */
+.fav-bar{height:28px;flex-shrink:0;background:linear-gradient(#fdfcf7,#e9e6db);border-bottom:1px solid #cfcbbb;display:flex;align-items:center;gap:3px;padding:0 6px;overflow-x:auto;white-space:nowrap}
+.fav-bar .fav-lbl{color:#777;font-size:11px;margin-right:3px;flex-shrink:0}
+.fav-bar button{height:21px;border:1px solid transparent;background:transparent;color:#24539e;font-size:11px;cursor:pointer;padding:0 7px;border-radius:3px;flex-shrink:0;display:flex;align-items:center;gap:4px}
+.fav-bar button:hover{border-color:#a8c4ee;background:#fff}
+.fav-bar button.on{background:#d6e6ff;border-color:#8fb4e8;font-weight:bold}
+.fav-bar button.locked{color:#999}
+.ie-win .win-body{background:#fff}
+.ie-page{min-height:100%;padding:12px 16px;font-family:SimSun,"Microsoft YaHei",serif;font-size:12px;color:#333;background:#fff}
+.bd-wrap{min-height:100%;background:#fff;text-align:center;font-family:SimSun,serif;padding:22px 10px}
+.bd-logo{font-size:42px;font-weight:bold;color:#2932c9;letter-spacing:-3px;text-shadow:2px 2px 0 #d8dcff}
+.bd-logo span{color:#e33}
+.bd-search{display:flex;justify-content:center;gap:6px;margin:18px 0 10px}
+.bd-search input{width:min(380px,70%);height:30px;border:2px solid #4a6fc4;padding:0 9px;font-size:14px}
+.bd-search button{height:30px;padding:0 16px;border:1px solid #3451a8;background:linear-gradient(#fff,#cfe0ff);cursor:pointer;color:#234;font-weight:bold}
+.bd-hot{color:#555;font-size:12px;line-height:2}
+.bd-hot a{color:#1a5fc8;margin:0 8px;cursor:pointer;text-decoration:underline}
+.bd-results{max-width:620px;margin:0 auto;text-align:left}
+.bd-results h3{font-size:14px;color:#555;border-bottom:1px solid #ddd;padding-bottom:6px}
+.bd-res{border-bottom:1px dotted #ccc;padding:10px 0}
+.bd-res b{color:#1a5fc8;font-size:14px;cursor:pointer}
+.bd-res p{color:#444;line-height:1.7;margin:4px 0}
+.bd-res .url{color:#2a8b3a;font-size:11px}
+.bd-none{color:#888;padding:30px}
+.alb-wrap{min-height:100%;background:#f6f8fc;padding:14px}
+.alb-head{background:#fff;border:1px solid #c8d6e8;padding:8px 12px;margin-bottom:10px;color:#2b4f8f;font-weight:bold}
+.alb-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.alb-item{background:#fff;border:1px solid #c8d6e8;padding:6px;text-align:center;cursor:default}
+.alb-item:hover{border-color:#5a8fd8}
+.alb-thumb{height:62px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;font-weight:bold;text-shadow:1px 1px 2px #000}
+.alb-item .nm{font-size:11px;padding-top:4px;color:#444}
+.alb-note{margin-top:12px;background:#fffbe6;border:1px solid #e8cf82;padding:9px 12px;line-height:1.8;color:#6b5420}
+.mail-wrap{display:flex;min-height:100%;background:#fff;font-family:SimSun,serif;font-size:12px}
+.mail-folders{width:118px;flex-shrink:0;background:#f0f4fa;border-right:1px solid #cbd5e2;padding:8px 6px}
+.mail-folders div{padding:6px 8px;cursor:default;color:#345}
+.mail-folders div.on{background:#316ac5;color:#fff}
+.mail-list{flex:1;min-width:0;overflow:auto}
+.mail-row{padding:8px 10px;border-bottom:1px solid #eee;cursor:default}
+.mail-row:hover{background:#eaf2ff}
+.mail-row b{color:#245}
+.mail-row .dt{float:right;color:#999;font-size:11px}
+.mail-detail{padding:16px 20px;line-height:2;background:#fff;min-height:180px}
+.mail-detail h2{font-size:17px;color:#234;margin-bottom:10px}
+.mail-detail .from{color:#888;margin-bottom:12px}
+.secret-page{min-height:100%;background:linear-gradient(160deg,#1d2340,#3b2a5c 60%,#7a3a63);color:#ffe9c9;padding:26px 30px;font-family:"Microsoft YaHei",serif;line-height:2.2}
+.secret-page h2{font-size:24px;color:#ffd86b;margin-bottom:14px}
+.secret-page p{font-size:14px;margin:10px 0;text-shadow:0 1px 2px #000}
+.secret-page .sign{text-align:right;margin-top:24px;color:#ffb9d2}
+.clue-box{background:#fff8dc;border:1px solid #e8cf82;border-left:4px solid #e0a800;padding:9px 12px;margin:10px 0;color:#6b5420;line-height:1.8}
+</style>
+</head>
+<body>
+
+<div id="desktop">
+  <!-- Bliss-style wallpaper, pure inline SVG -->
+  <svg class="wallpaper" viewBox="0 0 1920 1200" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#0f5bb0"/><stop offset="0.42" stop-color="#4c9ee0"/><stop offset="0.78" stop-color="#9fd1f2"/><stop offset="1" stop-color="#d9edfb"/>
+      </linearGradient>
+      <linearGradient id="hill1" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#8ecf4a"/><stop offset="1" stop-color="#4e9c25"/>
+      </linearGradient>
+      <linearGradient id="hill2" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#5fae30"/><stop offset="1" stop-color="#2f7d1c"/>
+      </linearGradient>
+      <radialGradient id="cl" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0" stop-color="#ffffff" stop-opacity="0.95"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <rect width="1920" height="1200" fill="url(#sky)"/>
+    <g opacity="0.9">
+      <ellipse cx="330" cy="210" rx="260" ry="70" fill="url(#cl)"/>
+      <ellipse cx="540" cy="250" rx="200" ry="52" fill="url(#cl)"/>
+      <ellipse cx="1300" cy="170" rx="300" ry="66" fill="url(#cl)"/>
+      <ellipse cx="1560" cy="300" rx="230" ry="55" fill="url(#cl)"/>
+      <ellipse cx="880" cy="140" rx="180" ry="42" fill="url(#cl)"/>
+    </g>
+    <path d="M0 790 Q 420 590 870 690 T 1920 660 L1920 1200 L0 1200 Z" fill="url(#hill1)"/>
+    <path d="M0 880 Q 520 730 1030 800 T 1920 770 L1920 1200 L0 1200 Z" fill="url(#hill2)"/>
+    <path d="M0 930 Q 600 860 1200 900 T 1920 880 L1920 1200 L0 1200 Z" fill="#3d8f22" opacity="0.55"/>
+  </svg>
+  <div class="desk-icons" id="deskIcons"></div>
+  <div id="windows"></div>
+</div>
+
+<div id="taskbar">
+  <div class="start-btn" id="startBtn"><span class="flag" id="startFlag"></span><span>开始</span></div>
+  <div class="quick" id="quick"></div>
+  <div class="tasks" id="tasks"></div>
+  <div class="tray" id="tray">
+    <span class="ti" id="volIcon" title="音量"></span>
+    <span id="clock">00:00</span>
+  </div>
+</div>
+
+<div id="startMenu"></div>
+<div id="contextMenu"></div>
+
+<div id="clippy">
+  <div class="clip-body" id="clipBody" title="回形针助手"></div>
+  <div class="speech" id="speech"></div>
+</div>
+
+<div id="ss"><div class="sslogo" id="sslogo"><div class="ssflag"><i></i><i></i><i></i><i></i></div><div class="sstext">Windows XP<small>ARCHAEOLOGY EDITION</small></div></div></div>
+
+<div id="modalLayer"><div class="modal" id="modalBox"></div></div>
+<canvas id="reportCanvas" style="display:none"></canvas>
+
+<script>
+(function(){
+'use strict';
+const $=function(s,r){return (r||document).querySelector(s)};
+const $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+const rnd=function(a){return a[Math.floor(Math.random()*a.length)]};
+const pad=function(n){return String(n).padStart(2,'0')};
+let Z=110, WN=0;
+
+/* ================= SVG ICONS ================= */
+const ICONS={
+ folder:'<svg viewBox="0 0 40 40"><path d="M3 9h12l3 4h19v21H3z" fill="#e9a92b" stroke="#a9760c" stroke-width="1.5"/><path d="M3 14h34v19H3z" fill="#ffd75e" stroke="#a9760c" stroke-width="1.5"/><path d="M5 17h30" stroke="#fff3b0" stroke-width="2"/></svg>',
+ folderLock:'<svg viewBox="0 0 40 40"><path d="M3 9h12l3 4h19v21H3z" fill="#b89a6a" stroke="#7c6334" stroke-width="1.5"/><path d="M3 14h34v19H3z" fill="#d9c08a" stroke="#7c6334" stroke-width="1.5"/><rect x="14" y="20" width="12" height="10" rx="2" fill="#c9302c" stroke="#fff" stroke-width="1"/><path d="M17 20v-3a3 3 0 0 1 6 0v3" fill="none" stroke="#fff" stroke-width="2"/></svg>',
+ txt:'<svg viewBox="0 0 40 40"><path d="M8 3h16l8 8v26H8z" fill="#fff" stroke="#7f9db9" stroke-width="1.5"/><path d="M24 3v8h8" fill="#dbe7f5" stroke="#7f9db9" stroke-width="1.5"/><g stroke="#3f8fd8" stroke-width="1.8"><path d="M12 17h16M12 22h16M12 27h11"/></g></svg>',
+ computer:'<svg viewBox="0 0 40 40"><rect x="3" y="6" width="34" height="24" rx="2" fill="#dfe6ee" stroke="#5a7186" stroke-width="1.5"/><rect x="6" y="9" width="28" height="17" fill="#2a7fc8"/><path d="M6 22 Q14 12 22 20 T34 16" fill="none" stroke="#8fd0f0" stroke-width="2"/><rect x="15" y="30" width="10" height="3" fill="#9aa7b5"/><rect x="10" y="33" width="20" height="3" rx="1" fill="#c8d2dc" stroke="#5a7186"/></svg>',
+ drive:'<svg viewBox="0 0 40 40"><rect x="3" y="12" width="34" height="17" rx="2" fill="#d7dde4" stroke="#6b7c8e" stroke-width="1.5"/><rect x="6" y="16" width="28" height="7" fill="#aeb9c6" stroke="#7b8a9a"/><circle cx="31" cy="25" r="1.6" fill="#3ec93c"/></svg>',
+ recycle:'<svg viewBox="0 0 40 40"><path d="M9 11h22l-2 24H11z" fill="#dbe6f0" stroke="#6f8397" stroke-width="1.5"/><path d="M7 9h26" stroke="#6f8397" stroke-width="3" stroke-linecap="round"/><path d="M16 9V6h8v3" fill="none" stroke="#6f8397" stroke-width="2"/><g stroke="#7f97ad" stroke-width="1.5"><path d="M16 16v14M20 16v14M24 16v14"/></g></svg>',
+ floppy:'<svg viewBox="0 0 40 40"><rect x="5" y="4" width="30" height="32" fill="#2b3a4a" stroke="#111" stroke-width="1.5"/><rect x="11" y="5" width="16" height="12" fill="#adb8c4"/><rect x="14" y="6" width="9" height="9" fill="#4a5a6a"/><rect x="10" y="22" width="20" height="13" fill="#e6e9ec"/><path d="M13 26h14M13 30h11" stroke="#8a97a5" stroke-width="1.5"/></svg>',
+ game:'<svg viewBox="0 0 40 40"><circle cx="20" cy="21" r="13" fill="#37424d" stroke="#111" stroke-width="1.5"/><rect x="17" y="6" width="6" height="6" rx="1" fill="#888"/><path d="M20 6v4" stroke="#ddd" stroke-width="2"/><circle cx="15" cy="18" r="4" fill="#fff"/><path d="M25 27h8M29 23v8" stroke="#fff" stroke-width="3"/></svg>',
+ note:'<svg viewBox="0 0 40 40"><path d="M8 3h16l8 8v26H8z" fill="#fffbe6" stroke="#c8aa4a" stroke-width="1.5"/><path d="M24 3v8h8" fill="#f3e6a8" stroke="#c8aa4a"/><path d="M20 16c-3 4-5 6-5 9a5 5 0 0 0 10 0c0-3-2-5-5-9z" fill="#f5b301"/><circle cx="20" cy="13" r="2" fill="#f5b301"/></svg>',
+ egg:'<svg viewBox="0 0 40 40"><ellipse cx="20" cy="22" rx="12" ry="15" fill="#ffe07a" stroke="#c9922b" stroke-width="1.5"/><path d="M12 20h16M13 26h14" stroke="#e0a93b" stroke-width="2"/><circle cx="20" cy="20" r="3" fill="#e54b3b"/></svg>',
+ back:'<svg viewBox="0 0 24 24"><path d="M15 4L7 12l8 8" fill="none" stroke="#1c5cb8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+ fwd:'<svg viewBox="0 0 24 24"><path d="M9 4l8 8-8 8" fill="none" stroke="#1c5cb8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+ up:'<svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6" fill="none" stroke="#1c8b3a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+ search:'<svg viewBox="0 0 24 24"><circle cx="10" cy="10" r="6" fill="none" stroke="#316ac5" stroke-width="2.5"/><path d="M15 15l6 6" stroke="#316ac5" stroke-width="2.5" stroke-linecap="round"/></svg>',
+ flag:'<svg class="flag" viewBox="0 0 20 20"><path d="M2 3h7v7H2zM11 3h7v7h-7zM2 12h7v7H2zM11 12h7v7h-7z" fill="#f25022"/><path d="M11 3h7v7h-7z" fill="#7fba00"/><path d="M2 12h7v7H2z" fill="#00a4ef"/><path d="M11 12h7v7h-7z" fill="#ffb900"/></svg>',
+ vol:'<svg viewBox="0 0 20 20"><path d="M3 8h4l5-4v12l-5-4H3z" fill="#fff"/><path d="M15 7c2 2 2 5 0 7M17 5c3 3 3 8 0 11" fill="none" stroke="#fff" stroke-width="1.4"/></svg>',
+  ie:'<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="#1d7fd6"/><path d="M11 12c8-3 16 0 17 7 1 8-8 13-16 10-5-2-7-7-5-11 2-4 7-6 11-5" fill="none" stroke="#eaf6ff" stroke-width="3"/><path d="M13 19h14" stroke="#7fd0ff" stroke-width="2"/></svg>',
+  installer:'<svg viewBox="0 0 40 40"><rect x="5" y="4" width="30" height="32" rx="3" fill="#e8edf3" stroke="#6d8195" stroke-width="1.5"/><rect x="9" y="8" width="22" height="13" fill="#3a86d8"/><path d="M12 27h16M12 31h11" stroke="#8fa3b7" stroke-width="2"/><circle cx="29" cy="31" r="4" fill="#4ac04a"/></svg>',
+  qq:'<svg viewBox="0 0 40 40"><ellipse cx="20" cy="21" rx="13" ry="15" fill="#1a1a1a"/><ellipse cx="20" cy="24" rx="9" ry="11" fill="#fff"/><ellipse cx="15" cy="20" rx="2.4" ry="3.4" fill="#111"/><ellipse cx="25" cy="20" rx="2.4" ry="3.4" fill="#111"/><path d="M15 28q5 4 10 0" fill="none" stroke="#e40" stroke-width="2"/><path d="M20 6v5" stroke="#e40" stroke-width="2.5"/></svg>',
+  video:'<svg viewBox="0 0 40 40"><rect x="3" y="8" width="34" height="24" rx="2" fill="#2b3a48" stroke="#92a6b8" stroke-width="1.5"/><path d="M12 8v24M28 8v24" stroke="#92a6b8" stroke-width="2"/><path d="M18 16l7 4-7 4z" fill="#6cf"/></svg>',
+  mp3:'<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="#2a2f38" stroke="#7f8c9a" stroke-width="2"/><circle cx="20" cy="20" r="11" fill="#555"/><circle cx="20" cy="20" r="7" fill="#f0b429"/><circle cx="20" cy="20" r="2" fill="#222"/></svg>',
+  photo:'<svg viewBox="0 0 40 40"><rect x="4" y="7" width="32" height="26" rx="2" fill="#fff" stroke="#8d9caa" stroke-width="1.5"/><rect x="7" y="10" width="26" height="18" fill="#8fd0f0"/><circle cx="14" cy="16" r="3" fill="#ffd65e"/><path d="M7 27l8-9 5 6 6-8 7 11z" fill="#4f9d3a"/></svg>',
+  log:'<svg viewBox="0 0 40 40"><rect x="6" y="4" width="28" height="32" rx="2" fill="#fff" stroke="#7f9db9" stroke-width="1.5"/><circle cx="13" cy="12" r="3" fill="#e33"/><circle cx="13" cy="20" r="3" fill="#ea6"/><circle cx="13" cy="28" r="3" fill="#4a9"/><g stroke="#6a8fc0" stroke-width="2"><path d="M20 12h10M20 20h10M20 28h10"/></g></svg>',
+  zip:'<svg viewBox="0 0 40 40"><path d="M8 3h18l6 6v28H8z" fill="#f3d98b" stroke="#a5853a" stroke-width="1.5"/><path d="M26 3v6h6" fill="#d8b95e" stroke="#a5853a"/><path d="M18 12v6M16 18h4M16 23h4M16 28h4" stroke="#7d6229" stroke-width="2"/></svg>',
+  scr:'<svg viewBox="0 0 40 40"><rect x="3" y="6" width="34" height="24" rx="2" fill="#101820" stroke="#6c8296" stroke-width="1.5"/><path d="M10 24l6-8 5 5 4-6 5 9z" fill="#59c"/><circle cx="27" cy="13" r="2.5" fill="#fc5"/><rect x="15" y="30" width="10" height="3" fill="#9aa7b5"/><rect x="10" y="33" width="20" height="3" rx="1" fill="#c8d2dc"/></svg>',
+  guide:'<svg viewBox="0 0 40 40"><path d="M6 5h24a3 3 0 0 1 3 3v27H9a3 3 0 0 1-3-3z" fill="#fff" stroke="#5c84b8" stroke-width="1.5"/><path d="M6 32a3 3 0 0 1 3-3h24" fill="none" stroke="#5c84b8" stroke-width="1.5"/><circle cx="20" cy="17" r="8" fill="#3f8ee0"/><text x="20" y="23" font-size="13" font-family="Tahoma" font-weight="bold" fill="#fff" text-anchor="middle">?</text></svg>'
+};
+
+/* ================= SAVE STATE ================= */
+const SAVE_KEY='xp_cdrive_archaeology_v1';
+function freshState(){return {deleted:[],visitedFiles:[],visitedFolders:[],foundEggs:[],unlocked:false,startedAt:Date.now(),muted:false,openedWindows:0,replied:false,sent:false,zipOpened:false,webExplore:{qzone:false,search:false,album:false,mail:false,bonus:false}}}
+let state;
+try{state=Object.assign(freshState(),JSON.parse(localStorage.getItem(SAVE_KEY)||'{}'))}catch(e){state=freshState()}
+if(!state.webExplore)state.webExplore={qzone:false,search:false,album:false,mail:false,bonus:false};
+let saveTimer=null;
+function save(){clearTimeout(saveTimer);saveTimer=setTimeout(function(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(state))}catch(e){}},120)}
+
+/* ================= FILE SYSTEM ================= */
+function F(id,name,genre,extra){return Object.assign({id:id,name:name,type:'txt',genre:genre||'note'},extra||{})}
+function D(id,name,children,extra){return Object.assign({id:id,name:name,type:'folder',children:children},extra||{})}
+
+const FS=D('c','本地磁盘 (C:)',[
+  D('docs','我的文档',[
+    D('qqchat','QQ聊天记录',[
+      F('chat1','2008-05-12 与阿May.txt','chat',{egg:true}),
+      F('chat2','2008-06-01 深夜在线.txt','chat'),
+      F('chat3','2008-08-15 毕业那天.txt','chat',{egg:true}),
+      F('clue','密码提示.txt','clue',{egg:true}),
+      F('chat4','群聊：初三(2)班.txt','chat')
+    ]),
+    D('qqzone','QQ空间日志',[
+      F('blog1','那年夏天，我们没有说再见.txt','blog',{egg:true}),
+      F('blog2','转载：47张图看完青春.txt','blog'),
+      F('blog3','心情：灰色星期天.txt','blog'),
+      F('blog4','置顶：写给未来的自己.txt','blog',{egg:true}),
+      F('qzone','我的QQ空间.url','ie',{app:'ie',egg:true})
+    ]),
+    F('booknote','读书笔记.txt','note'),
+    F('lyrics','手抄歌词本.txt','lyrics'),
+    F('photo','毕业照 2008.jpg','photo',{app:'photo',egg:true})
+  ]),
+  D('pf','Program Files',[
+    D('xunlei','迅雷',[
+      F('xl1','下载任务列表.txt','xunlei',{egg:true}),
+      F('xl2','迅雷看看·使用说明.txt','readme'),
+      F('xl3','高速通道体验卡.txt','xunlei'),
+      F('xlinstall','迅雷5.8 官方安装版.exe','installer',{app:'installer',meta:{name:'迅雷5.8',target:'xunlei'}})
+    ]),
+    D('qq2008','腾讯QQ2008',[
+      F('qq1','关于QQ2008.txt','readme',{egg:true}),
+      F('qq2','个性签名备份.txt','note'),
+      F('qq3','QQ秀衣柜.txt','note'),
+      F('qqexe','QQ2008.exe','qq',{app:'qqlogin',egg:true})
+    ]),
+    D('audition','劲舞团',[
+      F('au1','舞步指令大全.txt','audition',{egg:true}),
+      F('au2','游戏公告：新版情侣装.txt','audition'),
+      F('au3','我的舞团宣言.txt','audition'),
+      F('auvideo','劲舞团-宣传片.avi','video',{app:'video',egg:true})
+    ]),
+    D('ttpod','千千静听',[
+      F('tt1','播放列表-2008.m3u.txt','music',{egg:true}),
+      F('tt2','歌词库路径.txt','music'),
+      F('song1','夜曲 - 8bit版.mp3','mp3',{app:'mp3',meta:{track:0}}),
+      F('song2','童年 - 8bit版.mp3','mp3',{app:'mp3',meta:{track:1}})
+    ]),
+    D('wx','Windows Media Player',[
+      F('wm1','第一次同步.mp3.txt','music'),
+      F('wm2','媒体库说明.txt','readme')
+    ])
+  ]),
+  D('win','WINDOWS',[
+    D('sys32','system32',[
+      F('sys1','drivers\\声卡驱动说明.txt','readme'),
+      F('sys2','一个不该在这里的文件.txt','secret',{egg:true})
+    ]),
+    F('winini','win.ini','readme'),
+    F('evt','系统事件日志.evt','log',{app:'log'}),
+    F('scr','经典三维屏保.scr','scr',{app:'scr'})
+  ]),
+  F('guide','玩法攻略_先读我.txt','guide',{app:'guide'}),
+  F('surface1','新建 文本文档.txt','note'),
+  F('surface2','桌面残留-勿删.txt','note'),
+  F('surface3',' recipebook.txt','lyrics'),
+  {id:'hidden',name:'_旧时光',type:'locked',children:[
+    D('diary','日记本',[
+      F('d1','2003-09-01.txt','diary',{egg:true}),
+      F('d2','2005-12-24.txt','diary',{egg:true}),
+      F('d3','2008-06-07.txt','diary',{egg:true})
+    ]),
+    D('photos','相册说明',[
+      F('p1','照片清单.txt','secret'),
+      F('p2','那张没有洗出来的照片.txt','secret',{egg:true})
+    ]),
+    F('letter','未发送的信.txt','secret',{egg:true}),
+    F('last','最后一次登录.txt','secret'),
+    F('zip','记忆碎片.zip','zip',{app:'zip',egg:true})
+  ]}
+],{type:'drive'});
+
+const COMPUTER={id:'__computer',name:'我的电脑',type:'computer',children:[
+  FS,
+  {id:'__recycle',name:'回收站',type:'recycle'},
+  {id:'__floppy',name:'3½ 英寸软盘 (A:)',type:'floppy'}
+]};
+
+const parentMap={};
+(function index(n,p){parentMap[n.id]=p;(n.children||[]).forEach(function(c){index(c,n)})})(COMPUTER,null);
+function findNode(id){if(id==='__computer')return COMPUTER;if(id==='__recycle')return {id:'__recycle',name:'回收站',type:'recycle'};var found=null;function walk(n){if(n.id===id){found=n;return}(n.children||[]).forEach(walk)}walk(COMPUTER);return found}
+/* 读取存档时把已解压出的文件放回目录树 */
+if(state.zipOpened){
+  const _h=findNode('hidden');
+  if(_h&&!_h.children.some(function(f){return f.id==='lastword'})){
+    _h.children.push(F('lastword','那天没说的话.txt','secret',{egg:true}));
+    parentMap['lastword']=_h;
+  }
+}
+
+/* ================= RANDOM TEXT POOLS ================= */
+const P={
+ nick:['阿May','小四','终止Symbol','雨后的向日葵','冰棍','Ghost','蓝不思','小P孩','管理员','失踪的企鹅'],
+ chatMe:['在么','刚才掉线了','你头像换啦','哈哈哈哈','我妈喊我吃饭了','明天见','886','你听这首歌没','网卡了等等','在写作业，别烦','今天好热','你怎么又潜水','我下了啊','嗯嗯','真的假的','晕'],
+ chatYou:['在的在的','等我下哦','刚去洗澡了','我网卡','早点睡吧','明天聊','么么','我截图给你看','糟了 我妈来了','哈哈哈哈哈哈','这个歌我循环一天了','我也是','别提了','先这样','88'],
+ emo:[' ^_^',' [微笑]',' /握手',' 555',' ★',' （流汗）',' /敲打',' ~~~',' !!!'],
+ blogTitle:['那年夏天，我们没有说再见','一些话，藏了很久','纪念我们回不去的2008','转载：青春是一场大雨','今天突然很难过','写给未来的自己','关于那场考试之后','凌晨三点的-space'],
+ blogBody:['窗外的知了还在叫，风扇吱呀吱呀地转。那时候总以为夏天很长，长到可以耗完一整个青春。','空间背景音乐放着《说好的幸福呢》，我盯着屏幕发呆，不知道该和谁说晚安。','我们说好考完试一起去海边，可后来联系越来越少，最后连QQ头像都灰了。','也许很多事情，不是忘了，只是被我们小心翼翼地放在了某个不愿点开的文件夹里。','那时候的日志总要写得很矫情，生怕别人看不出自己的孤单。','2008年的雪很大，我站在阳台上想，明年会不会更好。后来才知道，人会怀念的从来不是某个季节，而是那个季节里的自己。','今天在草稿箱里翻到一句话：「如果时光能倒流，我一定不会那样说再见。」可时光从来不肯倒流。'],
+ softDesc:['本软件为共享软件，未注册版本在使用时有功能限制。请支持正版，购买正版光盘可获赠精美鼠标垫一个。','安装程序正在复制文件，请稍候……如果长时间没有反应，请轻拍机箱侧面（谨慎使用）。','温馨提示：请勿在运行本软件的同时打开十个以上QQ窗口，否则电脑会抗议。','版本更新日志：修复了若干未知错误；优化了与windows XP SP2的兼容性；新增了「窗口抖动」功能。','卸载本软件将同时删除您的青春记忆，是否继续？'],
+ music:['夜曲 - 周杰伦','七里香 - 周杰伦','说好的幸福呢 - 周杰伦','稻香 - 周杰伦','北京欢迎你 - 群星','隐形的翅膀 - 张韶涵','感恩的心 - 欧阳菲菲','青花瓷 - 周杰伦','千里之外 - 周杰伦','my heart will go on - Celine Dion'],
+ dance:['↑←↓→ 空格','← ← 空格 → →','↑ ↓ ↑ ↓ 空格','←↑→↓ 空格 ←','☆ 输入晚了，MISS!','连击 x 37 PERFECT!','情侣模式邀请已发送...'],
+ secret:['有些话，打出来又删掉，最后只留下一句「没事」。','我以为把文件删掉就等于忘记，可回收站一直不肯清空。','那年你说「等有钱了就买台属于自己的电脑」，现在电脑有了，你却不在了。','密码我从来没忘，只是不敢再输一遍。','如果有一天你打开了这个文件夹，说明你还是没放下。','我把关于你的一切都锁在这里，钥匙丢在了2008年的风里。','其实我没有删掉那些聊天记录，我只是不敢再点开。','有些文件夹命名为「_旧时光」，是为了让它排在最后，假装它不重要。'],
+ diary:['今天天气很好。体育课自由活动，我一个人坐在看台上，看着操场发呆。','爸爸给我买了新文具盒，我很喜欢，但没有告诉他我更想要一台电脑。','有人说时间能冲淡一切，可为什么我记性这么好。','今天在网吧申请了QQ号，网名想了很久，最后用了「雨后的向日葵」。','我存了一个月的零花钱，终于买到了那张游戏光盘。回家发现电脑没有光驱。','毕业照洗出来了，我站在最后一排，笑得很用力。','今天他们都说我变了。其实没变，只是学会了不说话。'],
+ clue:['你总说，如果有一天忘了，就用「那个夏天的年份」作钥匙。','我把所有重要的东西都藏起来了。密码是四位数，是我们一起熬过的那一年。','提示：不是你的生日，也不是我的生日。是QQ头像第一次亮起来的那一年。','那个夏天之后，我们再也没有一起看过烟火。年份，就是钥匙。']
+};
+
+function genChat(){
+  const out=[];let hour=20;
+  for(let i=0;i<16;i++){
+    if(Math.random()<0.18)hour++;
+    const who=Math.random()<0.45?'我':rnd(P.nick);
+    const msg=rnd(Math.random()<0.5?P.chatMe:P.chatYou)+rnd(['','','',''].concat(P.emo));
+    out.push(pad(hour%24)+':'+pad(Math.floor(Math.random()*60))+'  '+who+'：'+msg);
+  }
+  return out;
+}
+function genBlog(){
+  const out=['【'+rnd(P.blogTitle)+'】',''];
+  for(let i=0;i<5;i++)out.push('　　'+rnd(P.blogBody),'');
+  out.push('—— 写于 '+rnd(['2007','2008','2009'])+'年 '+rnd(['春','夏','秋','冬'])+'天');
+  out.push('','阅读全文（0）  评论（0）  转载（0）');
+  return out;
+}
+function genReadme(file){
+  const lines=['========================================','  '+file.name,'  Windows XP 兼容模式','========================================','',rnd(P.softDesc),'',rnd(P.softDesc)];
+  if(file.id==='qq1')lines.push('','当前版本：QQ2008 正式版 SP3','您的QQ号码：'+Math.floor(100000+Math.random()*899999),'最后登录：2009-'+pad(Math.floor(Math.random()*12)+1)+'-'+pad(Math.floor(Math.random()*28)+1));
+  return lines;
+}
+function genXunlei(){const out=['┌───────── 任务列表 ─────────┐'];for(let i=0;i<6;i++)out.push('│ '+rnd(['夜曲.mp3','劲舞团客户端.exe','毕业照片.rar','青春.zip','未命名(1).avi','周杰伦精选.ape'])+'  '+rnd(['100%','100%','67%','0%','99%'])+' │');out.push('└────────────────────────────┘','');out.push(rnd(P.softDesc));return out}
+function genMusic(){const out=['#EXTM3U',''];for(let i=0;i<9;i++)out.push('#EXTINF:'+rnd(['245','198','312','267'])+','+rnd(P.music));return out}
+function genDance(){const out=['劲舞团 · 舞步训练手册','','★ 常用舞步：'];for(let i=0;i<7;i++)out.push('  '+rnd(P.dance));out.push('','当前服务器：华东一区','我的等级：'+rnd(['12','25','37','48']));return out}
+function genLyrics(){const out=['（手抄本·字迹有点歪）',''];for(let i=0;i<8;i++)out.push('　'+rnd(['窗外的麻雀在电线杆上多嘴','雨下整夜 我的爱溢出就像雨水','说过要一起看的海 我一个人来了','想说却还没说的 还很多','小时候的夏天 总是特别长','故事的小黄花 从出生那年就飘着','你的嘴角 微微上翘 性感得无可救药','转身离开 有话说不出来']));return out}
+function genDiary(){const out=[rnd(P.diary),'',rnd(P.diary),'','—— 天气：'+rnd(['晴','多云','小雨'])+'　心情：'+rnd(['一般','还行','很差','说不上来'])];return out}
+function genSecret(){const out=[];for(let i=0;i<6;i++)out.push(rnd(P.secret),'');return out}
+function genNote(){const out=['新建 文本文档  '+rnd(['2003','2005','2008','2009'])+'-'+pad(Math.floor(Math.random()*12)+1)+'-'+pad(Math.floor(Math.random()*28)+1),''];for(let i=0;i<7;i++)out.push(rnd(['今天电脑又卡了。','记得把重要文件备份到U盘。','妈妈说玩电脑要节制。','这个月的网费该交了。','不知道以后会不会怀念现在。','（此处内容被涂改）','待续……','如果看到这里，说明你很有耐心。']));return out}
+/* ========== 固定剧情文本：所有文件格式共同讲述同一段回忆 ========== */
+const STORY={
+ chat1:['20:12  我：在么','20:13  阿May：在的在的','20:14  我：刚下晚自习，网卡了','20:15  阿May：哈哈哈哈 我等你半天了','20:16  我：明天考试，你复习完了吗','20:17  阿May：没有。但是不想一个人在家','20:18  我：那我陪你。到十二点','20:19  阿May：说好了啊','20:20  阿May：等考完试，我们去看海吧','20:21  我：好。就我们两个'],
+ chat2:['23:41  我：还没睡？','23:42  阿May：在听夜曲。你要不要听','23:43  我：点开了。就当一人一只耳机','23:44  阿May：等我回来，我们就去海边','23:45  我：好。说定了','23:46  阿May：2008，别忘','23:47  我：忘不了'],
+ chat3:['19:02  我：你在哪','19:40  阿May：车上。去车站了','19:41  我：不是说好去海边吗','19:43  阿May：我妈让我转学。今天走','19:44  我：那……什么时候回来','19:47  阿May：等我回来。别删我QQ','19:48  我：嗯。我等你','19:49  阿May：我下了。车开了','19:50  我：其实那天我想说的是——','19:50  我：（消息未发送）',...['','　那条消息，一直留在输入框里，十几年。']],
+ chat4:['18:10  小四：毕业快乐！','18:12  冰棍：以后常联系啊','18:20  阿May：我走了。谢谢你们。','18:21  我：……','22:07  系统：该群已达到本月言论上限'],
+ blog1:['【那年夏天，我们没有说再见】','','　你说等考完试就去看海。','　六月七日那天，你发来一句「车开了」。','　我盯着屏幕，把「别走」打了又删。','　后来我们各自长大了，可那个夏天一直卡在2008。','','—— 写于 2008-06-07'],
+ blog2:['【转载：47张图看完青春】','','　（图已失效）','　其实不用图我也记得。','　那年的风、知了声，和你回头看我的那一眼。'],
+ blog3:['【心情：灰色星期天】','','　头像还是灰的。','　我每天点开一次，不是为了看什么，','　只是想确认那个灰，还在。'],
+ blog4:['【置顶：写给未来的自己】','','　如果有一天你打开这台电脑，说明你还是没放下。','　我把钥匙留在了聊天记录里，','　把没说完的话，留在了那个没发出去的对话框里。','　如果你找到了 _旧时光，替我把那句「别走」说完。','','—— 2009-06-07 23:41'],
+ clue:['','　　　　　　　　密码提示',''],
+ d1:['2003-09-01  晴','','　今天初一开学。班里有个人叫阿May，笑起来眼睛弯弯的。','　她借我的橡皮，还给我的时候上面画了个笑脸。','　我把它夹在课本里，到现在还没舍得扔。'],
+ d2:['2005-12-24  小雨','','　她说，如果世界上有一台电脑就好了，可以天天聊天。','　我说，等有钱了，我们一人买一台。','　她笑我吹牛。可我记住了。'],
+ d3:['2008-06-07  晴','','　今天照毕业照。我站最后一排，她在第一排，回头看了我一眼。','　我本来想跑过去，但铃响了。','　晚上她发来「车开了」。我把「别走」删了十七遍。'],
+ letter:['阿May：','','　我写完这封信的第二天，听说你搬走了。','　没有留新地址。QQ头像从此再没亮过。','　我把这封信存进了 C 盘，想着总有一天你会回来。','　后来我才知道，有些人走了，是不会有「后来」的。','','　—— 一直没按下发送的那个人'],
+ last:['2009-06-07 23:41  登录成功','','　我把能删的都删了。','　聊天记录删了，空间关了，游戏卸了，','　只有 C 盘删不掉。','　屏幕保护亮起来的时候，我坐了很久。','　然后关机。这一关，就是十几年。'],
+ p1:['相册清单','','1. 毕业照 2008.jpg  —— 初三(2)班，最后一排是我','2. 那张没有洗出来的照片.jpg —— 2008.6.8，海边','3. 她的QQ秀截图（已丢失）','','注：第2张底片曝了光，洗出来也是模糊的。','可我还是把它留到了现在。'],
+ p2:['那张没有洗出来的照片','','　我们去海边的那天，其实她没来。','　我一个人坐了四个小时的车，','　带回来一张曝光的底片。','　照片上只有海。可我一直说，那是我们的合影。'],
+ sys2:['这不是系统文件。','','　这是 2009-06-07 那晚没来得及删掉的最后一份备份。','　如果你看到了，说明你和我一样，舍不得。'],
+ xl1:['┌────────── 下载任务列表 ──────────┐','│ 夜曲.mp3                  100%  │','│ 七里香.mp3                100%  │','│ 她说这首歌好听（已下载）  100%  │','└──────────────────────────────┘','','2008-06-02：为了她，我下了一整个下午。','那时候网速很慢，可我们很有耐心。'],
+ qq1:['========================================','  QQ2008 正式版','========================================','','我的QQ：12008****','她的QQ：54***21（最后一次在线：2008-06-07 19:50）','','好友列表里，她的头像一直是灰的。','我试过隐身，只为了看她会不会亮起来。'],
+ qq2:['个性签名备份','','2008-03-12：等你回来','2008-06-08：还在等','2009-06-07：算了','','最后一条没有保存成功。'],
+ au1:['劲舞团 · 舞步训练手册','','↑←↓→ 空格','← ← 空格 → →','','那天晚上我练到手指抽筋，就为了在她面前跳出个 PERFECT。','结果按错了一个键，屏幕上跳出大大的 MISS。','她笑了。那是我最后一次见她笑。'],
+ tt1:['#EXTM3U','#EXTINF:245,夜曲 - 周杰伦','#EXTINF:267,七里香 - 周杰伦','#EXTINF:198,童年 - 罗大佑','','循环播放中……','那晚我们一人一只耳机，把音量开到最大。'],
+ winini:['[windows]','load=','run=','NullPort=None','','[boot description]','这台电脑最后一次开机：2009-06-07','之后，它就一直等在那里。'],
+ lastword:['那天在车站，我想说的不是「一路平安」。','','　我想说的是：别走。','','　可我打完那行字，车已经开了。','　这些年我一直在想，如果当时按下发送，会不会不一样。','','　现在你终于读到了。','　—— 十几年后，这次考古的意义']
+};
+const contentCache={};
+function getContent(file){
+  if(contentCache[file.id])return contentCache[file.id];
+  let lines;
+  if(STORY[file.id])lines=STORY[file.id].slice();
+  else switch(file.genre){
+    case 'chat':lines=genChat();break;
+    case 'blog':lines=genBlog();break;
+    case 'readme':lines=genReadme(file);break;
+    case 'xunlei':lines=genXunlei();break;
+    case 'music':lines=genMusic();break;
+    case 'audition':lines=genDance();break;
+    case 'lyrics':lines=genLyrics();break;
+    case 'diary':lines=genDiary();break;
+    case 'secret':lines=genSecret();break;
+    case 'clue':lines=['','　　　　　　密码提示',''].concat(P.clue).concat(['','—— 回形针帮你记着呢']);break;
+    default:lines=genNote();
+  }
+  lines=['='.repeat(30),'  '+file.name,'  创建时间：'+rnd(['2003','2005','2008','2009'])+'-'+pad(Math.floor(Math.random()*12)+1)+'-'+pad(Math.floor(Math.random()*28)+1)+'  '+pad(Math.floor(Math.random()*24))+':'+pad(Math.floor(Math.random()*60)),'='.repeat(30),''].concat(lines);
+  contentCache[file.id]=lines;
+  return lines;
+}
+
+/* ================= AUDIO ================= */
+let ac=null;
+function ensureAudio(){if(ac)return;try{ac=new (window.AudioContext||window.webkitAudioContext)()}catch(e){ac=null}if(ac&&ac.state==='suspended')ac.resume()}
+function tone(freq,dur,type,vol,when,glide){
+  if(!ac||state.muted)return;
+  const t=when||ac.currentTime,o=ac.createOscillator(),g=ac.createGain();
+  o.type=type||'sine';o.frequency.setValueAtTime(freq,t);
+  if(glide)o.frequency.exponentialRampToValueAtTime(glide,t+dur);
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.exponentialRampToValueAtTime(vol||0.12,t+0.03);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur+0.06);
+}
+function playBoot(){
+  ensureAudio();if(!ac)return;
+  const t=ac.currentTime;
+  [261.63,329.63,392.0,523.25].forEach(function(f,i){tone(f,1.8-i*0.2,'sine',0.1,t+i*0.14)});
+  tone(783.99,2.4,'sine',0.045,t+0.55);
+  tone(130.81,2.2,'triangle',0.05,t);
+}
+function playPop(){ensureAudio();tone(880,0.09,'sine',0.09);tone(1320,0.14,'sine',0.07,ac?ac.currentTime+0.06:0)}
+function playTick(){ensureAudio();tone(1200,0.03,'square',0.02)}
+function playDisk(){
+  ensureAudio();if(!ac||state.muted)return;
+  const dur=0.22,sr=ac.sampleRate,buf=ac.createBuffer(1,Math.floor(sr*dur),sr),d=buf.getChannelData(0);
+  for(let i=0;i<d.length;i++){const env=i<d.length*0.12?i/(d.length*0.12):(Math.random()<0.05?1:0.18);d[i]=(Math.random()*2-1)*env}
+  const src=ac.createBufferSource();src.buffer=buf;
+  const filt=ac.createBiquadFilter();filt.type='bandpass';filt.frequency.value=1600;filt.Q.value=1.1;
+  const g=ac.createGain();g.gain.value=0.11;
+  src.connect(filt).connect(g).connect(ac.destination);src.start();
+}
+function playError(){ensureAudio();tone(220,0.12,'square',0.07);tone(180,0.18,'square',0.06,ac?ac.currentTime+0.12:0)}
+
+/* ================= CLIPPY ================= */
+const speech=$('#speech'),clipBody=$('#clipBody');
+let speechTimer=null;
+clipBody.innerHTML='<svg viewBox="0 0 40 56"><path d="M16 14V10a5 5 0 0 1 10 0v28a8 8 0 0 1-16 0V18a4 4 0 0 1 8 0v14" fill="none" stroke="#5d7194" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 14V10a5 5 0 0 1 10 0v28a8 8 0 0 1-16 0V18a4 4 0 0 1 8 0v14" fill="none" stroke="#d9e5f7" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="18.4" cy="13.4" r="2.5" fill="#fff" stroke="#334" stroke-width="1"/><circle cx="23.6" cy="13.4" r="2.5" fill="#fff" stroke="#334" stroke-width="1"/><circle cx="19" cy="13.9" r="1.1" fill="#111"/><circle cx="24.2" cy="13.9" r="1.1" fill="#111"/><path d="M19.6 19.5q3 2.4 6 0" fill="none" stroke="#334" stroke-width="1.3" stroke-linecap="round"/></svg>';
+function say(text,ms){
+  speech.textContent=text;speech.classList.add('show');
+  clipBody.classList.remove('talk');void clipBody.offsetWidth;clipBody.classList.add('talk');
+  clearTimeout(speechTimer);speechTimer=setTimeout(function(){speech.classList.remove('show')},ms||4600);
+}
+clipBody.addEventListener('click',function(){say(rnd(['别点我，我怕痒。','我在这里看了你很久了。','那些文件，比你想象的更旧。','慢慢看，不着急。','双击文件夹就能打开哦。']),3000);playPop()});
+
+/* ================= DESKTOP ICONS ================= */
+const deskIcons=[
+  {name:'玩法攻略',icon:'guide',act:openGuide},
+  {name:'IE浏览器',icon:'ie',act:function(){openIE('qzone')}},
+  {name:'我的电脑',icon:'computer',act:function(){openExplorer('__computer')}},
+  {name:'我的文档',icon:'folder',act:function(){openExplorer('docs')}},
+  {name:'回收站',icon:'recycle',act:function(){openExplorer('__recycle')}},
+  {name:'扫雷',icon:'game',act:openMines},
+  {name:'C盘考古报告',icon:'note',act:openReport}
+];
+function renderDesk(){
+  const box=$('#deskIcons');box.innerHTML='';
+  deskIcons.forEach(function(d){
+    const el=document.createElement('div');el.className='dicon';
+    el.innerHTML='<div class="ic">'+ICONS[d.icon]+'</div><div class="lb">'+d.name+'</div>';
+    el.addEventListener('click',function(){$$('.dicon').forEach(function(x){x.classList.remove('sel')});el.classList.add('sel')});
+    el.addEventListener('dblclick',d.act);
+    let t=null;
+    el.addEventListener('pointerdown',function(){clearTimeout(t);t=setTimeout(d.act,650)});
+    el.addEventListener('pointerup',function(){clearTimeout(t)});
+    el.addEventListener('pointerleave',function(){clearTimeout(t)});
+    box.appendChild(el);
+  });
+}
+
+/* ================= WINDOWS ================= */
+const winLayer=$('#windows'),tasksEl=$('#tasks'),wins={};
+function taskIcon(icon){return ICONS[icon]||ICONS.txt}
+function addTask(w){
+  let b=document.createElement('button');b.className='task-btn';b.dataset.win=w.id;
+  b.innerHTML=taskIcon(w.opt.icon)+'<span>'+w.title+'</span>';
+  b.addEventListener('click',function(){if(w.min||!w.el.classList.contains('active'))restoreWin(w.id);else minimizeWin(w.id)});
+  tasksEl.appendChild(b);updateTaskActive();
+}
+function updateTaskActive(){
+  $$('.task-btn').forEach(function(b){const w=wins[b.dataset.win];b.classList.toggle('active',!!w&&!w.min&&w.el.classList.contains('active'))});
+}
+function focusWin(id){
+  const w=wins[id];if(!w)return;
+  $$('.win').forEach(function(e){e.classList.remove('active');e.classList.add('inactive')});
+  w.el.style.zIndex=++Z;w.el.classList.add('active');w.el.classList.remove('inactive');
+  updateTaskActive();
+}
+function minimizeWin(id){const w=wins[id];if(!w)return;w.min=true;w.el.classList.add('minimized');w.el.classList.remove('active');updateTaskActive()}
+function restoreWin(id){
+  const w=wins[id];if(!w)return;w.min=false;w.el.classList.remove('minimized');focusWin(id);
+}
+function isPhoneUI(){
+  if(/[?&]mobile=1/.test(location.search))return true;
+  return matchMedia('(max-width:760px)').matches &&
+         (matchMedia('(pointer:coarse)').matches||(navigator.maxTouchPoints||0)>0);
+}
+function syncPhoneUI(){document.body.classList.toggle('phone',isPhoneUI())}
+function taskbarH(){return isPhoneUI()?46:40}
+function availW(){return Math.max(220,window.innerWidth-4)}
+function availH(){return Math.max(150,window.innerHeight-taskbarH()-4)}
+function clampV(v,min,max){return Math.min(Math.max(v,min),Math.max(min,max))}
+function toggleMax(id){
+  const w=wins[id];if(!w||isPhoneUI())return;
+  if(w.max){
+    w.el.style.cssText=w.prev;w.max=false;delete w.el.dataset.max;
+  }else{
+    w.prev=w.el.style.cssText;
+    w.el.style.left='2px';w.el.style.top='2px';
+    w.el.style.width=availW()+'px';w.el.style.height=availH()+'px';
+    w.max=true;w.el.dataset.max='1';
+  }
+  focusWin(id);
+}
+function closeWin(id){
+  const w=wins[id];if(!w)return;w.el.remove();delete wins[id];
+  const b=$('.task-btn[data-win="'+id+'"]');if(b)b.remove();updateTaskActive();
+}
+function createWindow(opt){
+  const id=opt.id||('w'+(++WN));
+  if(wins[id]){restoreWin(id);focusWin(id);return id}
+  let w=opt.width||560,h=opt.height||400;
+  if(!isPhoneUI()){w=Math.min(w,availW());h=Math.min(h,availH())}
+  const off=isPhoneUI()?0:(Object.keys(wins).length%6)*20;
+  let left=opt.left!=null?opt.left:Math.round((window.innerWidth-w)/2)-50+off;
+  let top=opt.top!=null?opt.top:Math.round((window.innerHeight-taskbarH()-h)/2)-40+off;
+  if(!isPhoneUI()){
+    left=clampV(left,2,Math.max(2,window.innerWidth-w-2));
+    top=clampV(top,2,Math.max(2,window.innerHeight-taskbarH()-h-2));
+  }else{left=0;top=0}
+  const el=document.createElement('div');
+  el.className='win'+(opt.bodyClass?' '+opt.bodyClass:'');
+  el.style.cssText='left:'+left+'px;top:'+top+'px;width:'+w+'px;height:'+h+'px;z-index:'+(++Z);
+  let menu='';if(opt.menu)menu='<div class="menu-bar">'+opt.menu.map(function(m){return '<span>'+m+'</span>'}).join('')+'</div>';
+  el.innerHTML='<div class="title-bar"><div class="ti">'+(opt.icon||opt.icon==='' ?taskIcon(opt.icon):'')+'<span class="ttl">'+opt.title+'</span></div><div class="win-btns"><div class="wbtn" data-a="min">_</div><div class="wbtn" data-a="max">□</div><div class="wbtn close" data-a="close">×</div></div></div>'+menu+(opt.toolbar||'')+'<div class="win-body"></div>'+(opt.status||'')+'<div class="win-grip"></div>';
+  winLayer.appendChild(el);
+  const wobj={id:id,el:el,opt:opt,title:opt.title,min:false,max:false,prev:''};wins[id]=wobj;addTask(wobj);
+  $$('.wbtn',el).forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();const a=b.dataset.a;if(a==='min')minimizeWin(id);else if(a==='max')toggleMax(id);else closeWin(id)})});
+  el.addEventListener('pointerdown',function(){focusWin(id)},true);
+  const bar=$('.title-bar',el);
+  bar.addEventListener('dblclick',function(e){if(!e.target.closest('.wbtn'))toggleMax(id)});
+  makeDraggable(el,bar);
+  makeResizable(el,$('.win-grip',el));
+  if(!opt.noSound){playPop();state.openedWindows++;save()}
+  return id;
+}
+
+/* ================= DRAG / RESIZE ================= */
+function makeDraggable(el,handle){
+  let dragging=false,sx=0,sy=0,ox=0,oy=0;
+  handle.addEventListener('pointerdown',function(e){
+    if(e.target.closest('.wbtn'))return;
+    if(isPhoneUI()||el.dataset.max==='1')return;
+    dragging=true;sx=e.clientX;sy=e.clientY;
+    ox=parseFloat(el.style.left)||0;oy=parseFloat(el.style.top)||0;
+    handle.setPointerCapture(e.pointerId);e.preventDefault();
+  });
+  handle.addEventListener('pointermove',function(e){
+    if(!dragging)return;
+    const nx=clampV(ox+e.clientX-sx,0,Math.max(0,window.innerWidth-el.offsetWidth));
+    const ny=clampV(oy+e.clientY-sy,0,Math.max(0,window.innerHeight-taskbarH()-el.offsetHeight));
+    el.style.left=nx+'px';el.style.top=ny+'px';
+  });
+  handle.addEventListener('pointerup',function(){dragging=false});
+  handle.addEventListener('pointercancel',function(){dragging=false});
+}
+function makeResizable(el,grip){
+  if(!grip)return;
+  let on=false,sx=0,sy=0,sw=0,sh=0;
+  grip.addEventListener('pointerdown',function(e){
+    if(isPhoneUI()||el.dataset.max==='1')return;
+    on=true;sx=e.clientX;sy=e.clientY;sw=el.offsetWidth;sh=el.offsetHeight;
+    grip.setPointerCapture(e.pointerId);e.preventDefault();e.stopPropagation();
+  });
+  grip.addEventListener('pointermove',function(e){
+    if(!on)return;
+    el.style.width=clampV(sw+e.clientX-sx,240,availW())+'px';
+    el.style.height=clampV(sh+e.clientY-sy,150,availH())+'px';
+  });
+  grip.addEventListener('pointerup',function(){on=false});
+  grip.addEventListener('pointercancel',function(){on=false});
+}
+
+/* ================= EXPLORER ================= */
+function toolbarHTML(){
+  return '<div class="tool-bar">'+
+    '<button class="tb-btn" data-tb="back" title="后退">'+ICONS.back+'</button>'+
+    '<button class="tb-btn" data-tb="fwd" title="前进">'+ICONS.fwd+'</button>'+
+    '<button class="tb-btn" data-tb="up" title="向上">'+ICONS.up+'</button>'+
+    '<div class="tb-sep"></div>'+
+    '<button class="tb-btn" data-tb="search" title="搜索">'+ICONS.search+'<span>搜索</span></button>'+
+    '<button class="tb-btn" data-tb="folder" title="文件夹">'+ICONS.folder+'</button>'+
+    '</div><div class="addr-bar"><span class="lbl">地址</span><div class="addr-field"></div></div>';
+}
+function statusHTML(){
+  return '<div class="status-bar"><div class="status-cell cnt"></div><div class="status-cell grow msg">我的电脑</div></div>';
+}
+function openExplorer(nodeId,fresh){
+  const node=findNode(nodeId);if(!node)return;
+  const key=fresh?null:('exp_'+nodeId);
+  const existing=key?wins[key]:null;
+  const id=createWindow({id:key,title:node.name,icon:node.type==='recycle'?'recycle':(node.type==='drive'?'drive':'folder'),width:600,height:430,menu:['文件(F)','编辑(E)','查看(V)','收藏(A)','工具(T)','帮助(H)'],toolbar:toolbarHTML(),status:statusHTML()});
+  const w=wins[id];
+  if(existing){
+    if(!w.history){w.history=[nodeId];w.hi=0}
+    else if(w.node&&w.node.id!==nodeId){
+      w.history=w.history.slice(0,w.hi+1);w.history.push(nodeId);w.hi++;
+    }
+  }else if(!w.history){w.history=[nodeId];w.hi=0}
+  w.node=node;
+  bindToolbar(w);renderNode(w,nodeId);playDisk();
+  return id;
+}
+function bindToolbar(w){
+  if(w.bound)return;w.bound=true;
+  const el=w.el;
+  $$('[data-tb]',el).forEach(function(b){
+    b.addEventListener('click',function(){
+      const a=b.dataset.tb;
+      if(a==='back'&&w.hi>0){
+        const t=w.history[w.hi-1];if(t){w.hi--;renderNode(w,t);playDisk()}
+      }
+      else if(a==='fwd'&&w.hi<w.history.length-1){
+        const t=w.history[w.hi+1];if(t){w.hi++;renderNode(w,t);playDisk()}
+      }
+      else if(a==='up'){
+        const p=parentMap[w.node.id];
+        if(p){w.history=w.history.slice(0,w.hi+1);w.history.push(p.id);w.hi++;renderNode(w,p.id);playDisk()}
+        else say('已经到顶啦，这里是「我的电脑」。',2600);
+      }
+      else if(a==='search')say('搜索功能：试试双击那些看起来很旧的文件。',3400);
+      else if(a==='folder')say('文件按类型排列，隐藏文件夹通常在最后。',3000);
+    });
+  });
+}
+function updateToolbar(w){
+  const el=w.el;
+  const back=$('[data-tb="back"]',el),fwd=$('[data-tb="fwd"]',el),up=$('[data-tb="up"]',el);
+  if(back)back.disabled=w.hi<=0;if(fwd)fwd.disabled=w.hi>=w.history.length-1;if(up)up.disabled=!parentMap[w.node.id];
+  const addr=$('.addr-field',el),parts=[];let n=w.node;
+  while(n){parts.unshift(n.name);n=parentMap[n.id]}
+  addr.textContent=parts.join(' \\ ');
+}
+function renderNode(w,nodeId){
+  const node=findNode(nodeId);if(!node)return;
+  w.node=node;w.el.querySelector('.ttl').textContent=node.name;
+  updateToolbar(w);
+  const body=$('.win-body',w.el);body.scrollTop=0;body.innerHTML='';
+  if(node.type==='recycle'){renderRecycle(w,body);return}
+  if(node.type==='floppy'){
+    body.innerHTML='<div class="info-pane"><b>A:\\ 不是有效路径。</b><br><br>请插入软盘，然后重试。<br><br>（这张软盘大概已经不存在了。）</div>';
+    $('.cnt',w.el).textContent='0 个对象';$('.msg',w.el).textContent='3½ 英寸软盘 (A:)';return;
+  }
+  const wrap=document.createElement('div');wrap.className='files';
+  (node.children||[]).forEach(function(item){
+    if(state.deleted.some(function(d){return d.node.id===item.id}))return;
+    const el=document.createElement('div');el.className='file'+(item.type==='locked'?' locked':'');
+    let ic=ICONS.txt;
+    if(item.type==='folder')ic=ICONS.folder;
+    else if(item.type==='locked')ic=state.unlocked?ICONS.folder:ICONS.folderLock;
+    else if(item.type==='drive')ic=ICONS.drive;
+    else if(item.type==='computer')ic=ICONS.computer;
+    else if(item.type==='recycle')ic=ICONS.recycle;
+    else if(item.type==='floppy')ic=ICONS.floppy;
+    else if(item.app)ic=ICONS[item.app]||ICONS.txt;
+    else if(item.egg)ic=ICONS.egg;
+    else if(item.genre==='music')ic=ICONS.note;
+    el.innerHTML='<div class="ic">'+ic+'</div><div class="nm">'+item.name+'</div>';
+    el.addEventListener('click',function(e){$$('.file',wrap).forEach(function(x){x.classList.remove('sel')});el.classList.add('sel');$('.msg',w.el).textContent=item.name});
+    el.addEventListener('dblclick',function(){openItem(w,item)});
+    let t=null;el.addEventListener('pointerdown',function(){clearTimeout(t);t=setTimeout(function(){openItem(w,item)},700)});
+    el.addEventListener('pointerup',function(){clearTimeout(t)});el.addEventListener('pointerleave',function(){clearTimeout(t)});
+    el.addEventListener('contextmenu',function(e){e.preventDefault();showContext(e.clientX,e.clientY,item,w,wrap)});
+    wrap.appendChild(el);
+  });
+  body.appendChild(wrap);
+  const visible=(node.children||[]).filter(function(i){return !state.deleted.some(function(d){return d.node.id===i.id})}).length;
+  $('.cnt',w.el).textContent=visible+' 个对象';
+  $('.msg',w.el).textContent=node.type==='locked'?'隐藏文件夹':(visible+' 个对象');
+  if(state.visitedFolders.indexOf(node.id)<0){state.visitedFolders.push(node.id);save();folderClippy(node.id)}
+}
+function openItem(w,item){
+  if(item.type==='folder'||item.type==='drive'||item.type==='computer'){
+    w.history=w.history.slice(0,w.hi+1);w.history.push(item.id);w.hi++;renderNode(w,item.id);playDisk();
+  }else if(item.type==='recycle'){w.history=w.history.slice(0,w.hi+1);w.history.push('__recycle');w.hi++;renderNode(w,'__recycle')}
+  else if(item.type==='floppy'){renderNode(w,'__floppy')}
+  else if(item.type==='locked'){
+    if(state.unlocked){w.history=w.history.slice(0,w.hi+1);w.history.push('hidden');w.hi++;renderNode(w,'hidden');playDisk()}
+    else askPassword(w);
+  }
+  else if(item.app){openApp(item)}
+  else if(item.type==='txt'){openNotepad(item)}
+}
+function folderClippy(id){
+  const map={
+    docs:'先从毕业照开始吧。照片里，有人回头看了你一眼。',
+    qqchat:'聊天记录按时间排着。从初识，到那句「车开了」。',
+    qqzone:'空间日志里有一条置顶，是写给很久以后的你的。',
+    pf:'这些软件，都停在 2008 年。它们记得那天你去过哪里。',
+    xunlei:'那台下载机……她说过夜曲好听，你就下了一整个下午。',
+    qq2008:'登录看看吧。她的头像，十几年没亮过。',
+    audition:'那晚你按错了一个键，屏幕跳出 MISS，她笑了。',
+    ttpod:'千千静听里循环的那首歌，是你们一人一只耳机听完的。',
+    win:'事件查看器里有时间线。最后一条记录，停在 2009 年。',
+    hidden:'这个文件夹好像上了锁。线索……会不会藏在聊天记录里？',
+    c:'欢迎回到 C 盘。灰尘有点厚，慢慢翻。'
+  };
+  if(map[id])say(map[id],4200);
+}
+
+/* ================= NOTEPAD ================= */
+function openNotepad(file,fresh){
+  const id=createWindow({id:fresh?undefined:('note_'+file.id),title:file.name+' - 记事本',icon:'txt',width:580,height:440,bodyClass:'notepad',menu:['文件(F)','编辑(E)','格式(O)','查看(V)','帮助(H)'],status:'<div class="status-bar"><div class="status-cell cnt grow"></div></div>'});
+  const body=$('.win-body',wins[id].el),pre=document.createElement('pre');pre.className='typed';body.appendChild(pre);
+  const lines=getContent(file);
+  lines.forEach(function(l){const d=document.createElement('div');d.className='tline';d.textContent=l;pre.appendChild(d)});
+  $('.cnt',wins[id].el).textContent='共 '+lines.length+' 行';
+  if(state.visitedFiles.indexOf(file.id)<0){state.visitedFiles.push(file.id);save()}
+  if(file.egg&&state.foundEggs.indexOf(file.id)<0){state.foundEggs.push(file.id);save();say('发现时间胶囊 +1：「'+file.name+'」。你挖得比想象中深。',4600)}
+  else if(file.genre==='clue')say('回形针：这串数字……好像是某个 Folder 的钥匙。',4600);
+  else if(file.genre==='secret')say('这个文件，读起来有点沉。',3200);
+  playDisk();
+}
+/* ================= CONTEXT MENU ================= */
+const cm=$('#contextMenu');
+function showContext(x,y,item,w,wrap){
+  cm.innerHTML='<div class="cm-item" data-a="open">打开</div>'+
+    (item.type==='txt'||item.app||item.type==='folder'||item.type==='drive'||item.type==='locked'?'<div class="cm-item" data-a="open2">在新窗口打开</div>':'')+
+    '<div class="cm-sep"></div><div class="cm-item" data-a="props">属性</div><div class="cm-item" data-a="del">删除</div>';
+  cm.style.left=Math.min(x,window.innerWidth-160)+'px';cm.style.top=Math.min(y,window.innerHeight-140)+'px';cm.classList.add('show');
+  $$('[data-a]',cm).forEach(function(b){b.addEventListener('click',function(){const a=b.dataset.a;hideContext();
+    if(a==='open')openItem(w,item);
+    else if(a==='open2'){if(item.app)openApp(item);else if(item.type==='txt')openNotepad(item,true);else openExplorer(item.id,true)}
+    else if(a==='props')showProps(item);
+    else if(a==='del')deleteItem(item,w,wrap);
+  })});
+}
+function hideContext(){cm.classList.remove('show')}
+document.addEventListener('pointerdown',function(e){if(!e.target.closest('#contextMenu'))hideContext()});
+$('#desktop').addEventListener('contextmenu',function(e){if(!e.target.closest('.file')){e.preventDefault();showContext(e.clientX,e.clientY,null,null,null)}});
+function deleteItem(item,w,wrap){
+  const p=parentMap[item.id];if(!p){say('这是系统根目录，删不掉哦。',2800);return}
+  const idx=p.children.findIndex(function(c){return c.id===item.id});
+  if(idx<0)return;
+  const removed=p.children.splice(idx,1)[0];
+  state.deleted.push({node:removed,parentId:p.id,index:idx,at:Date.now()});save();
+  if(wrap) $$('.file',wrap).forEach(function(el){if($('.nm',el)&&$('.nm',el).textContent===item.name)el.remove()});
+  playDisk();say('已移到回收站。「删除」只是换个地方继续想起来。',3800);
+  if(w)$('.cnt',w.el).textContent=(p.children.filter(function(i){return !state.deleted.some(function(d){return d.node.id===i.id})}).length)+' 个对象';
+  refreshExplorers();
+}
+function refreshExplorers(){
+  Object.keys(wins).forEach(function(id){const w=wins[id];if(w.node)renderNode(w,w.node.id)});
+}
+function showProps(item){
+  showModal('属性 - '+item.name,'<div class="info-pane"><b>'+item.name+'</b><br><br>类型：'+(item.type==='txt'?'文本文档':item.type==='folder'?'文件夹':item.type==='locked'?'隐藏文件夹':item.type)+'<br>位置：C:\\<br>大小：'+rnd(['1 KB','4 KB','12 KB','37 KB'])+'<br>创建时间：'+rnd(['2003','2005','2008','2009'])+'-'+pad(Math.floor(Math.random()*12)+1)+'-'+pad(Math.floor(Math.random()*28)+1)+'<br><br><span style="color:#888">这堆字节里，藏着一些没人再打开的日子。</span></div>',[{t:'确定',primary:true,fn:closeModal}]);
+}
+
+/* ================= RECYCLE BIN ================= */
+function renderRecycle(w,body){
+  body.innerHTML='';
+  const bar=document.createElement('div');bar.style.cssText='padding:7px 8px;border-bottom:1px solid #d6d2c4;background:#faf9f4';
+  bar.innerHTML='<button class="xbtn" style="height:23px;min-width:0;padding:0 10px;font-size:11px" id="emptyBin">🗑 清空回收站</button> <span style="color:#888;font-size:11px">双击文件可还原</span>';
+  body.appendChild(bar);
+  $('#emptyBin',bar).addEventListener('click',emptyRecycle);
+  if(!state.deleted.length){body.appendChild(Object.assign(document.createElement('div'),{className:'empty',innerHTML:'回收站是空的。<br><br>被删掉的东西，暂时还回得来。'}));$('.cnt',w.el).textContent='0 个对象';return}
+  const wrap=document.createElement('div');wrap.className='files';
+  state.deleted.forEach(function(rec,i){
+    const el=document.createElement('div');el.className='file';
+    el.innerHTML='<div class="ic">'+ICONS.recycle+'</div><div class="nm">'+rec.node.name+'</div>';
+    el.addEventListener('dblclick',function(){showModal('还原文件','<div class="info-pane">要把「'+rec.node.name+'」放回原处吗？</div>',[{t:'还原',primary:true,fn:function(){restoreItem(i);renderNode(w,'__recycle');closeModal()}},{t:'取消',fn:closeModal}])});
+    const btn=document.createElement('button');btn.textContent='还原';btn.style.cssText='font-size:10px;margin-top:2px;cursor:pointer';
+    btn.addEventListener('click',function(){restoreItem(i);renderNode(w,'__recycle')});
+    el.appendChild(btn);wrap.appendChild(el);
+  });
+  body.appendChild(wrap);
+  $('.cnt',w.el).textContent=state.deleted.length+' 个对象';
+}
+function restoreItem(i){
+  const rec=state.deleted[i];if(!rec)return;
+  const p=findNode(rec.parentId);if(p&&p.children)p.children.splice(Math.min(rec.index,p.children.length),0,rec.node);
+  state.deleted.splice(i,1);save();playPop();say('「'+rec.node.name+'」回来了。有些东西，删了也舍不得。',3600);
+  refreshExplorers();
+}
+function emptyRecycle(){
+  if(!state.deleted.length){say('回收站已经是空的了。',2400);return}
+  showModal('确认删除','<div class="info-pane">确定要永久删除这 '+state.deleted.length+' 个项目吗？<br><br><span style="color:#a00">这个操作不可撤销。</span></div>',[
+    {t:'是',primary:true,fn:function(){state.deleted=[];save();closeModal();refreshExplorers();say('清空了。但记忆没那么容易被格式化。',3600)}},
+    {t:'否',fn:closeModal}
+  ]);
+}
+function refreshRecycleWindows(){
+  Object.keys(wins).forEach(function(id){const w=wins[id];if(w.node&&w.node.id==='__recycle')renderNode(w,'__recycle')});
+}
+
+/* ================= PASSWORD ================= */
+function askPassword(w){
+  showModal('需要密码','<div class="info-pane">文件夹 <b>_旧时光</b> 已加密。<br>请输入四位数字密码：<br><br><input type="text" id="pwd" maxlength="4" inputmode="numeric" placeholder="••••"></div>',[
+    {t:'确定',primary:true,fn:function(){
+      const v=($('#pwd')&&$('#pwd').value||'').trim();
+      if(v==='2008'||state.unlocked){
+        state.unlocked=true;save();closeModal();playBoot();
+        say('咔哒。门开了。……有些东西，你终于还是找到了。',5200);
+        w.history=w.history.slice(0,w.hi+1);w.history.push('hidden');w.hi++;renderNode(w,'hidden');playDisk();
+      }else{playError();const inp=$('#pwd');if(inp){inp.value='';inp.placeholder='不对，再想想';inp.focus()}}
+    }},
+    {t:'取消',fn:closeModal}
+  ]);
+  setTimeout(function(){const i=$('#pwd');if(i)i.focus()},60);
+}
+
+/* ================= MINESWEEPER ================= */
+function openMines(){
+  const id=createWindow({id:'mines',title:'扫雷',icon:'game',width:262,height:342,bodyClass:'mines'});
+  const body=$('.win-body',wins[id].el);
+  const cols=9,rows=9,MINES=10;
+  let board=[],rev=0,flags=0,started=false,dead=false,won=false,sec=0,timer=null;
+  function reset(){
+    board=[];for(let y=0;y<rows;y++){const row=[];for(let x=0;x<cols;x++)row.push({mine:false,adj:0,rev:false,flag:false});board.push(row)}
+    rev=0;flags=0;started=false;dead=false;won=false;sec=0;clearInterval(timer);timer=null;render();setFace('🙂');updateDigits();
+  }
+  function place(sx,sy){
+    let placed=0;
+    while(placed<MINES){
+      const x=Math.floor(Math.random()*cols),y=Math.floor(Math.random()*rows);
+      if(board[y][x].mine||(Math.abs(x-sx)<=1&&Math.abs(y-sy)<=1))continue;
+      board[y][x].mine=true;placed++;
+    }
+    for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
+      let n=0;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){if(!dx&&!dy)continue;const ny=y+dy,nx=x+dx;if(ny>=0&&ny<rows&&nx>=0&&nx<cols&&board[ny][nx].mine)n++}
+      board[y][x].adj=n;
+    }
+  }
+  function reveal(x,y){
+    if(dead||won)return;
+    if(!started){place(x,y);started=true;timer=setInterval(function(){sec=Math.min(999,sec+1);updateDigits()},1000)}
+    const c=board[y][x];if(c.rev||c.flag)return;
+    if(c.mine){c.rev=true;dead=true;clearInterval(timer);setFace('😵');revealAll();say('踩雷了。扫雷的哲学是：别急着点。',3000);playError();render();return}
+    flood(x,y);render();checkWin();
+  }
+  function flood(x,y){
+    const c=board[y][x];if(c.rev||c.flag)return;
+    c.rev=true;rev++;
+    if(c.adj===0){for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){if(!dx&&!dy)continue;const ny=y+dy,nx=x+dx;if(ny>=0&&ny<rows&&nx>=0&&nx<cols&&!board[ny][nx].mine)flood(nx,ny)}}
+  }
+  function revealAll(){board.forEach(function(row){row.forEach(function(c){if(c.mine&&!c.flag)c.rev=true})})}
+  function checkWin(){if(rev===rows*cols-MINES){won=true;clearInterval(timer);setFace('😎');say('扫雷通关！这手速，当年能进网吧战队。',3600);playBoot()}}
+  function updateDigits(){
+    const mineLeft=String(Math.max(0,MINES-flags)).padStart(3,'0'),t=String(sec).padStart(3,'0');
+    $('#mLeft',body).textContent=mineLeft;$('#mTime',body).textContent=t;
+  }
+  function setFace(f){$('#smile',body).textContent=f}
+  function render(){
+    let g=$('#grid',body);
+    if(!g){
+      body.innerHTML='<div class="mine-panel"><div class="mine-top"><div class="digital" id="mLeft">010</div><div class="smiley" id="smile">🙂</div><div class="digital" id="mTime">000</div></div><div class="grid" id="grid"></div></div>';
+      g=$('#grid',body);
+      $('#smile',body).addEventListener('click',function(){reset();playPop()});
+      g.addEventListener('contextmenu',function(e){e.preventDefault()});
+    }
+    g.innerHTML='';
+    const colors=['','#0000ff','#008000','#ff0000','#000080','#800000','#008080','#000000','#808080'];
+    board.forEach(function(row,y){row.forEach(function(c,x){
+      const el=document.createElement('div');el.className='cell'+(c.rev?' rev':'')+(c.flag?' flag':'');
+      if(c.rev){
+        if(c.mine){el.textContent='💣';el.classList.add('boom')}
+        else if(c.adj){el.textContent=c.adj;el.style.color=colors[c.adj]}
+      }else if(c.flag)el.textContent='🚩';
+      el.addEventListener('click',function(){reveal(x,y)});
+      el.addEventListener('contextmenu',function(e){e.preventDefault();if(c.rev||dead||won)return;c.flag=!c.flag;flags+=c.flag?1:-1;render();updateDigits();playTick()});
+      g.appendChild(el);
+    })});
+  }
+  reset();
+}
+
+/* ================= MODALS ================= */
+function showModal(title,html,btns){
+  const box=$('#modalBox');
+  box.innerHTML='<div class="title-bar"><div class="ti">'+title+'</div><div class="win-btns"><div class="wbtn close" data-close>×</div></div></div><div class="modal-content">'+html+'</div><div class="modal-btns"></div>';
+  const bar=$('.modal-btns',box);
+  (btns||[{t:'确定',primary:true,fn:closeModal}]).forEach(function(b){
+    const el=document.createElement('button');el.className='xbtn'+(b.primary?' primary':'');el.textContent=b.t;el.addEventListener('click',b.fn);bar.appendChild(el);
+  });
+  $('[data-close]',box).addEventListener('click',closeModal);
+  $('#modalLayer').classList.add('show');playPop();
+}
+function closeModal(){$('#modalLayer').classList.remove('show')}
+$('#modalLayer').addEventListener('pointerdown',function(e){if(e.target===this)closeModal()});
+
+/* ================= ARCHAEOLOGY REPORT ================= */
+function computeStats(){
+  const mins=Math.max(1,Math.floor((Date.now()-state.startedAt)/60000));
+  let verdict,desc;
+  const score=state.visitedFiles.length*2+state.foundEggs.length*4+state.visitedFolders.length+state.deleted.length*2+(state.unlocked?15:0);
+  const done=[state.unlocked,state.replied,state.sent,state.zipOpened].filter(Boolean).length;
+  const web=[state.webExplore.qzone,state.webExplore.search,state.webExplore.album,state.webExplore.mail].filter(Boolean).length;
+  if(done===4&&web===4&&state.webExplore.bonus){verdict='传说：那年夏天的另一种可能';desc='你不仅说出了那句话，还读到了被删掉的另一个结局。'}
+  else if(done===4){verdict='结局：那句话终于送达';desc='你替2008年的自己，按下了那个没有发出的发送键。'}
+  else if(score>=60){verdict='数字考古学会 · 荣誉会员';desc='你把这片硬盘翻了个底朝天，连灰尘都记得你的名字。'}
+  else if(score>=35){verdict='资深怀旧症候群';desc='岁月藏不住你。那些旧文件，被你一个一个叫醒。'}
+  else if(score>=18){verdict='时间走私犯';desc='你在2008年和现在之间来回穿梭，鞋上还沾着旧时代的泥。'}
+  else{verdict='初级探索者';desc='你才刚刚掀开桌角的一页。下面还有整整一个青春。'}
+  return {
+    files:state.visitedFiles.length,folders:state.visitedFolders.length,eggs:state.foundEggs.length,
+    deleted:state.deleted.length,unlocked:state.unlocked,mins:mins,verdict:verdict,desc:desc,
+    story:done,web:web,date:new Date().toLocaleDateString('zh-CN')
+  };
+}
+function rr(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
+function drawReport(cv){
+  const ctx=cv.getContext('2d');const W=900,H=1200;cv.width=W;cv.height=H;
+  // paper
+  const bg=ctx.createLinearGradient(0,0,W,H);bg.addColorStop(0,'#f3e8cc');bg.addColorStop(0.5,'#e8d9b5');bg.addColorStop(1,'#dcc79c');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  // noise
+  for(let i=0;i<7000;i++){ctx.fillStyle='rgba(90,70,40,'+(Math.random()*0.06)+')';ctx.fillRect(Math.random()*W,Math.random()*H,2,2)}
+  // border
+  ctx.strokeStyle='#6b542f';ctx.lineWidth=6;rr(ctx,26,26,W-52,H-52,18);ctx.stroke();
+  ctx.strokeStyle='#9a7c48';ctx.lineWidth=2;rr(ctx,42,42,W-84,H-84,12);ctx.stroke();
+  // mini bliss
+  const sky=ctx.createLinearGradient(0,60,0,260);sky.addColorStop(0,'#1d6fc0');sky.addColorStop(1,'#bfe4f7');
+  ctx.save();rr(ctx,60,60,W-120,210,10);ctx.clip();ctx.fillStyle=sky;ctx.fillRect(60,60,W-120,210);
+  ctx.fillStyle='rgba(255,255,255,.8)';for(let i=0;i<5;i++){ctx.beginPath();ctx.ellipse(140+i*160,110+Math.random()*40,90,22,0,0,7);ctx.fill()}
+  ctx.fillStyle='#6fb038';ctx.beginPath();ctx.moveTo(60,230);ctx.quadraticCurveTo(250,160,470,215);ctx.quadraticCurveTo(700,265,840,200);ctx.lineTo(840,270);ctx.lineTo(60,270);ctx.fill();
+  ctx.fillStyle='#3f8a24';ctx.beginPath();ctx.moveTo(60,250);ctx.quadraticCurveTo(300,210,520,245);ctx.quadraticCurveTo(720,275,840,240);ctx.lineTo(840,270);ctx.lineTo(60,270);ctx.fill();ctx.restore();
+  ctx.strokeStyle='#6b542f';ctx.lineWidth=2;rr(ctx,60,60,W-120,210,10);ctx.stroke();
+  // header
+  ctx.textAlign='center';ctx.fillStyle='#6b542f';ctx.font='bold 20px Tahoma, sans-serif';ctx.fillText('W I N D O W S   X P   ·   A R C H A E O L O G Y   B U R E A U',W/2,318);
+  ctx.fillStyle='#3a2a14';ctx.font='bold 66px "Microsoft YaHei", sans-serif';ctx.fillText('C 盘考古报告',W/2,405);
+  ctx.fillStyle='#8a6a38';ctx.font='22px "Microsoft YaHei", sans-serif';ctx.fillText('—— 献给那些被我们不小心关掉的窗口 ——',W/2,448);
+  ctx.strokeStyle='#a8864e';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(100,478);ctx.lineTo(W-100,478);ctx.stroke();
+  const s=computeStats();
+  ctx.textAlign='left';
+  const rows=[['已读文件',s.files+' 份'],['走过目录',s.folders+' 处'],['发现彩蛋',s.eggs+' 枚'],['移入回收站',s.deleted+' 件'],['解锁旧时光',s.unlocked?'是':'否'],['未竟之言',s.story+'/4'],['网页谜题',s.web+'/4'],['考古时长',s.mins+' 分钟']];
+  rows.forEach(function(r,i){
+    const y=505+i*50;ctx.fillStyle=i%2?'rgba(150,120,70,.10)':'rgba(150,120,70,.05)';ctx.fillRect(90,y-30,W-180,52);
+    ctx.fillStyle='#6b542f';ctx.font='24px "Microsoft YaHei", sans-serif';ctx.fillText('◈ '+r[0],112,y+4);
+    ctx.textAlign='right';ctx.fillStyle='#3a2a14';ctx.font='bold 28px "Microsoft YaHei", sans-serif';ctx.fillText(r[1],W-112,y+4);ctx.textAlign='left';
+  });
+  // verdict box
+  const vy=920;ctx.fillStyle='rgba(120,90,45,.12)';rr(ctx,90,vy,W-180,150,10);ctx.fill();ctx.strokeStyle='#9a7c48';ctx.lineWidth=2;rr(ctx,90,vy,W-180,150,10);ctx.stroke();
+  ctx.fillStyle='#6b542f';ctx.font='20px "Microsoft YaHei", sans-serif';ctx.fillText('鉴 定 结 果',112,vy+38);
+  ctx.fillStyle='#a2321e';ctx.font='bold 34px "Microsoft YaHei", sans-serif';ctx.fillText(s.verdict,112,vy+82);
+  ctx.fillStyle='#5a4526';ctx.font='19px "Microsoft YaHei", sans-serif';ctx.fillText(s.desc,112,vy+120);
+  // stamp
+  ctx.save();ctx.translate(W-180,300);ctx.rotate(-0.22);ctx.strokeStyle='rgba(178,42,28,.78)';ctx.lineWidth=5;ctx.beginPath();ctx.arc(0,0,64,0,7);ctx.stroke();ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,54,0,7);ctx.stroke();ctx.textAlign='center';ctx.fillStyle='rgba(178,42,28,.82)';ctx.font='bold 20px "Microsoft YaHei", sans-serif';ctx.fillText('已归档',0,-6);ctx.font='15px Tahoma';ctx.fillText('ARCHIVED',0,20);ctx.restore();
+  // footer
+  ctx.textAlign='center';ctx.fillStyle='#7a6038';ctx.font='18px "Microsoft YaHei", sans-serif';ctx.fillText('生成日期：'+s.date+'   ·   长按图片可保存到相册',W/2,H-78);
+  ctx.fillStyle='#9a7c48';ctx.font='16px Tahoma, sans-serif';ctx.fillText('NO. '+Math.floor(Math.random()*900000+100000)+'  //  KEEP THIS MEMORY',W/2,H-50);
+}
+function openReport(){
+  const cv=$('#reportCanvas');drawReport(cv);
+  showModal('C盘考古报告','<div class="report-wrap"><canvas id="reportImg" width="320" height="427"></canvas><div class="report-tip">3:4 复古卡片 · 手机上长按图片即可保存</div><div class="report-actions"><button class="xbtn primary" id="saveReport">保存图片</button><button class="xbtn" id="closeReport">关闭</button></div></div>',[]);
+  const img=$('#reportImg');img.getContext('2d').drawImage(cv,0,0,320,427);
+  img.style.cssText='width:320px;height:427px;max-width:100%;box-shadow:0 5px 18px rgba(0,0,0,.45);border:1px solid #b9a986;touch-action:manipulation';
+  $('#saveReport').addEventListener('click',saveReport);
+  $('#closeReport').addEventListener('click',closeModal);
+  let lp=null;
+  img.addEventListener('touchstart',function(){lp=setTimeout(saveReport,650)},{passive:true});
+  img.addEventListener('touchend',function(){clearTimeout(lp)});
+  img.addEventListener('touchmove',function(){clearTimeout(lp)});
+  say('考古结束。报告已经装进相框里了，别忘了带走。',5000);
+  playBoot();
+}
+function saveReport(){
+  const cv=$('#reportCanvas');
+  try{
+    const url=cv.toDataURL('image/png'),a=document.createElement('a');
+    a.href=url;a.download='C盘考古报告.png';document.body.appendChild(a);a.click();a.remove();
+    say('报告已保存。去相册里看看吧。',3200);
+  }catch(e){say('保存失败，可以试试截图。',3000)}
+}
+
+/* ================= START MENU ================= */
+const sm=$('#startMenu');
+function renderStart(){
+  sm.innerHTML='<div class="sm-head"><div class="sm-avatar">🧑‍💻</div><div><div class="sm-user">Administrator</div><div style="opacity:.85;font-size:11px">欢迎回到 XP</div></div></div>'+
+  '<div class="sm-body"><div class="sm-left">'+
+    '<div class="sm-item" data-s="program">'+ICONS.folder+'<span>所有程序</span></div>'+
+    '<div class="sm-item" data-s="docs">'+ICONS.txt+'<span>我的文档</span></div>'+
+    '<div class="sm-item" data-s="settings">'+ICONS.computer+'<span>设置</span></div>'+
+    '<div class="sm-item" data-s="search">'+ICONS.search+'<span>搜索</span></div>'+
+    '<div class="sm-item" data-s="run">'+ICONS.floppy+'<span>运行...</span></div>'+
+    '<div class="sm-banner"><b>开始</b></div>'+
+  '</div><div class="sm-right">'+
+    '<div class="r" data-r="ie">'+ICONS.ie+'<span>Internet Explorer</span></div>'+
+    '<div class="r" data-r="computer">'+ICONS.computer+'<span>我的电脑</span></div>'+
+    '<div class="r" data-r="docs">'+ICONS.folder+'<span>我的文档</span></div>'+
+    '<div class="r" data-r="recycle">'+ICONS.recycle+'<span>回收站</span></div>'+
+    '<div class="r" data-r="emptybin">'+ICONS.recycle+'<span>清空回收站</span></div>'+
+    '<div class="sm-sep"></div>'+
+    '<div class="r" data-r="mines">'+ICONS.game+'<span>扫雷 <small>(简易版)</small></span></div>'+
+    '<div class="r" data-r="report">'+ICONS.note+'<span>C盘考古报告</span></div>'+
+    '<div class="r" data-r="clippy">'+ICONS.egg+'<span>回形针助手</span><span class="arrow">▶</span></div>'+
+  '</div></div>'+
+  '<div class="sm-foot"><span data-f="reset">🔄 重置进度</span><span data-f="shutdown">⏻ 关机 / 结束体验</span></div>';
+  $$('[data-s]',sm).forEach(function(el){el.addEventListener('click',function(){const a=el.dataset.s;toggleStart();
+    if(a==='program')openExplorer('pf');else if(a==='docs')openExplorer('docs');
+    else if(a==='settings')say('设置：音量图标在右下角，可以切换静音。',3000);
+    else if(a==='search')say('搜索：试试在 C 盘里找找带 ★ 标记的文件。',3200);
+    else if(a==='run')showModal('运行','<div class="info-pane">请输入程序、文件夹或文档的名称：<br><br><input type="text" value="C:\\" id="runInp"></div>',[{t:'确定',primary:true,fn:function(){closeModal();openExplorer('c')}},{t:'取消',fn:closeModal}]);
+  })});
+  $$('[data-r]',sm).forEach(function(el){el.addEventListener('click',function(){const a=el.dataset.r;toggleStart();
+    if(a==='ie')openIE('qzone');
+    else if(a==='computer')openExplorer('__computer');else if(a==='docs')openExplorer('docs');else if(a==='recycle')openExplorer('__recycle');
+    else if(a==='emptybin')emptyRecycle();
+    else if(a==='mines')openMines();else if(a==='report')openReport();
+    else if(a==='clippy')say(rnd(['我就在这儿，你慢慢翻。','点一下我会跳一下，真的。','发现彩蛋时我会说话，别嫌我啰嗦。']),3500);
+  })});
+  $$('[data-f]',sm).forEach(function(el){el.addEventListener('click',function(){const a=el.dataset.f;toggleStart();
+    if(a==='reset'){showModal('重置考古进度','<div class="info-pane">这会清空所有浏览记录、回收站和解锁状态，重新开始。确定吗？</div>',[{t:'确定',primary:true,fn:function(){localStorage.removeItem(SAVE_KEY);location.reload()}},{t:'取消',fn:closeModal}])}
+    else if(a==='shutdown')openReport();
+  })});
+}
+function toggleStart(){sm.classList.toggle('show');$('#startBtn').classList.toggle('open',sm.classList.contains('show'));if(sm.classList.contains('show'))playTick()}
+$('#startBtn').addEventListener('click',function(e){e.stopPropagation();toggleStart()});
+document.addEventListener('pointerdown',function(e){if(!e.target.closest('#startMenu')&&!e.target.closest('#startBtn')){sm.classList.remove('show');$('#startBtn').classList.remove('open')}});
+
+/* ================= CLOCK / TRAY / QUICK ================= */
+$('#startFlag').innerHTML=ICONS.flag;
+$('#volIcon').innerHTML=ICONS.vol;
+function tickClock(){const d=new Date();$('#clock').textContent=pad(d.getHours())+':'+pad(d.getMinutes())}
+tickClock();setInterval(tickClock,10000);
+$('#volIcon').addEventListener('click',function(){state.muted=!state.muted;save();say(state.muted?'已静音。世界安静了。':'声音回来了，听听硬盘的声音。',2600);if(!state.muted)playPop()});
+$('#quick').innerHTML='<div class="qbtn" data-q="computer" title="我的电脑">'+ICONS.computer+'</div><div class="qbtn" data-q="ie" title="回收站">'+ICONS.recycle+'</div><div class="qbtn" data-q="mines" title="扫雷">'+ICONS.game+'</div>';
+$$('[data-q]').forEach(function(el){el.addEventListener('click',function(){const a=el.dataset.q;if(a==='computer')openExplorer('__computer');else if(a==='ie')openExplorer('__recycle');else openMines()})});
+
+window.addEventListener('resize',function(){
+  syncPhoneUI();
+  if(isPhoneUI()){
+    $$('.win').forEach(function(e){e.style.left='0px';e.style.top='0px'});
+    return;
+  }
+  $$('.win').forEach(function(e){
+    if(e.offsetWidth>availW())e.style.width=availW()+'px';
+    if(e.offsetHeight>availH())e.style.height=availH()+'px';
+    e.style.left=clampV(parseFloat(e.style.left)||0,0,Math.max(0,window.innerWidth-e.offsetWidth))+'px';
+    e.style.top=clampV(parseFloat(e.style.top)||0,0,Math.max(0,window.innerHeight-taskbarH()-e.offsetHeight))+'px';
+  });
+});
+
+/* ================= SCREENSAVER ================= */
+const ss=$('#ss'),sslogo=$('#sslogo');
+let ssOn=false,lastAct=Date.now(),sx=80,sy=90,vx=2.6,vy=1.9,raf=null;
+function showSS(){
+  if(ssOn)return;ssOn=true;ss.classList.add('show');
+  sx=Math.random()*(window.innerWidth-240);sy=Math.random()*(window.innerHeight-160);
+  vx=(Math.random()>0.5?1:-1)*(1.8+Math.random()*2);vy=(Math.random()>0.5?1:-1)*(1.2+Math.random()*1.8);
+  say('发呆中……屏幕保护程序启动了。',3000);
+  loopSS();
+}
+function loopSS(){
+  if(!ssOn)return;
+  sx+=vx;sy+=vy;
+  if(sx<0){sx=0;vx*=-1}if(sx>window.innerWidth-230){sx=window.innerWidth-230;vx*=-1}
+  if(sy<0){sy=0;vy*=-1}if(sy>window.innerHeight-170){sy=window.innerHeight-170;vy*=-1}
+  sslogo.style.transform='translate('+sx+'px,'+sy+'px)';
+  raf=requestAnimationFrame(loopSS);
+}
+function hideSS(){if(!ssOn)return;ssOn=false;ss.classList.remove('show');cancelAnimationFrame(raf)}
+['pointermove','pointerdown','keydown','wheel','touchstart'].forEach(function(e){window.addEventListener(e,function(){lastAct=Date.now();hideSS()},{passive:true})});
+setInterval(function(){if(Date.now()-lastAct>20000&&!$('#modalLayer').classList.contains('show')&&!sm.classList.contains('show'))showSS()},1000);
+
+/* ================= 仿真应用 · 同一段回忆的不同载体 ================= */
+function wbody(id){return $('.win-body',wins[id].el)}
+function openApp(item){
+  playDisk();
+  if(state.visitedFiles.indexOf(item.id)<0){state.visitedFiles.push(item.id);save()}
+  if(item.egg&&state.foundEggs.indexOf(item.id)<0){state.foundEggs.push(item.id);save();say('发现时间胶囊 +1：「'+item.name+'」。你挖得比想象中深。',4200)}
+  const a=item.app;
+  if(a==='ie')openIE('qzone');
+  else if(a==='installer')openInstaller(item);
+  else if(a==='qqlogin')openQQLogin();
+  else if(a==='video')openVideo(item);
+  else if(a==='mp3')openMP3(item);
+  else if(a==='photo')openPhoto(item);
+  else if(a==='log')openEventLog();
+  else if(a==='zip')openZip();
+  else if(a==='guide')openGuide();
+  else if(a==='scr'){showSS();say('屏保是那晚最后亮起来的画面。',3200)}
+}
+
+/* ---------- IE 浏览器：四个网站 + 一条解谜链 ---------- */
+const SITES={
+  qzone:{name:'QQ空间',icon:'⭐',url:'http://user.qzone.qq.com/12008****',title:'我的QQ空间 - Microsoft Internet Explorer',render:renderQzone},
+  baidu:{name:'百度一下',icon:'🔍',url:'http://www.baidu.com/',title:'百度一下，你就知道 - Microsoft Internet Explorer',render:renderBaidu},
+  album:{name:'网易相册',icon:'📷',url:'http://photo.163.com/',title:'网易相册 - Microsoft Internet Explorer',render:renderAlbum},
+  mail:{name:'新浪邮箱',icon:'✉',url:'http://mail.sina.com.cn/',title:'新浪邮箱 - Microsoft Internet Explorer',render:renderMail},
+  secret:{name:'那年夏天',icon:'🔒',url:'http://user.qzone.qq.com/12008****/secret',title:'那年夏天 - Microsoft Internet Explorer',render:renderSecret,hidden:true}
+};
+function openIE(start){
+  const id=createWindow({id:'ie_browser',title:'Internet Explorer',icon:'ie',width:700,height:530,bodyClass:'ie-win',
+    menu:['文件(F)','编辑(E)','查看(V)','收藏(A)','工具(T)','帮助(H)'],
+    toolbar:'<div class="tool-bar"><button class="tb-btn" data-tb="bback" title="后退">'+ICONS.back+'</button><button class="tb-btn" data-tb="bfwd" title="前进">'+ICONS.fwd+'</button><div class="tb-sep"></div><button class="tb-btn" data-tb="bhome">🏠 主页</button><button class="tb-btn" data-tb="brefresh">🔄 刷新</button></div>'+
+      '<div class="fav-bar"><span class="fav-lbl">收藏夹：</span>'+Object.keys(SITES).map(function(k){return '<button data-site="'+k+'"'+(SITES[k].hidden?' class="locked"':'')+'>'+SITES[k].icon+' '+SITES[k].name+'</button>'}).join('')+'</div>'+
+      '<div class="addr-bar"><span class="lbl">地址</span><div class="addr-field ie-addr"></div><button class="tb-btn" data-tb="bgo">转到</button></div>',
+    status:'<div class="status-bar"><div class="status-cell grow ie-status">完成</div><div class="status-cell">Internet</div></div>'});
+  const w=wins[id];
+  if(!w.bhistory){w.bhistory=[];w.bi=-1;w.qzClicks=0;bindIE(w)}
+  ieGoto(w,start||'qzone');
+  return id;
+}
+function bindIE(w){
+  const el=w.el;
+  $$('[data-tb]',el).forEach(function(b){b.addEventListener('click',function(){
+    const a=b.dataset.tb;
+    if(a==='bback'&&w.bi>0){w.bi--;ieRender(w,w.bhistory[w.bi]);playDisk()}
+    else if(a==='bfwd'&&w.bi<w.bhistory.length-1){w.bi++;ieRender(w,w.bhistory[w.bi]);playDisk()}
+    else if(a==='bhome')ieGoto(w,'qzone');
+    else if(a==='brefresh'){ieRender(w,w.bhistory[w.bi]);playDisk()}
+    else if(a==='bgo')ieGoto(w,'baidu');
+  })});
+  $$('[data-site]',el).forEach(function(b){b.addEventListener('click',function(){
+    const k=b.dataset.site;
+    if(k==='secret'&&!state.webExplore.bonus){say('这个收藏夹是灰的……好像还没解锁。',3000);playError();return}
+    ieGoto(w,k);
+  })});
+}
+function ieGoto(w,site){
+  if(!SITES[site])return;
+  w.bhistory=w.bhistory.slice(0,w.bi+1);w.bhistory.push(site);w.bi++;
+  ieRender(w,site);
+}
+function ieRender(w,site){
+  const s=SITES[site];if(!s)return;
+  w.site=site;
+  w.el.querySelector('.ttl').textContent=s.title;
+  $('.ie-addr',w.el).textContent=s.url;
+  $$('[data-site]',w.el).forEach(function(b){b.classList.toggle('on',b.dataset.site===site)});
+  const back=$('[data-tb="bback"]',w.el),fwd=$('[data-tb="bfwd"]',w.el);
+  if(back)back.disabled=w.bi<=0;if(fwd)fwd.disabled=w.bi>=w.bhistory.length-1;
+  const body=wbody(w.id);body.innerHTML='';body.scrollTop=0;
+  s.render(body,w);playDisk();
+}
+function clue(n,text){return '<div class="clue-box">✦ 线索'+n+'：'+text+'</div>'}
+
+/* QQ空间 */
+function renderQzone(body,w){
+  const def=[{n:'小四',t:'2008-06-08 10:12',r:'毕业快乐！以后常回空间看看 ~'},{n:'冰棍',t:'2008-08-20 22:40',r:'楼上的，头像能换换吗 哈哈哈'},{n:'阿May',t:'2009-06-07 23:38',r:'我走了。如果你看到这条留言，就当你已经说过那句话了。—— A'}];
+  if(!state.qzoneMsgs){state.qzoneMsgs=def.slice();save()}
+  if(state.qzoneHits==null){state.qzoneHits=123456;save()}
+  function draw(){
+    body.innerHTML='<div class="qz"><div class="qz-banner">╰☆ 那年夏天 · 我的空间 ☆╮</div>'+
+      '<div class="qz-marquee"><marquee scrollamount="5">★ 欢迎光临我的QQ空间 ★ 记得留言哦 ★ 最后更新：2009-06-07 ★</marquee></div>'+
+      '<div class="qz-nav"><span>首页</span><span>日志</span><span>相册</span><span>留言板</span><span>好友</span></div>'+
+      '<div class="qz-main"><div class="qz-left">'+
+      '<div class="qz-box"><h4>◈ 最新日志</h4><div class="bd">'+
+        '<div class="qz-log"><b>置顶：写给未来的自己</b><span class="tm">2009-06-07</span></div>'+
+        '<div class="qz-log"><b>那年夏天，我们没有说再见</b><span class="tm">2008-06-07</span></div>'+
+        '<div class="qz-log"><b>转载：47张图看完青春</b><span class="tm">2008-08-15</span></div></div></div>'+
+      (state.webExplore.qzone?clue('①','她离开的那天 —— <b>06 月 07 日</b>'):'')+
+      '<div class="qz-box"><h4>◈ 留言板</h4><div class="bd" id="qzMsgs">'+
+        state.qzoneMsgs.map(function(m){return '<div class="qz-msg"><b>'+m.n+'</b> <span class="tm">'+m.t+'</span><br>'+m.r+'</div>'}).join('')+
+      '</div><div class="qz-form"><input id="qzInp" maxlength="60" placeholder="留下你想说的话……"><button id="qzSend">留言</button></div>'+
+      '<div class="qz-hint" id="qzHint">'+(state.replied?'你已经把那句话留在这里了。':'—— 有一条留言，你从来没有回复过。')+'</div></div></div>'+
+      '<div class="qz-right"><div class="qz-box"><h4>访客</h4><div class="bd"><div class="qz-counter" id="qzHit">'+String(state.qzoneHits).padStart(6,'0')+'</div><button id="qzStep" style="margin-top:6px;width:100%;height:22px;font-size:11px">踩一踩</button><div style="font-size:10px;color:#aaa;margin-top:5px">计数器好像有点松动……</div></div></div>'+
+      '<div class="qz-box"><h4>好友</h4><div class="bd"><div style="padding:3px 0">🐧 小四 <span style="color:#3ac33a">●</span></div><div style="padding:3px 0;color:#999">🐧 阿May <span style="color:#bbb">●</span></div><div style="font-size:10px;color:#aaa;margin-top:5px">她的头像，一直是灰的。</div></div></div></div></div>'+
+      '<div class="qz-badge">❖ Best viewed with Internet Explorer 6 · 800×600 ❖</div></div>';
+    $('#qzStep',body).addEventListener('click',function(){
+      state.qzoneHits++;w.qzClicks++;save();
+      $('#qzHit',body).textContent=String(state.qzoneHits).padStart(6,'0');playTick();
+      if(w.qzClicks>=3&&!state.webExplore.qzone){
+        state.webExplore.qzone=true;save();playBoot();draw();
+        say('计数器里掉出一张纸条：她离开那天，06 月 07 日。',5200);
+      }
+    });
+    $('#qzSend',body).addEventListener('click',function(){
+      const inp=$('#qzInp',body),v=inp.value.trim();if(!v)return;
+      const d=new Date();
+      state.qzoneMsgs.push({n:'我',t:d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+' '+pad(d.getHours())+':'+pad(d.getMinutes()),r:v});
+      state.replied=true;save();playPop();draw();
+      say(state.replied&&state.sent?'你终于替那年把话说完了。':'留言已保存。有些话，晚十几年说也不算晚。',4600);
+      openReportIfDone();
+    });
+  }
+  draw();
+  if(w.site==='qzone'&&!state.webExplore.qzone)say('这是她的空间。计数器……好像能点。',4200);
+}
+
+/* 百度搜索 */
+function renderBaidu(body,w){
+  function home(){
+    body.innerHTML='<div class="bd-wrap"><div class="bd-logo">Bai<span>°du</span> 百度</div>'+
+      '<div class="bd-search"><input id="bdIn" placeholder="搜索那些年的一切"><button id="bdBtn">百度一下</button></div>'+
+      '<div class="bd-hot">热门搜索：<a data-k="那年夏天">那年夏天</a><a data-k="毕业照">毕业照</a><a data-k="夜曲">夜曲</a><a data-k="橡皮">橡皮</a></div>'+
+      (state.webExplore.search?clue('②','毕业照拍摄于 <b>2008 年 6 月 7 日</b>，那天是 06/07'):'')+'</div>';
+    $('#bdBtn',body).addEventListener('click',function(){search($('#bdIn',body).value.trim())});
+    $('#bdIn',body).addEventListener('keydown',function(e){if(e.key==='Enter')search(this.value.trim())});
+    $$('.bd-hot a',body).forEach(function(a){a.addEventListener('click',function(){search(a.dataset.k)})});
+  }
+  function search(q){
+    if(!q){home();return}
+    if(/那年夏天|毕业照|夜曲|2008|06|07|阿May/.test(q)){
+      if(!state.webExplore.search){state.webExplore.search=true;save();playBoot();say('搜索结果里，有一张 2008 年 6 月 7 日的毕业照。',4400)}
+      body.innerHTML='<div class="ie-page"><div class="bd-results"><h3>百度为您找到相关结果约 1,280,000 个</h3>'+
+        '<div class="bd-res"><b>那年夏天 · 毕业照 - 初三(2)班相册</b><div class="url">photo.163.com / 2008 / 06 / 07</div>'+
+        '<p>2008 年 6 月 7 日拍摄。照片里有人站在最后一排，有人在第一排回头。<b>日期：06 月 07 日。</b></p></div>'+
+        '<div class="bd-res"><b>夜曲 - 8bit 版下载 - 迅雷</b><div class="url">xunlei.com / music / 2008</div><p>那年夏天循环播放的歌，下载耗时 3 小时 12 分。</p></div>'+
+        clue('②','毕业照拍摄于 <b>2008 年 6 月 7 日</b>，那天是 06/07')+
+        '<p style="margin-top:14px"><button class="xbtn" id="bdBack">« 返回百度首页</button></p></div></div>';
+      $('#bdBack',body).addEventListener('click',home);
+    }else if(/橡皮/.test(q)){
+      body.innerHTML='<div class="ie-page"><div class="bd-results"><h3>搜索结果</h3><div class="bd-res"><b>一块画着笑脸的橡皮 - 网易相册</b><p>2003 年 9 月 1 日，有人借走了一块橡皮，还回来的时候上面多了一个笑脸。相册里有个加密相册叫「2003 初一」。</p></div><p style="margin-top:14px"><button class="xbtn" id="bdBack">« 返回百度首页</button></p></div></div>';
+      $('#bdBack',body).addEventListener('click',home);
+    }else{
+      body.innerHTML='<div class="ie-page"><div class="bd-none">没有找到和「'+q+'」相关的结果。<br><br>也许该换个词：那年夏天？毕业照？夜曲？<p style="margin-top:14px"><button class="xbtn" id="bdBack">« 返回</button></p></div></div>';
+      $('#bdBack',body).addEventListener('click',home);
+    }
+  }
+  home();
+}
+
+/* 网易相册 */
+function renderAlbum(body,w){
+  const photos=[
+    ['初一合影','#5a8fd8','🎓'],['黑板报','#4a9c6a','📝'],['运动会','#d08b3a','🏃'],
+    ['2003 初一','#8a6fc0','🔒'],['夜曲歌词','#c05a8a','🎵'],['海边','#3aa0c0','🌊']
+  ];
+  function draw(){
+    body.innerHTML='<div class="alb-wrap"><div class="alb-head">📷 网易相册 · 我的相册（6 张照片，1 个加密）</div><div class="alb-grid">'+
+      photos.map(function(p,i){
+        const locked=i===3,sea=i===5&&!state.webExplore.album;
+        return '<div class="alb-item" data-i="'+i+'"><div class="alb-thumb" style="background:'+p[1]+'">'+(locked?'🔒':sea?'❓':p[2])+'</div><div class="nm">'+p[0]+'</div></div>';
+      }).join('')+'</div>'+
+      (state.webExplore.album?clue('③','第一次见面：<b>2003 年 9 月 1 日</b>，一块画着笑脸的橡皮。')+ '<div class="alb-note">🌊 海边那张照片解锁了：照片上只有海。可她一直说，那是我们的合影。</div>':'')+
+      '</div>';
+    $$('.alb-item',body).forEach(function(el){el.addEventListener('click',function(){
+      const i=+el.dataset.i;
+      if(i===5&&!state.webExplore.album){say('这张照片被锁住了。先解开「2003 初一」。',3200);return}
+      if(i!==3){say(rnd(['这张照片有点糊了。','那时候的像素，真是不怎么样。','这张……看了很久。']),2600);playTick();return}
+      askAlbumCode();
+    })});
+  }
+  function askAlbumCode(){
+    showModal('加密相册','<div class="info-pane">相册「2003 初一」已加密。<br><br>问题：<b>她借走了什么，还回来的时候上面多了一个笑脸？</b><br><br><input type="text" id="albIn" maxlength="8" placeholder="两个字"></div>',[
+      {t:'确定',primary:true,fn:function(){
+        const v=($('#albIn')&&$('#albIn').value||'').trim();
+        if(/^橡皮/.test(v)||v==='笑脸橡皮'){
+          state.webExplore.album=true;save();closeModal();playBoot();draw();
+          say('相册打开了。2003 年 9 月 1 日，那块画着笑脸的橡皮。',5000);
+        }else{playError();const inp=$('#albIn');if(inp){inp.value='';inp.placeholder='不对，再想想';inp.focus()}}
+      }},
+      {t:'取消',fn:closeModal}
+    ]);
+    setTimeout(function(){const i=$('#albIn');if(i)i.focus()},60);
+  }
+  draw();
+}
+
+/* 新浪邮箱 */
+function renderMail(body,w){
+  let folder='inbox';
+  function draw(){
+    const mails=folder==='inbox'
+      ? [{n:'小四',s:'毕业快乐！',d:'2008-06-08'}]
+      : [{n:'阿May',s:'如果那天……（加密）',d:'2008-06-08 23:12',lock:true}];
+    body.innerHTML='<div class="mail-wrap"><div class="mail-folders"><div data-f="inbox" class="'+(folder==='inbox'?'on':'')+'">📥 收件箱</div><div data-f="draft" class="'+(folder==='draft'?'on':'')+'">📝 草稿箱</div><div data-f="sent">📤 已发送</div></div>'+
+      '<div class="mail-list">'+mails.map(function(m,i){return '<div class="mail-row" data-i="'+i+'"><span class="dt">'+m.d+'</span><b>'+m.n+'</b><br>'+m.s+'</div>'}).join('')+'</div></div>';
+    $$('.mail-folders div',body).forEach(function(d){d.addEventListener('click',function(){folder=d.dataset.f;if(folder==='sent'){say('已发送里只有一条：那条没发出去的消息。',3000);return}draw()})});
+    $$('.mail-row',body).forEach(function(r){r.addEventListener('click',function(){
+      const m=mails[+r.dataset.i];
+      if(m.lock){askMailCode();return}
+      body.innerHTML='<div class="mail-detail"><h2>'+m.s+'</h2><div class="from">来自：'+m.n+'</div><p>毕业快乐！以后常回空间看看 ~</p><p><button class="xbtn" id="mBack">« 返回列表</button></p></div>';
+      $('#mBack',body).addEventListener('click',draw);
+    })});
+  }
+  function askMailCode(){
+    showModal('加密邮件','<div class="info-pane">这封草稿被加密了。<br><br>提示：<b>她离开那天的日期（月 + 日，四位数字）</b><br><br><input type="text" id="mailIn" maxlength="4" inputmode="numeric" placeholder="••••"></div>',[
+      {t:'确定',primary:true,fn:function(){
+        const v=($('#mailIn')&&$('#mailIn').value||'').trim();
+        if(v==='0607'||state.webExplore.mail){
+          state.webExplore.mail=true;save();closeModal();playBoot();detail();
+          say('邮件打开了。里面是另一个夏天。',4800);
+        }else{playError();const inp=$('#mailIn');if(inp){inp.value='';inp.placeholder='不对，再想想';inp.focus()}}
+      }},
+      {t:'取消',fn:closeModal}
+    ]);
+    setTimeout(function(){const i=$('#mailIn');if(i)i.focus()},60);
+  }
+  function detail(){
+    body.innerHTML='<div class="mail-detail"><h2>如果那天……</h2><div class="from">来自：阿May &lt;54***21@qq.com&gt;　2008-06-08 23:12</div>'+
+      '<p>其实那天在车上，我也想回头。</p><p>我想问你：那句你没说完的话，到底是什么。</p><p>可我不敢问。我怕一听，就真的走不了了。</p>'+
+      '<p>如果有一天你打开了这封信，就当我们真的去过海边了吧。</p>'+
+      '<p style="margin-top:18px"><button class="xbtn primary" id="openSecret">打开隐藏页面 →</button> <button class="xbtn" id="mBack">« 返回列表</button></p></div>';
+    $('#openSecret',body).addEventListener('click',function(){ieGoto(w,'secret')});
+    $('#mBack',body).addEventListener('click',draw);
+  }
+  if(state.webExplore.mail)detail();else draw();
+}
+
+/* 隐藏页面 */
+function renderSecret(body,w){
+  if(!state.webExplore.bonus){state.webExplore.bonus=true;save();playBoot();say('你找到了另一个夏天。',5000)}
+  body.innerHTML='<div class="secret-page"><h2>如果那天你按下了发送</h2>'+
+    '<p>车开了。你站在站台上，手机还亮着。</p><p>那行字终于发出去了——「别走。」</p>'+
+    '<p>她从车窗里探出头，楞了一下，然后笑了。</p><p>那年夏天，你们真的去了海边。浪很大，她鞋子湿了，骂了你一句，却把脚踩进了你的鞋里。</p>'+
+    '<p>后来你们吵过架，和好过，也一起看过很多次海。电脑换了一台又一台，QQ 号早就不用了。</p>'+
+    '<p>但那句「别走」，你一次都没后悔按下去。</p>'+
+    '<p class="sign">—— 这是被删掉的那一种可能</p>'+
+    '<p style="margin-top:26px"><button class="xbtn" id="secBack">« 返回 QQ空间</button></p></div>';
+  $('#secBack',body).addEventListener('click',function(){ieGoto(w,'qzone')});
+}
+
+/* ---------- .exe : 安装向导 ---------- */
+function openInstaller(item){
+  const meta=item.meta||{name:'软件',target:null};
+  const id=createWindow({id:'inst_'+item.id,title:meta.name+' 安装向导',icon:'installer',width:470,height:350,bodyClass:'wizard'});
+  const body=wbody(id);
+  let step=0,prog=0,timer=null;
+  const steps=[
+    '<h3>欢迎使用 '+meta.name+' 安装向导</h3><p>本向导将引导您完成 '+meta.name+' 的安装。</p><p style="color:#888">建议关闭其他正在运行的程序。安装大约需要 3 分钟（如果网速够快的话）。</p>',
+    '<h3>许可协议</h3><div class="wz-license">您即将安装的软件为免费软件。您可以自由使用、复制和传播本软件，但不得用于商业用途。<br><br>安装过程中可能会弹出「是否设为默认下载工具」的提示，请根据您的喜好选择。<br><br>重要提示：请勿在写代码时开着十个以上下载任务，否则电脑会卡成幻灯片。</div><p style="font-size:11px;color:#888">滚动阅读完整协议。</p>',
+    '<h3>选择组件</h3><div class="wz-opts"><label><input type="checkbox" checked> 主程序（必选）</label><label><input type="checkbox" checked> 浏览器工具栏</label><label><input type="checkbox" checked> 下载加速模块</label><label><input type="checkbox"> 开机自动启动（不推荐）</label></div>',
+    '<h3>正在安装 '+meta.name+'…</h3><p>请稍候，正在复制文件到 C:\\Program Files\\…</p><div class="wz-bar"><i id="wzFill"></i></div><p id="wzPct" style="font-family:Courier New">0%</p>',
+    '<h3>✓ 安装完成</h3><p>'+meta.name+' 已成功安装到您的计算机。</p><p style="color:#d2378b">2008 年的那个夏天，你就是用它，下了一整个下午的《夜曲》。</p>'
+  ];
+  function draw(){
+    body.innerHTML='<div class="wz"><div class="wz-side"><b>安装向导</b></div><div class="wz-main"><div class="wz-body">'+steps[step]+'</div>'+
+      '<div class="wz-btns"><button class="xbtn" id="wzCancel">取消</button>'+
+      (step>0&&step<3?'<button class="xbtn" id="wzPrev">上一步</button>':'')+
+      (step<3?'<button class="xbtn primary" id="wzNext">'+(step===2?'安装':'下一步')+'</button>':'<button class="xbtn primary" id="wzDone">完成</button>')+'</div></div></div>';
+    const cancel=$('#wzCancel',body);if(cancel)cancel.addEventListener('click',function(){closeWin(id)});
+    const prev=$('#wzPrev',body);if(prev)prev.addEventListener('click',function(){step--;draw()});
+    const next=$('#wzNext',body);if(next)next.addEventListener('click',function(){step++;draw();if(step===3)runProgress()});
+    const done=$('#wzDone',body);if(done)done.addEventListener('click',function(){
+      closeWin(id);say('安装完成。那年你为了她，下载了一整个下午。',4200);
+      if(meta.target){openExplorer(meta.target)}
+    });
+  }
+  function runProgress(){
+    clearInterval(timer);
+    timer=setInterval(function(){
+      if(!body.isConnected){clearInterval(timer);return}
+      prog=Math.min(100,prog+Math.floor(Math.random()*9)+4);
+      const f=$('#wzFill',body),p=$('#wzPct',body);
+      if(f)f.style.width=prog+'%';if(p)p.textContent=prog+'%';
+      if(prog>=100){clearInterval(timer);playTick();setTimeout(function(){if(body.isConnected){step++;draw();playPop()}},500)}
+    },130);
+  }
+  draw();
+}
+
+/* ---------- .exe : QQ2008 登录 / 好友 / 聊天 ---------- */
+function openQQLogin(){
+  const id=createWindow({id:'qqlogin',title:'QQ2008',icon:'qq',width:326,height:286});
+  const body=wbody(id);
+  const uin=String(Math.floor(10000000+Math.random()*89999999));
+  body.innerHTML='<div class="qql-logo">🐧 QQ2008</div>'+
+    '<div class="qql-field"><span>QQ号码</span><input id="qqU" value="'+uin+'"></div>'+
+    '<div class="qql-field"><span>密码</span><input id="qqP" type="password" value="••••••••"></div>'+
+    '<div class="qql-field"><span>状态</span><select id="qqS" style="flex:1;height:24px"><option>在线</option><option>隐身</option><option>离开</option></select></div>'+
+    '<div class="qql-btns"><button id="qqLogin">登录</button><button id="qqCancel">取消</button></div>'+
+    '<div class="qql-status" id="qqSts">服务器连接中……</div>';
+  $('#qqCancel',body).addEventListener('click',function(){closeWin(id)});
+  $('#qqLogin',body).addEventListener('click',function(){
+    $('#qqSts',body).textContent='正在登录，请稍候……';playPop();
+    setTimeout(function(){if(!body.isConnected)return;closeWin(id);openBuddies()},850);
+  });
+}
+function openBuddies(){
+  const id=createWindow({id:'qqbuddies',title:'QQ2008 - 我的好友',icon:'qq',width:300,height:400});
+  const body=wbody(id);
+  const friends=[{n:'阿May',off:true,sign:'等我回来'},{n:'小四',off:false,sign:'毕业快乐'},{n:'冰棍',off:false,sign:'在网吧'},{n:'终止Symbol',off:false,sign:'潜水ing'},{n:'雨后的向日葵',off:true,sign:'离线'}];
+  body.innerHTML='<div class="buddy-top"><span style="font-size:20px">🐧</span><span>我的好友 <small style="font-size:10px;font-weight:normal">(5/128)</small></span></div>'+
+    '<div class="buddy-list"><div class="buddy-group">─ 我的好友 ─</div>'+
+    friends.map(function(f,i){return '<div class="buddy-row'+(f.off?' off':'')+'" data-i="'+i+'"><span class="dot"></span><span class="nick">'+f.n+'</span><span class="sign">'+f.sign+'</span></div>'}).join('')+
+    '<div class="buddy-group">─ 陌生人 ─</div><div class="buddy-row off"><span class="dot"></span><span class="nick">54***21</span></div></div>'+
+    '<div class="buddy-foot"><button id="bdFind">查找</button><button id="bdMenu">菜单</button></div>';
+  $$('.buddy-row[data-i]',body).forEach(function(r){r.addEventListener('dblclick',function(){openChat(friends[+r.dataset.i])});r.addEventListener('click',function(){openChat(friends[+r.dataset.i])})});
+  $('#bdFind',body).addEventListener('click',function(){say('查找：54***21 —— 该用户不在线。',3000)});
+  $('#bdMenu',body).addEventListener('click',function(){say('QQ2008：你的好友列表，十几年没变过。',3200)});
+  say('登录成功。她的头像，还是灰的。',4000);
+}
+function openChat(friend){
+  const id=createWindow({id:'chat_'+friend.n,title:'与 '+friend.n+' 聊天中',icon:'qq',width:360,height:310});
+  const body=wbody(id);
+  const isMay=friend.n==='阿May';
+  const log=document.createElement('div');log.className='chat-log';body.appendChild(log);
+  function add(cls,txt){const d=document.createElement('div');d.className=cls;d.textContent=txt;log.appendChild(d);log.scrollTop=log.scrollHeight}
+  add('sys','您正在与 '+friend.n+' 聊天');
+  if(isMay){
+    add('her','19:47  等我回来。别删我QQ。');
+    add('her','19:49  我下了。车开了。');
+  }else add('her',rnd(P.chatYou));
+  const bar=document.createElement('div');bar.className='chat-bar';
+  bar.innerHTML='<textarea id="chatTxt">'+(isMay?'其实那天我想说的是——':'')+'</textarea><button id="chatSend">发送</button>';
+  body.appendChild(bar);
+  $('#chatSend',bar).addEventListener('click',function(){
+    const t=$('#chatTxt',bar),v=t.value.trim();if(!v)return;
+    add('me',pad(new Date().getHours())+':'+pad(new Date().getMinutes())+'  我：'+v);t.value='';playPop();
+    if(isMay&&!state.sent){
+      state.sent=true;save();
+      setTimeout(function(){if(!body.isConnected)return;add('her','……我收到了。车开了，但我一直没删你。');playBoot();say('那条消息，终于送到了。晚了十几年，但送到了。',5600);openReportIfDone()},800);
+    }else{
+      setTimeout(function(){if(body.isConnected)add('her',pad(new Date().getHours())+':'+pad(new Date().getMinutes())+'  '+friend.n+'：'+rnd(P.chatYou))},700);
+    }
+  });
+}
+function openReportIfDone(){
+  if(state.sent&&state.replied&&state.zipOpened&&state.unlocked){
+    setTimeout(function(){say('所有没说完的话都说完了。去看看考古报告吧。',5000);openReport()},3000);
+  }
+}
+
+/* ---------- .avi : 视频播放器 ---------- */
+function openVideo(item){
+  const id=createWindow({id:'video_'+item.id,title:item.name+' - Windows Media Player',icon:'video',width:580,height:450,bodyClass:'wmp'});
+  const body=wbody(id);
+  body.innerHTML='<div class="wmp-screen"><canvas id="vidCv" width="480" height="270"></canvas></div>'+
+    '<div class="wmp-ctrl"><div class="wmp-row"><button id="vidPlay">⏸ 暂停</button><button id="vidStop">■ 停止</button><span class="wmp-time" id="vidTime">00:00 / 00:46</span><div class="wmp-track" id="vidTrack"><i></i></div></div></div>';
+  const cv=$('#vidCv',body),ctx=cv.getContext('2d');
+  let playing=true,pos=0,DUR=46,last=performance.now();
+  function frame(now){
+    if(!cv.isConnected)return;
+    const dt=Math.min(.05,(now-last)/1000);last=now;
+    if(playing)pos+=dt;
+    if(pos>=DUR){pos=DUR;playing=false;$('#vidPlay',body).textContent='▶ 播放';say('宣传片播完了。她笑了。那是我最后一次见她笑。',4600)}
+    const W=480,H=270;
+    if(pos<2){
+      ctx.fillStyle='#111';ctx.fillRect(0,0,W,H);
+      for(let i=0;i<2200;i++){ctx.fillStyle='rgba(255,255,255,'+Math.random()*.5+')';ctx.fillRect(Math.random()*W,Math.random()*H,2,2)}
+      ctx.fillStyle='#0f0';ctx.font='16px Courier New';ctx.fillText('LOADING... '+Math.floor(pos*50)+'%',20,140);
+    }else{
+      const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#241452');g.addColorStop(1,'#b3276b');
+      ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+      ctx.fillStyle='rgba(255,255,255,.12)';for(let i=0;i<8;i++){ctx.beginPath();ctx.moveTo(i*70,0);ctx.lineTo(i*70-60,H);ctx.lineTo(i*70-55,H);ctx.lineTo(i*70+5,0);ctx.fill()}
+      const t=pos, bounce=Math.abs(Math.sin(t*3.4))*26;
+      ctx.save();ctx.translate(240,190-bounce);
+      ctx.fillStyle='#ffd85e';ctx.fillRect(-8,-34,16,16);
+      ctx.fillStyle='#27d3ff';ctx.fillRect(-14,-18,28,30);
+      ctx.strokeStyle='#ffd85e';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(-14,-8);ctx.lineTo(-32,-26);ctx.moveTo(14,-8);ctx.lineTo(34,-30);ctx.stroke();
+      ctx.strokeStyle='#fff';ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(-8,12);ctx.lineTo(-22,42);ctx.moveTo(8,12);ctx.lineTo(22,42);ctx.stroke();ctx.restore();
+      ctx.textAlign='center';ctx.fillStyle='#ffe45e';ctx.font='bold 34px Tahoma';ctx.fillText('PERFECT!',240,66);
+      ctx.fillStyle='#fff';ctx.font='bold 18px Tahoma';ctx.fillText('COMBO x 37',240,94);
+      if(pos>DUR-6){ctx.fillStyle='#ff3b3b';ctx.font='bold 52px Tahoma';ctx.fillText('MISS',240,150);ctx.fillStyle='#fff';ctx.font='14px SimSun';ctx.fillText('她笑了。那是我最后一次见她笑。',240,180)}
+      ctx.textAlign='left';ctx.fillStyle='rgba(255,255,255,.7)';ctx.font='12px SimSun';ctx.fillText('劲舞团 宣传片 · 2008',14,H-14);
+      for(let y=0;y<H;y+=4){ctx.fillStyle='rgba(0,0,0,.12)';ctx.fillRect(0,y,W,2)}
+    }
+    const tm=Math.floor(pos);
+    $('#vidTime',body).textContent=pad(Math.floor(tm/60))+':'+pad(tm%60)+' / 00:46';
+    $('#vidTrack',body).firstElementChild.style.width=(pos/DUR*100)+'%';
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  $('#vidPlay',body).addEventListener('click',function(){playing=!playing;$('#vidPlay',body).textContent=playing?'⏸ 暂停':'▶ 播放';playTick()});
+  $('#vidStop',body).addEventListener('click',function(){pos=0;playing=false;$('#vidPlay',body).textContent='▶ 播放'});
+  $('#vidTrack',body).addEventListener('click',function(e){const r=this.getBoundingClientRect();pos=Math.max(0,Math.min(DUR,(e.clientX-r.left)/r.width*DUR))});
+}
+
+/* ---------- .mp3 : 8bit 音乐播放器 ---------- */
+function openMP3(item){
+  const TR=[
+    {name:'夜曲 (8bit remix)',bpm:108,notes:[72,74,76,74,72,69,67,69,72,74,76,79,76,74,72,0]},
+    {name:'童年 (8bit remix)',bpm:120,notes:[60,64,67,64,62,65,69,65,60,64,67,72,69,67,64,0]},
+    {name:'说好的幸福 (8bit remix)',bpm:96,notes:[67,69,71,72,71,69,67,64,65,67,69,67,65,64,62,0]}
+  ];
+  const id=createWindow({id:'mp3_'+item.id,title:item.name+' - Windows Media Player',icon:'mp3',width:420,height:390,bodyClass:'wmp'});
+  const body=wbody(id);
+  let cur=(item.meta&&item.meta.track)||0,playing=false,step=0,timer=null;
+  body.innerHTML='<div class="wmp-screen" style="flex:0 0 120px"><canvas id="visCv" class="wmp-vis" width="400" height="110"></canvas></div>'+
+    '<div class="wmp-ctrl"><div class="wmp-row"><button id="mPlay">▶ 播放</button><button id="mPrev">⏮</button><button id="mNext">⏭</button><span class="wmp-time" id="mTime">00:00</span><div class="wmp-track" id="mTrack"><i></i></div></div>'+
+    '<div class="wmp-list">'+TR.map(function(t,i){return '<div data-i="'+i+'" class="'+(i===cur?'on':'')+'">♫ '+t.name+'</div>'}).join('')+'</div>'+
+    '<div style="font-size:10px;color:#666">2008年的夏天，你们一人一只耳机。</div></div>';
+  const cv=$('#visCv',body),ctx=cv.getContext('2d');
+  function drawVis(n){
+    ctx.fillStyle='#0b1a2c';ctx.fillRect(0,0,400,110);
+    for(let i=0;i<32;i++){
+      const h=n>0?(10+Math.random()*(n%12*4+18)):(3+Math.random()*5);
+      ctx.fillStyle='hsl('+(190+i*3)+',85%,'+(45+Math.random()*20)+'%)';
+      ctx.fillRect(6+i*12,110-h,8,h);
+    }
+  }
+  drawVis(0);
+  function tick(){
+    if(!cv.isConnected){stop();return}
+    const tr=TR[cur],n=tr.notes[step%tr.notes.length];
+    if(n>0){
+      const f=440*Math.pow(2,(n-69)/12);
+      tone(f,0.2,'square',0.055);
+      if(step%4===0)tone(f/2,0.3,'triangle',0.05);
+      drawVis(n);
+    }else drawVis(0);
+    step++;
+    $('#mTime',body).textContent=pad(Math.floor(step/8/60))+':'+pad(Math.floor(step/8)%60);
+    $('#mTrack',body).firstElementChild.style.width=((step%tr.notes.length)/tr.notes.length*100)+'%';
+  }
+  function play(){
+    if(playing)return;ensureAudio();playing=true;$('#mPlay',body).textContent='⏸ 暂停';
+    timer=setInterval(tick,60000/TR[cur].bpm/2);
+    if(!state.musicHeard){state.musicHeard=true;save();say('那时候你们一人一只耳机，把音量开到最大。',4200)}
+  }
+  function stop(){playing=false;clearInterval(timer);if($('#mPlay',body))$('#mPlay',body).textContent='▶ 播放';drawVis(0)}
+  function select(i){stop();cur=(i+TR.length)%TR.length;step=0;$$('.wmp-list div',body).forEach(function(e){e.classList.toggle('on',+e.dataset.i===cur)});play()}
+  $('#mPlay',body).addEventListener('click',function(){playing?stop():play()});
+  $('#mPrev',body).addEventListener('click',function(){select(cur-1)});
+  $('#mNext',body).addEventListener('click',function(){select(cur+1)});
+  $$('.wmp-list div',body).forEach(function(e){e.addEventListener('click',function(){select(+e.dataset.i)})});
+  play();
+}
+
+/* ---------- .jpg : 照片查看器（显影动画） ---------- */
+function openPhoto(item){
+  const PHOTOS=[
+    {cap:'初三(2)班 · 2008.6.7 · 她回头看了一眼',draw:function(ctx,W,H,a){
+      const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#79bde8');g.addColorStop(1,'#d9eef8');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+      ctx.fillStyle='#c8b89a';ctx.fillRect(40,90,W-80,H-150);
+      ctx.fillStyle='#a89170';ctx.fillRect(40,80,W-80,18);
+      for(let i=0;i<5;i++){ctx.fillStyle='#7fa8c8';ctx.fillRect(70+i*74,112,52,56);ctx.strokeStyle='#547f9e';ctx.strokeRect(70+i*74,112,52,56)}
+      const shirts=['#e35d5d','#5d9fe3','#e3c15d','#7ac96a','#b17ade','#e35d5d','#5d9fe3'];
+      for(let i=0;i<7;i++){const x=78+i*49,y=H-104;ctx.fillStyle=shirts[i];ctx.fillRect(x,y,18,34);ctx.fillStyle='#f0c9a0';ctx.beginPath();ctx.arc(x+9,y-10,9,0,7);ctx.fill()}
+      ctx.fillStyle='#333';ctx.font='14px SimSun';ctx.fillText('2008.6.7',W-96,H-24);
+    }},
+    {cap:'2008.6.8 海边 · 底片曝了光，她的脸怎么也看不清',draw:function(ctx,W,H,a){
+      const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#f5c98a');g.addColorStop(.55,'#f7e0b5');g.addColorStop(1,'#5aa9c8');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+      ctx.fillStyle='#fff2c8';ctx.beginPath();ctx.arc(W-90,70,34,0,7);ctx.fill();
+      ctx.fillStyle='#4f9ec0';ctx.fillRect(0,H-96,W,96);
+      ctx.fillStyle='#e8d9ac';ctx.beginPath();ctx.moveTo(0,H-90);ctx.quadraticCurveTo(W/2,H-130,W,H-86);ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.fill();
+      ctx.fillStyle='rgba(90,80,70,.55)';ctx.fillRect(0,0,W,H);
+      // 两张模糊的剪影，其中一张几乎消失
+      ctx.fillStyle='rgba(70,55,45,.5)';ctx.beginPath();ctx.arc(190,H-150,22,0,7);ctx.fill();ctx.fillRect(174,H-132,32,76);
+      ctx.fillStyle='rgba(255,255,255,.18)';ctx.beginPath();ctx.arc(268,H-152,20,0,7);ctx.fill();ctx.fillRect(252,H-134,30,72);
+      ctx.fillStyle='rgba(255,255,255,.7)';ctx.font='13px SimSun';ctx.fillText('海。只有海。',22,30);
+    }}
+  ];
+  const id=createWindow({id:'photo_'+(item.photo||0),title:item.name+' - Windows 图片和传真查看器',icon:'photo',width:540,height:410,bodyClass:'photo'});
+  const body=wbody(id);
+  body.innerHTML='<div class="photo-stage"><canvas id="phCv" width="480" height="320"></canvas></div>'+
+    '<div class="photo-bar"><button id="phPrev">◀ 上一张</button><button id="phAgain">重新显影</button><button id="phNext">下一张 ▶</button><span class="photo-cap" id="phCap"></span><span id="phPct" style="color:#888;width:52px;text-align:right"></span></div>';
+  const cv=$('#phCv',body),ctx=cv.getContext('2d');
+  let idx=item.photo||0,reveal=0;
+  function frame(){
+    if(!cv.isConnected)return;
+    if(reveal<1)reveal=Math.min(1,reveal+0.012);
+    const W=480,H=320;
+    ctx.fillStyle='#1a1a1a';ctx.fillRect(0,0,W,H);
+    PHOTOS[idx].draw(ctx,W,H,reveal);
+    ctx.globalAlpha=1-reveal;
+    for(let i=0;i<900;i++){ctx.fillStyle=Math.random()>.5?'#fff':'#000';ctx.fillRect(Math.random()*W,Math.random()*H,2,2)}
+    ctx.globalAlpha=1;
+    ctx.fillStyle='rgba(0,0,0,'+(0.35*(1-reveal))+')';ctx.fillRect(0,0,W,H);
+    $('#phPct',body).textContent=reveal<1?'显影 '+Math.floor(reveal*100)+'%':'';
+    if(reveal<1)requestAnimationFrame(frame);
+  }
+  function show(){reveal=0;$('#phCap',body).textContent=PHOTOS[idx].cap;requestAnimationFrame(frame)}
+  $('#phPrev',body).addEventListener('click',function(){idx=(idx+PHOTOS.length-1)%PHOTOS.length;show();playTick()});
+  $('#phNext',body).addEventListener('click',function(){idx=(idx+1)%PHOTOS.length;show();playTick()});
+  $('#phAgain',body).addEventListener('click',function(){show();playDisk()});
+  show();
+  if(idx===1)say('这张底片曝了光。可我一直说，那是我们的合影。',4800);
+  else say('毕业照。她在第一排，回头看了我一眼。',4600);
+}
+
+/* ---------- .evt : 事件查看器 ---------- */
+function openEventLog(){
+  const id=createWindow({id:'evtlog',title:'事件查看器',icon:'log',width:560,height:420,bodyClass:'evt',
+    menu:['文件(F)','操作(A)','查看(V)','帮助(H)']});
+  const body=wbody(id);
+  const EV=[
+    {c:'系统',l:'info',t:'2009-06-08 00:02:11',h:'系统关机',d:'系统已正常关机。\n这是这台电脑最后一次关机。之后的十几年，它再没有启动过。'},
+    {c:'系统',l:'info',t:'2009-06-07 23:58:04',h:'屏幕保护程序已启动',d:'经典 Windows XP 屏保启动。\n你在黑屏前坐了很久，然后按下了电源键。'},
+    {c:'系统',l:'info',t:'2009-06-07 23:41:52',h:'用户登录成功',d:'用户 Administrator 登录成功。\n你删掉了聊天记录、空间日志和游戏，却忘了 C 盘。'},
+    {c:'应用程序',l:'warn',t:'2008-06-07 19:50:33',h:'QQ 消息发送失败',d:'目标用户不在线，消息未送达：\n「其实那天我想说的是——」\n这条消息一直留在输入框里。'},
+    {c:'应用程序',l:'info',t:'2008-06-02 16:22:10',h:'迅雷下载完成',d:'文件：夜曲.mp3（4.2 MB）\n耗时：3 小时 12 分。你说这首歌好听。'},
+    {c:'安全性',l:'info',t:'2008-06-07 19:40:01',h:'账户登录',d:'用户 54***21 从 125.**.**.18 登录。\n这是她最后一次上线。'},
+    {c:'系统',l:'err',t:'2003-09-01 07:30:00',h:'系统时间被修改',d:'时间被调整为 2003 年 9 月 1 日。\n那天你第一次见到她。'}
+  ];
+  let cat='全部',sel=0;
+  body.innerHTML='<div class="evt-tree"><div data-c="全部" class="sel">📁 事件查看器</div><div data-c="应用程序">📄 应用程序</div><div data-c="安全性">🔒 安全性</div><div data-c="系统">🖥 系统</div></div>'+
+    '<div class="evt-main"><div class="evt-list" id="evList"></div><div class="evt-detail" id="evDetail"></div></div>';
+  function list(){
+    const arr=EV.filter(function(e){return cat==='全部'||e.c===cat});
+    $('#evList',body).innerHTML=arr.map(function(e,i){return '<div class="evt-row'+(i===sel?' sel':'')+'" data-i="'+i+'"><span class="evt-ic" style="background:'+(e.l==='err'?'#e33':e.l==='warn'?'#ea6':'#4a9')+'"></span><span>'+e.t+'</span><span>'+e.h+'</span></div>'}).join('');
+    $$('#evList .evt-row',body).forEach(function(r){r.addEventListener('click',function(){sel=+r.dataset.i;detail(arr[sel]);list()})});
+    if(arr[sel])detail(arr[sel]);
+  }
+  function detail(e){$('#evDetail',body).innerHTML='<b>'+e.h+'</b><br><br>时间：'+e.t+'<br>来源：'+e.c+'<br>类型：'+(e.l==='err'?'错误':e.l==='warn'?'警告':'信息')+'<br><br>'+e.d.replace(/\n/g,'<br>')}
+  $$('.evt-tree div',body).forEach(function(d){d.addEventListener('click',function(){cat=d.dataset.c;sel=0;$$('.evt-tree div',body).forEach(function(x){x.classList.remove('sel')});d.classList.add('sel');list()})});
+  list();
+}
+
+/* ---------- .zip : WinRAR 解压出最后那句话 ---------- */
+function openZip(){
+  const id=createWindow({id:'zip_mem',title:'记忆碎片.zip - WinRAR',icon:'zip',width:420,height:310,bodyClass:'zipwin'});
+  const body=wbody(id);
+  body.innerHTML='<div class="zip-head">存档：C:\\_旧时光\\记忆碎片.zip　大小：37 KB　修改日期：2009-06-07 23:52</div>'+
+    '<div class="zip-list"><div>📄 那天没说的话.txt　　　　412 字节</div><div>📄 毕业照.jpg　　　　　　　2.1 MB</div><div>📄 聊天记录.bak　　　　　　18 KB</div></div>'+
+    '<div class="zip-bar"><i id="zipFill"></i></div>'+
+    '<div class="zip-btns"><button id="zipClose">关闭</button><button id="zipGo" class="primary">解压到 C:\\_旧时光\\</button></div>';
+  $('#zipClose',body).addEventListener('click',function(){closeWin(id)});
+  $('#zipGo',body).addEventListener('click',function(){
+    const fill=$('#zipFill',body);let p=0;
+    const t=setInterval(function(){if(!body.isConnected){clearInterval(t);return}p=Math.min(100,p+7);fill.style.width=p+'%';if(p>=100){clearInterval(t);finish()}},90);
+  });
+  function finish(){
+    const hidden=findNode('hidden');
+    if(!hidden.children.some(function(f){return f.id==='lastword'})){
+      hidden.children.push(F('lastword','那天没说的话.txt','secret',{egg:true}));
+      parentMap['lastword']=hidden;
+    }
+    state.zipOpened=true;save();refreshExplorers();playBoot();
+    say('压缩包里只有一句话。你终于把它读出来了。',5200);
+    openNotepad(findNode('lastword'));
+    openReportIfDone();
+  }
+}
+
+/* ---------- 攻略：Windows 帮助和支持风格 ---------- */
+function openGuide(){
+  const id=createWindow({id:'guide',title:'C盘考古 · 完全攻略 - 帮助和支持中心',icon:'guide',width:720,height:540,bodyClass:'guidewin',
+    menu:['文件(F)','编辑(E)','查看(V)','收藏(A)','工具(T)','帮助(H)']});
+  const body=wbody(id);
+  const PAGES=[
+    {t:'◎ 游戏目标',h:`<h2>游戏目标</h2>
+      <p>这是一台停在 <b>2009 年 6 月 8 日</b> 的 Windows XP 电脑。你将在 C 盘里翻找十几年间留下的文件，还原一段从 2003 到 2009 的回忆。</p>
+      <p>故事里有两个人：你，和 <b>阿May</b>。你们约好考完试一起去看海，可毕业那天她发来一句「车开了」，之后头像再也没亮过。</p>
+      <div class="tip">真正的主线不是找彩蛋，而是把当年<b>那句没有发出去的话</b>说完。全部完成后，报告会给出隐藏结局。</div>
+      <p><b>考古报告</b>会在你完成关键动作后自动生成，也可以在开始菜单里随时打开，支持保存为图片。</p>`},
+    {t:'◎ 基本操作',h:`<h2>基本操作</h2>
+      <h3>窗口</h3>
+      <ul>
+        <li>桌面图标：<span class="key">双击</span>打开；手机上<span class="key">长按</span>打开。</li>
+        <li>拖动<b>标题栏</b>移动窗口；<span class="key">双击标题栏</span>最大化 / 还原。</li>
+        <li>拖动窗口<b>右下角</b>可自由调整大小。</li>
+        <li>任务栏按钮可切换 / 最小化窗口，点击窗口任意位置置顶。</li>
+      </ul>
+      <h3>文件</h3>
+      <ul>
+        <li>右键文件 → <b>打开 / 在新窗口打开 / 属性 / 删除</b>；删除的文件进回收站，可还原。</li>
+        <li>txt 现在会<b>一次性全部显示</b>，没有打字动画。</li>
+        <li>不同类型的文件会打开不同的程序（见「文件格式」）。</li>
+      </ul>
+      <h3>其他</h3>
+      <ul>
+        <li>闲置 <b>20 秒</b>自动播放 XP 经典屏保，动一下鼠标即可唤醒。</li>
+        <li>右下角<b>回形针助手</b>会根据你的发现旁白，点它一下也会说话。</li>
+        <li>托盘小喇叭可静音；音量/音效由 Web Audio 实时合成。</li>
+      </ul>`},
+    {t:'◎ 完整流程',h:`<h2>完整流程（推荐顺序）</h2>
+      <ol>
+        <li><b>先看照片</b>：我的电脑 → 本地磁盘 (C:) → 我的文档 → <b>毕业照 2008.jpg</b>，等待显影完成。</li>
+        <li><b>聊天记录</b>：进入 <b>QQ聊天记录</b>，按时间顺序读三份聊天；再读<b>密码提示.txt</b>。</li>
+        <li><b>QQ空间</b>：进入 <b>QQ空间日志</b>读日志，然后双击 <b>我的QQ空间.url</b>，在留言板里留下你想说的话。</li>
+        <li><b>软件区</b>：<b>Program Files</b> 里依次体验——迅雷安装向导、QQ2008（登录→好友列表→点阿May→<b>发送预填的那句话</b>）、劲舞团视频、千千静听 8bit 播放器。</li>
+        <li><b>系统区</b>：<b>WINDOWS</b> 里打开<b>系统事件日志</b>看完整时间线，再双击<b>经典三维屏保.scr</b>。</li>
+        <li><b>解锁旧时光</b>：回到 C 盘根目录，双击隐藏文件夹 <b>_旧时光</b>，输入密码 <b>2008</b>。</li>
+        <li><b>读完私密档案</b>：日记本、相册说明、未发送的信、最后一次登录，最后双击 <b>记忆碎片.zip</b> 解压。</li>
+        <li><b>生成报告</b>：开始菜单 → <b>C盘考古报告</b>（或「关机 / 结束体验」），长按卡片保存。</li>
+      </ol>`},
+    {t:'◎ 关键线索',h:`<h2>关键线索速查</h2>
+      <table>
+        <tr><th>线索</th><th>位置</th><th>用途</th></tr>
+        <tr><td>四位数字密码</td><td>QQ聊天记录 → 密码提示.txt</td><td>解锁 <b>_旧时光</b>，密码是 <b>2008</b></td></tr>
+        <tr><td>没发出去的消息</td><td>QQ2008 → 好友 → 阿May</td><td>输入框已预填，点<b>发送</b>即可补上</td></tr>
+        <tr><td>没回复的留言</td><td>我的QQ空间.url → 留言板</td><td>在留言板里写下你的回复</td></tr>
+        <tr><td>最后一块拼图</td><td>_旧时光 → 记忆碎片.zip</td><td>解压后得到「那天没说的话.txt」</td></tr>
+        <tr><td>时间线</td><td>WINDOWS → 系统事件日志.evt</td><td>串起 2003 / 2008 / 2009 的关键日期</td></tr>
+      </table>
+      <div class="tip">如果卡住了，回到 C 盘根目录从头再走一遍——<b>所有线索都在文件本身里</b>。</div>`},
+    {t:'◎ 网页谜题',h:`<h2>IE 浏览器 · 网页谜题</h2>
+      <p>桌面上的 <b>IE浏览器</b> 内置四个网站，可用工具栏的收藏夹切换，也能前进/后退。QQ空间只是其中一个。</p>
+      <h3>解谜链（按顺序）</h3>
+      <ol>
+        <li><b>QQ空间</b>：点「踩一踩」<b>3 次</b>，计数器里掉出线索①（06 月 07 日）。留言板仍可留言。</li>
+        <li><b>百度一下</b>：搜索「<b>那年夏天</b>」或「毕业照」得到线索②（2008-06-07）。搜「橡皮」有额外提示。</li>
+        <li><b>网易相册</b>：点击加密相册「2003 初一」，答案是「<b>橡皮</b>」（见 2003-09-01 日记），得到线索③并解锁海边照片。</li>
+        <li><b>新浪邮箱</b>：切到<b>草稿箱</b>，打开加密邮件，密码是她离开那天的日期 <b>0607</b>，进入隐藏页面。</li>
+      </ol>
+      <div class="tip">四条线索齐了，再加上主线四件事，报告会升级为「<b>传说：那年夏天的另一种可能</b>」。</div>`},
+    {t:'◎ 隐藏结局',h:`<h2>隐藏结局</h2>
+      <p>完成以下<b>四个动作</b>后，考古报告会自动弹出，鉴定结果变为「<b>结局：那句话终于送达</b>」，并增加一行「未竟之言 4/4」：</p>
+      <ol>
+        <li>解锁隐藏文件夹 <b>_旧时光</b></li>
+        <li>在 <b>QQ空间留言板</b>留下回复</li>
+        <li>在 <b>QQ2008</b> 里向阿May发出那条预填消息</li>
+        <li>解压 <b>记忆碎片.zip</b> 并读到最后那句话</li>
+      </ol>
+      <p>结局文案：你替 2008 年的自己，按下了那个没有发出的发送键。</p>`},
+    {t:'◎ 文件格式',h:`<h2>文件格式一览</h2>
+      <table>
+        <tr><th>格式</th><th>打开后的程序</th><th>特别交互</th></tr>
+        <tr><td>.txt</td><td>记事本</td><td>一次性显示全文</td></tr>
+        <tr><td>.url</td><td>IE6 浏览器</td><td>四站点切换 + 网页解谜链（QQ空间 / 百度 / 相册 / 邮箱）</td></tr>
+        <tr><td>.exe</td><td>安装向导 / QQ2008</td><td>分步安装、登录、好友列表、聊天</td></tr>
+        <tr><td>.mp3</td><td>媒体播放器</td><td>Web Audio 合成 8bit 音乐、频谱可视化</td></tr>
+        <tr><td>.avi</td><td>媒体播放器</td><td>自绘动画、播放/暂停/拖动进度</td></tr>
+        <tr><td>.jpg</td><td>图片查看器</td><td>照片显影动画、切换照片</td></tr>
+        <tr><td>.evt</td><td>事件查看器</td><td>分类树、事件详情</td></tr>
+        <tr><td>.zip</td><td>WinRAR</td><td>解压动画、释放隐藏文件</td></tr>
+        <tr><td>.scr</td><td>屏保</td><td>直接启动 XP 经典屏保</td></tr>
+      </table>`},
+    {t:'◎ 常见问题',h:`<h2>常见问题</h2>
+      <h3>双击 _旧时光 说要密码？</h3><p>去 QQ聊天记录里读<b>密码提示.txt</b>，密码是那一年：<b>2008</b>。</p>
+      <h3>没有声音？</h3><p>浏览器要求先与页面交互才能播放音频。先点击一下页面任意位置，再试一次；也可检查托盘小喇叭是否被静音。</p>
+      <h3>窗口变成全屏了？</h3><p>手机等触屏窄屏设备会自动使用全屏模态窗口；桌面环境（包括较窄的预览面板）仍是多个可拖动小窗口。</p>
+      <h3>屏保突然黑屏？</h3><p>闲置 20 秒会触发屏保，移动鼠标或按任意键即可返回。</p>
+      <h3>想重新开始？</h3><p>开始菜单底部 → <b>重置进度</b>。进度自动保存在浏览器 localStorage 中。</p>
+      <button class="guide-go" id="guideGo">▶ 开始考古（打开我的电脑）</button>`}
+  ];
+  body.innerHTML='<div class="guide-toc"><h4>帮助主题</h4>'+PAGES.map(function(p,i){return '<div data-i="'+i+'"'+(i===0?' class="sel"':'')+'>'+p.t+'</div>'}).join('')+'</div><div class="guide-doc" id="guideDoc"></div>';
+  const doc=$('#guideDoc',body);
+  function show(i){doc.innerHTML=PAGES[i].h;doc.scrollTop=0;$$('.guide-toc div[data-i]',body).forEach(function(e){e.classList.toggle('sel',+e.dataset.i===i)});
+    const go=$('#guideGo',doc);if(go)go.addEventListener('click',function(){closeWin(id);openExplorer('__computer')})}
+  $$('.guide-toc div[data-i]',body).forEach(function(e){e.addEventListener('click',function(){show(+e.dataset.i);playTick()})});
+  show(0);
+  say('攻略在此。卡住的时候，回来看一眼就行。',4200);
+}
+
+/* ================= BOOT ================= */
+let booted=false;
+window.addEventListener('pointerdown',function(){
+  if(booted)return;booted=true;ensureAudio();playBoot();
+  setTimeout(function(){say('这台电脑停在了 2009 年。C 盘里，好像还有一条没发出去的消息。',5600)},700);
+},{once:false});
+document.addEventListener('contextmenu',function(e){if(!e.target.closest('.file'))e.preventDefault()});
+syncPhoneUI();renderDesk();renderStart();tickClock();
+
+})();
+</script>
+</body>
+</html>
