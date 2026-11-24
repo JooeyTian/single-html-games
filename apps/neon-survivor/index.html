@@ -1132,7 +1132,7 @@ function fireWeapon(id, w){
     }
     case 'bat': {
       const n = 2 + Math.floor(l/2) + (e?2:0) + p.extraProj;
-      const tgt = aimTarget(999);
+      const tgt = nearestEnemy(p.x, p.y); // 全屏索敌，不受瞄准锥形限制
       const base = getAimAngle(tgt ? Math.atan2(tgt.y-p.y, tgt.x-p.x) : 0);
       const offs = spreadOffsets(n, .2);
       for(let i = 0; i < n; i++){
@@ -1187,7 +1187,7 @@ function updateWeapons(dt){
       d.x = p.x + Math.cos(d.a)*rad; d.y = p.y + Math.sin(d.a)*rad;
       d.t -= dt;
       if(d.t <= 0){
-        const tgt = aimTarget(999);
+        const tgt = nearestEnemy(d.x, d.y); // 全屏锁定最近的敌人，不限瞄准范围
         const a = getAimAngle(tgt ? Math.atan2(tgt.y-d.y, tgt.x-d.x) : d.a);
         const shots = (dw.evolved ? 2 : 1) + p.extraProj, shotOffs = spreadOffsets(shots, .16);
         for(let i = 0; i < shots; i++){
@@ -1385,11 +1385,17 @@ function updateBullets(dt){
       b.vy += (Math.sin(a)*sp - b.vy)*Math.min(1, dt*7);
       if(dist2(b.x,b.y,p.x,p.y) < 22**2) b.life = 0;
     }
-    // 无人机子弹：完全锁定目标，目标死亡则自动改锁最近的敌人，必中
+    // 追踪弹：每帧在全屏范围内重新选择最近的敌人，目标始终有效，必中
     if(b.homing){
-      if(!b.target || b.target.dead) b.target = nearestEnemy(b.x, b.y);
-      if(b.target){
-        const a = Math.atan2(b.target.y-b.y, b.target.x-b.x);
+      let best = null, bd = Infinity;
+      for(const e of G.enemies){
+        if(e.dead) continue;
+        const d2 = dist2(b.x, b.y, e.x, e.y);
+        if(d2 < bd){ bd = d2; best = e; }
+      }
+      b.target = best;
+      if(best){
+        const a = Math.atan2(best.y-b.y, best.x-b.x);
         const sp = Math.hypot(b.vx, b.vy) || 520;
         b.vx = Math.cos(a)*sp; b.vy = Math.sin(a)*sp;
       }
