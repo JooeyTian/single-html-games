@@ -476,7 +476,7 @@ function newGame(mode){
     combo:0, comboTimer:0, maxCombo:0,
     // 波次模式
     wave:1, totalWaves:20, waveState:'fighting', waveRemaining:0, breakTimer:0, wavesCleared:0,
-    p:{ x:W/2, y:H/2, r:13, hp:100, maxHp:100, speed:230, invuln:0, dashCd:0, dashT:0,
+    p:{ x:W/2, y:H/2, r:13, hp:100, maxHp:100, speed:265, invuln:0, dashCd:0, dashT:0,
         xp:0, xpNext:12, dashReadyFx:0, baseMaxHp:100, dvx:0, dvy:0, lastDX:0, lastDY:1,
         weapons:{}, passives:{}, orbit:[], drones:[], shields:[], teslas:[],
         dmgMul:1, cdMul:1, crit:.05, critMul:2, armor:0, magnet:90, pierceBonus:0, regen:0, xpMul:1, areaMul:1 },
@@ -523,7 +523,7 @@ function recalc(){
   p.bulletSize = 1 + .25*(s.bigshot||0);
   p.bulletRange = 1 + .25*(s.range||0);
   p.cdMul = Math.pow(.90, s.haste||0) * Math.pow(.85, s.rapid||0);
-  p.speed = 230 * (1 + .12*(s.speed||0));
+  p.speed = 265 * (1 + .12*(s.speed||0));
   p.crit = Math.min(.8, .05 + .08*(s.luck||0));
   p.critMul = 2 + .35*(s.crit||0);
   p.armor = Math.min(.7, .10*(s.armor||0));
@@ -757,16 +757,26 @@ function spawnEnemy(type, x, y){
   const d = ETYPE[type];
   let px = x, py = y;
   if(px === undefined){
-    const a = rand(0, Math.PI*2), r = Math.max(W, H)/2 + 90;
-    px = G.p.x + Math.cos(a)*r; py = G.p.y + Math.sin(a)*r;
+    // 屏幕内任意位置随机刷新（含中场），但与玩家保持安全距离，避免贴脸出现
+    const safe = 210;
+    let ok = false;
+    for(let tries = 0; tries < 16; tries++){
+      px = rand(24, W-24); py = rand(24, H-24);
+      if(dist2(px,py,G.p.x,G.p.y) > safe*safe){ ok = true; break; }
+    }
+    if(!ok){
+      const a = rand(0, Math.PI*2);
+      px = clamp(G.p.x+Math.cos(a)*safe, 24, W-24);
+      py = clamp(G.p.y+Math.sin(a)*safe, 24, H-24);
+    }
   }
   const waveHp = G.mode === 'wave' ? (G.wave-1)*.17 : 0;
   const waveDmg = G.mode === 'wave' ? (G.wave-1)*.09 : 0;
   const scale = 1 + G.t / 60 * .13 + waveHp;
   const bossScale = d.boss ? 1 : scale;
   const e = {
-    type, x:px, y:py, r:d.r, hp:d.hp*bossScale, maxHp:d.hp*bossScale,
-    sp:d.sp, dmg:d.dmg*(1 + G.t/90*.1 + waveDmg), xp:d.xp, c:d.c, shape:d.shape,
+    type, x:px, y:py, r:d.r*1.18, hp:d.hp*bossScale, maxHp:d.hp*bossScale,
+    sp:d.sp*1.4, dmg:d.dmg*(1 + G.t/90*.1 + waveDmg), xp:d.xp, c:d.c, shape:d.shape,
     armor:d.armor||0, boss:!!d.boss, dead:false, flash:0, hitCd:0, stun:0, slow:0,
     seed:rand(0,100), tmr:rand(.5,1.5), mode:'rest', dvx:0, dvy:0, alpha:1
   };
