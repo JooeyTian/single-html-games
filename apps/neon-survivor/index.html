@@ -481,7 +481,7 @@ function newGame(mode){
         weapons:{}, passives:{}, orbit:[], drones:[], shields:[], teslas:[],
         dmgMul:1, cdMul:1, crit:.05, critMul:2, armor:0, magnet:90, pierceBonus:0, regen:0, xpMul:1, areaMul:1 },
     enemies:[], bullets:[], ebullets:[], gems:[], particles:[], texts:[], effects:[], burn:[],
-    zones:[], pending:[], bonds:{}, bondScores:{},
+    zones:[], pending:[], spawns:[], bonds:{}, bondScores:{},
     spawnTimer:.4, boss1:false, boss2:false, shake:0, flash:0, flashColor:'#fff', screen:'playing'
   };
   // 开局自带一把武器，否则无法击杀获取经验
@@ -723,7 +723,7 @@ function updateWave(dt){
     spawnWave(1); G.waveRemaining--;
     G.spawnTimer = Math.max(.12, .62 - G.wave*.018);
   }
-  if(G.waveRemaining <= 0 && G.enemies.length === 0) clearWave();
+  if(G.waveRemaining <= 0 && G.enemies.length === 0 && G.spawns.length === 0) clearWave();
   updateWaveHUD();
 }
 function updateWaveHUD(){
@@ -769,6 +769,10 @@ function spawnEnemy(type, x, y){
       px = clamp(G.p.x+Math.cos(a)*safe, 24, W-24);
       py = clamp(G.p.y+Math.sin(a)*safe, 24, H-24);
     }
+    // 先放出刷怪预告虚像，短暂延迟后再真正生成
+    const delay = rand(.45, .7);
+    G.spawns.push({type, x:px, y:py, r:d.r*1.18, t:delay, max:delay});
+    return null;
   }
   const waveHp = G.mode === 'wave' ? (G.wave-1)*.17 : 0;
   const waveDmg = G.mode === 'wave' ? (G.wave-1)*.09 : 0;
@@ -1436,6 +1440,20 @@ function burst(x, y, color, n, speed){
   }
 }
 function addText(x, y, text, color, size){ G.texts.push({x, y, text, color, size:size||13, life:.75, max:.75}); }
+// 刷怪预告：虚像结束后正式生成敌人
+function updateSpawns(dt){
+  for(const s of G.spawns){
+    s.t -= dt;
+    if(s.t <= 0){
+      spawnEnemy(s.type, s.x, s.y);
+      const d = ETYPE[s.type];
+      G.effects.push({type:'ring', x:s.x, y:s.y, r:0, max:s.r*2.4, life:.3, maxLife:.3, color:d.c});
+      burst(s.x, s.y, d.c, 6, 110);
+      s.dead = true;
+    }
+  }
+  G.spawns = G.spawns.filter(s => !s.dead);
+}
 // 延迟触发（流星雨）
 function updatePending(dt){
   for(const q of G.pending){
@@ -1562,6 +1580,7 @@ function update(dt){
     G.spawnTimer -= dt;
     if(G.spawnTimer <= 0){ spawnWave(); G.spawnTimer = spawnInterval(); }
   }else updateWave(dt);
+  updateSpawns(dt);
   updateEnemies(dt);
   updateWeapons(dt);
   updatePending(dt);
@@ -1916,6 +1935,33 @@ function draw(){
   for(const b of G.burn){
     ctx.save(); ctx.globalAlpha = .6; ctx.shadowBlur = 16; ctx.shadowColor = '#f97316';
     ctx.fillStyle = '#f97316'; ctx.beginPath(); ctx.arc(b.x,b.y, 20+Math.sin(G.t*12)*4, 0, Math.PI*2); ctx.fill(); ctx.restore();
+  }
+  // 刷怪预告：敌人出现前的虚像 / 收缩环 / 定位标记
+  for(const s of G.spawns){
+    const k = clamp(1 - s.t/s.max, 0, 1), d = ETYPE[s.type];
+    ctx.save();
+    ctx.shadowBlur = 14; ctx.shadowColor = d.c;
+    // 收缩的召唤环
+    ctx.globalAlpha = .55*(1-k);
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(s.x,s.y, s.r*2.3*(1-k)+s.r*.8, 0, Math.PI*2); ctx.stroke();
+    // 逐渐成型的虚像
+    ctx.globalAlpha = .12 + k*.4;
+    ctx.strokeStyle = d.c; ctx.lineWidth = 1.8;
+    ctx.beginPath(); ctx.arc(s.x,s.y, s.r*(.45+k*.6)*(1+Math.sin(G.t*12)*.05), 0, Math.PI*2); ctx.stroke();
+    ctx.globalAlpha = .08 + k*.26;
+    ctx.fillStyle = d.c;
+    ctx.beginPath(); ctx.arc(s.x,s.y, s.r*k*.62, 0, Math.PI*2); ctx.fill();
+    // 十字定位
+    ctx.globalAlpha = .3 + k*.4; ctx.strokeStyle = d.c; ctx.lineWidth = 1.5;
+    const q = s.r*1.75, q2 = s.r*1.15;
+    ctx.beginPath();
+    ctx.moveTo(s.x-q,s.y); ctx.lineTo(s.x-q2,s.y);
+    ctx.moveTo(s.x+q2,s.y); ctx.lineTo(s.x+q,s.y);
+    ctx.moveTo(s.x,s.y-q); ctx.lineTo(s.x,s.y-q2);
+    ctx.moveTo(s.x,s.y+q2); ctx.lineTo(s.x,s.y+q);
+    ctx.stroke();
+    ctx.restore();
   }
   // enemies
   for(const e of G.enemies) drawEnemy(e);
