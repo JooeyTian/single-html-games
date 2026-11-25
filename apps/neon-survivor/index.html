@@ -40,6 +40,7 @@
   .iconbtn{pointer-events:auto;width:32px;height:32px;border:1px solid var(--line);border-radius:8px;
     background:rgba(13,17,36,.8);color:var(--text);font-size:14px;cursor:pointer;}
   .iconbtn:hover{border-color:var(--cyan);}
+  .iconbtn.off{opacity:.4;}
   .weaponbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
   .wicon{width:52px;height:52px;border-radius:11px;border:1px solid var(--line);background:rgba(13,17,36,.82);
     display:grid;place-items:center;position:relative;font-size:27px;overflow:visible;
@@ -227,6 +228,7 @@ html,body{touch-action:manipulation}
       <div><b id="comboText">0</b><small>连杀</small></div>
     </div>
     <button id="muteBtn" class="iconbtn" title="音效">🔊</button>
+    <button id="bgmBtn" class="iconbtn" title="8bit 背景音乐">🎵</button>
     <button id="pauseBtn" class="iconbtn" title="暂停 (Esc)">⏸</button>
   </div>
   <div class="xpbar"><i id="xpBar"></i><span id="xpText">0 / 10</span></div>
@@ -327,49 +329,142 @@ const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
 const dist2 = (x1, y1, x2, y2) => (x1 - x2) ** 2 + (y1 - y2) ** 2;
 function fmt(t){ const s = Math.floor(t); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
 
-/* ---------------- 音效（WebAudio 合成，零外部文件） ---------------- */
-let AC = null, muted = false, lastSfx = {};
+/* ---------------- 音频引擎：WebAudio 合成 SFX + 8bit BGM（零外部文件） ---------------- */
+let AC = null, muted = false, bgmMuted = false, lastSfx = {};
+let sfxGain = null, musicGain = null;
 function initAudio(){
-  if(!AC){ try{ AC = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){} }
+  if(!AC){
+    try{
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      AC = new Ctx();
+      sfxGain = AC.createGain(); sfxGain.gain.value = muted ? 0 : .85;
+      sfxGain.connect(AC.destination);
+      musicGain = AC.createGain(); musicGain.gain.value = bgmMuted ? 0 : .26;
+      musicGain.connect(AC.destination);
+    }catch(e){ AC = null; }
+  }
   if(AC && AC.state === 'suspended') AC.resume();
 }
-function tone(freq, dur, type, vol, slide){
-  if(!AC || muted) return;
+function setMuted(v){
+  muted = v;
+  if(AC && sfxGain) sfxGain.gain.setTargetAtTime(v ? 0 : .85, AC.currentTime, .01);
+}
+function setBgmMuted(v){
+  bgmMuted = v;
+  if(AC && musicGain) musicGain.gain.setTargetAtTime(v ? 0 : .26, AC.currentTime, .01);
+}
+// 核心合成器（可指定起始时间，供 BGM 音序器精确排程）
+function toneAt(freq, t, dur, type, vol, slide, dest, opt){
+  if(!AC) return;
   const o = AC.createOscillator(), g = AC.createGain();
-  o.type = type || 'sine';
-  o.frequency.setValueAtTime(freq, AC.currentTime);
-  if(slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, freq + slide), AC.currentTime + dur);
-  g.gain.setValueAtTime(vol || .06, AC.currentTime);
-  g.gain.exponentialRampToValueAtTime(.0001, AC.currentTime + dur);
-  o.connect(g); g.connect(AC.destination); o.start(); o.stop(AC.currentTime + dur + .02);
+  o.type = type || 'square';
+  o.frequency.setValueAtTime(Math.max(20, freq), t);
+  if(slide) o.frequency.exponentialRampToValueAtTime(Math.max(25, freq + slide), t + dur);
+  if(opt && opt.detune) o.detune.setValueAtTime(opt.detune, t);
+  const atk = (opt && opt.atk) || .004;
+  g.gain.setValueAtTime(.0001, t);
+  g.gain.exponentialRampToValueAtTime(Math.max(.0002, vol || .05), t + atk);
+  g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  o.connect(g); g.connect(dest || sfxGain || AC.destination);
+  o.start(t); o.stop(t + dur + .02);
 }
-function noise(dur, vol){
-  if(!AC || muted) return;
-  const n = Math.floor(AC.sampleRate * dur), buf = AC.createBuffer(1, n, AC.sampleRate), d = buf.getChannelData(0);
-  for(let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
-  const s = AC.createBufferSource(), g = AC.createGain(), f = AC.createBiquadFilter();
-  f.type = 'lowpass'; f.frequency.value = 900; g.gain.value = vol || .12;
-  s.buffer = buf; s.connect(f); f.connect(g); g.connect(AC.destination); s.start();
+function noiseAt(t, dur, vol, ftype, freq, dest, slideF){
+  if(!AC) return;
+  const n = Math.max(1, Math.min(24000, Math.floor(AC.sampleRate * dur)));
+  const buf = AC.createBuffer(1, n, AC.sampleRate), data = buf.getChannelData(0);
+  for(let i = 0; i < n; i++) data[i] = (Math.random()*2 - 1) * (1 - i/n);
+  const src = AC.createBufferSource(), g = AC.createGain(), f = AC.createBiquadFilter();
+  f.type = ftype || 'lowpass'; f.frequency.setValueAtTime(freq || 900, t);
+  if(slideF) f.frequency.exponentialRampToValueAtTime(Math.max(60, freq + slideF), t + dur);
+  g.gain.setValueAtTime(Math.max(.0002, vol || .1), t);
+  g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  src.buffer = buf; src.connect(f); f.connect(g); g.connect(dest || sfxGain || AC.destination);
+  src.start(t);
 }
+const tone = (freq, dur, type, vol, slide, dest, opt) => { if(AC) toneAt(freq, AC.currentTime, dur, type, vol, slide, dest, opt); };
+const noise = (dur, vol, ftype, freq, dest, slideF) => { if(AC) noiseAt(AC.currentTime, dur, vol, ftype, freq, dest, slideF); };
+const vary = f => f * (.97 + Math.random()*.06);
+function arp(freqs, gap, dur, type, vol, dest){
+  if(!AC) return;
+  const t = AC.currentTime;
+  freqs.forEach((f, i) => toneAt(f, t+i*gap, dur, type, vol, 0, dest));
+}
+
+// 每个技能一套音色：高频金属、低频轰鸣、噪声嘶鸣、颤音回旋……并带音高随机避免重复感
 const SFX = {
-  shoot(){ tone(680, .06, 'triangle', .028, -260); },
-  hit(){ tone(190, .05, 'square', .022, -60); },
-  crit(){ tone(920, .11, 'sawtooth', .045, -520); },
-  boom(){ noise(.28, .16); tone(90, .3, 'sine', .1, -40); },
-  level(){ [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => tone(f, .18, 'triangle', .06), i * 85)); },
-  hurt(){ tone(150, .18, 'sawtooth', .085, -80); },
-  boss(){ tone(70, .7, 'sawtooth', .12, -30); noise(.5, .1); },
-  dash(){ tone(420, .13, 'sine', .045, 480); },
-  ready(){ tone(880, .12, 'sine', .04, 220); },
-  reroll(){ tone(520, .1, 'triangle', .04, 420); },
-  gem(){ tone(1100, .045, 'sine', .02); },
-  evolve(){ [440, 554, 659, 880].forEach((f, i) => setTimeout(() => tone(f, .3, 'sawtooth', .055), i * 110)); }
+  shoot(){ const f=vary(720); tone(f,.05,'square',.02,-280); },
+  hit(){ tone(vary(190),.045,'square',.015,-70); noise(.035,.025,'bandpass',1300); },
+  crit(){ const f=vary(880); tone(f,.09,'square',.03,-520); tone(f*1.5,.07,'triangle',.018,-400); },
+  boom(){ noise(.3,.13,'lowpass',520,null,-330); tone(82,.28,'sine',.085,-40); },
+  shuriken(){ const f=vary(1180); tone(f,.07,'square',.022,-760); tone(f*.5,.06,'triangle',.012,-300); noise(.05,.025,'highpass',2600); },
+  scatter(){ noise(.11,.1,'lowpass',1500,null,-1000); tone(120,.13,'triangle',.055,-70); },
+  laser(){ const f=vary(380); tone(f,.16,'sawtooth',.026,1500); tone(f*2,.12,'square',.014,1100); },
+  orbit(){ noise(.2,.04,'bandpass',650,null,1300); tone(vary(520),.12,'triangle',.013,200); },
+  lightning(){ noise(.08,.07,'highpass',2200); tone(vary(1500),.06,'square',.026,-1100); noise(.14,.04,'bandpass',850); },
+  fireball(){ noise(.24,.075,'lowpass',950,null,-600); tone(vary(270),.2,'sawtooth',.027,-150); },
+  drone(){ const f=vary(860); tone(f,.05,'square',.012,-160); tone(f*1.5,.035,'triangle',.008,-100); },
+  nova(){ tone(vary(88),.3,'sine',.085,-38); noise(.26,.06,'lowpass',650,null,700); tone(vary(430),.22,'triangle',.018,320); },
+  thunder(){ noise(.36,.14,'lowpass',1300,null,-950); tone(vary(115),.34,'sawtooth',.075,-70); tone(vary(1750),.08,'square',.028,-1400); },
+  poison(){ tone(vary(230),.15,'sine',.026,-55); tone(vary(310),.13,'triangle',.016,-75); noise(.1,.018,'lowpass',480); },
+  meteor(){ noise(.5,.095,'lowpass',430,null,-230); tone(vary(72),.48,'sine',.085,-28); },
+  frost(){ tone(vary(1720),.17,'triangle',.018,-640); tone(vary(2560),.12,'sine',.012,-900); },
+  whip(){ noise(.07,.085,'highpass',1800); tone(vary(720),.08,'sawtooth',.023,-460); },
+  boomerang(){ const f=vary(560); tone(f,.22,'triangle',.022,200,null,{detune:38}); tone(f,.22,'triangle',.016,-200,null,{detune:-38}); },
+  blackhole(){ tone(vary(68),.62,'sine',.075,-24); tone(vary(136),.56,'triangle',.022,-52); noise(.5,.035,'lowpass',320); },
+  spikes(){ noise(.06,.065,'bandpass',2300); tone(vary(920),.05,'square',.018,-520); },
+  flame(){ noise(.22,.07,'bandpass',820,null,760); tone(vary(155),.18,'sawtooth',.016,-55); },
+  shield(){ tone(vary(1180),.13,'sine',.022,420); tone(vary(1760),.1,'triangle',.012,620); },
+  tesla(){ noise(.1,.045,'highpass',2600); tone(vary(1480),.09,'square',.02,-920); tone(vary(2900),.05,'sine',.01,-1500); },
+  bat(){ tone(vary(1300),.12,'square',.018,-720); tone(vary(1900),.09,'triangle',.011,-920); },
+  level(){ arp([523,659,784,1046],.075,.19,'square',.038); },
+  hurt(){ noise(.14,.055,'bandpass',620); tone(vary(180),.18,'sawtooth',.065,-90); },
+  boss(){ const t=AC?AC.currentTime:0; tone(60,.8,'sawtooth',.09,-25); noise(.6,.09,'lowpass',300);
+    [0,.2,.4].forEach((d,i)=>toneAt(120+i*40,t+d,.15,'square',.028)); },
+  dash(){ noise(.1,.035,'highpass',1200); tone(vary(500),.14,'triangle',.028,700); },
+  ready(){ const t=AC?AC.currentTime:0; toneAt(880,t,.08,'square',.022); toneAt(1320,t+.07,.1,'square',.018); },
+  reroll(){ arp([523,659,880],.04,.07,'square',.018); },
+  gem(){ tone(vary(1046),.045,'square',.012); },
+  evolve(){ arp([440,554,659,880,1108],.09,.3,'square',.038); },
+  wave(){ arp([392,523,659,784],.1,.22,'square',.032); }
 };
 function sfxTry(key, gap, fn){
   const now = performance.now();
   if(now - (lastSfx[key] || 0) < gap * 1000) return;
   lastSfx[key] = now; fn();
 }
+
+/* ---- 8bit BGM：4 小节循环，鼓组 + 贝斯 + 琶音，领主战自动变紧凑 ---- */
+let bgmTimer = null, bgmStep = 0, bossMusic = false;
+const BGM_ROOTS = [55, 65.41, 73.42, 49]; // A1 / C2 / D2 / G1
+const BGM_LEAD = [0,3,7,3, 5,7,10,7];
+function bgmTick(){
+  if(!AC) return;
+  const t = AC.currentTime + .015;
+  const step = bgmStep % 16, bar = Math.floor(bgmStep/16) % 4, root = BGM_ROOTS[bar];
+  const sd = bossMusic ? .105 : .132;
+  if(step % 4 === 0){ toneAt(95,t,.11,'sine',.085,-55,musicGain); noiseAt(t,.035,.028,'lowpass',280,musicGain); }
+  if(step === 4 || step === 12) noiseAt(t,.085,.05,'highpass',1500,musicGain);
+  if(step % 2 === 1) noiseAt(t,.022,.014,'highpass',6500,musicGain);
+  if([0,3,6,8,11,14].indexOf(step) >= 0){
+    const bf = root * ((step === 6 || step === 14) ? 1.5 : 1);
+    toneAt(bf,t,.09,'square',.032,0,musicGain,{atk:.002});
+  }
+  if(step % 2 === 0){
+    const lf = root*4*Math.pow(2, BGM_LEAD[(step/2)%8]/12);
+    toneAt(lf,t,sd*.82,'square',.016,0,musicGain,{atk:.002});
+    if(bossMusic && step % 8 === 0) toneAt(lf*2,t,sd*.7,'triangle',.01,0,musicGain);
+  }
+  bgmStep++;
+}
+function bgmStart(){
+  if(!AC || bgmTimer) return;
+  const loop = () => {
+    if(!bgmMuted && G && G.screen === 'playing') bgmTick();
+    bgmTimer = setTimeout(loop, bossMusic ? 105 : 132);
+  };
+  loop();
+}
+function bgmStop(){ if(bgmTimer){ clearTimeout(bgmTimer); bgmTimer = null; } }
 
 /* ---------------- 数据表 ---------------- */
 // 每级 1.7 倍伤害成长：5 级约 8.4 倍，同一技能连点差异明显
@@ -745,7 +840,7 @@ function startWave(n){
   G.waveRemaining = 14 + n*3;
   G.spawnTimer = .4;
   if(n === 10 || n === 20) spawnBoss();
-  else showBanner('第 ' + n + ' 波', n === 1 ? '敌人来袭' : '难度提升', '#f472b6');
+  else { showBanner('第 ' + n + ' 波', n === 1 ? '敌人来袭' : '难度提升', '#f472b6'); SFX.wave(); }
   updateWaveHUD();
 }
 function clearWave(){
@@ -755,7 +850,7 @@ function clearWave(){
   const heal = Math.round(G.p.maxHp * .1);
   G.p.hp = Math.min(G.p.maxHp, G.p.hp + heal);
   showBanner('第 ' + G.wave + ' 波完成', '休整 5 秒 · 拾取经验 · 恢复 ' + heal + ' 生命', '#34d399');
-  updateWaveHUD();
+  SFX.level(); updateWaveHUD();
 }
 function updateWave(dt){
   if(G.waveState === 'break'){
@@ -984,7 +1079,7 @@ function fireWeapon(id, w){
           pierce:e?99:1+Math.floor(l/2)+p.pierceBonus, home:e, life:e?4:3.6
         });
       }
-      sfxTry('shoot', .07, SFX.shoot); break;
+      sfxTry('shuriken', .07, SFX.shuriken); break;
     }
     case 'scatter': {
       const tgt = aimTarget(999);
@@ -999,7 +1094,7 @@ function fireWeapon(id, w){
           pierce:p.pierceBonus, life:3.2, explode:e?.5:0
         });
       }
-      sfxTry('shoot', .09, SFX.shoot); break;
+      sfxTry('scatter', .09, SFX.scatter); break;
     }
     case 'laser': {
       const tgt = aimTarget(1600);
@@ -1014,7 +1109,7 @@ function fireWeapon(id, w){
         const px = p.x+Math.cos(a)*len*t, py = p.y+Math.sin(a)*len*t;
         if(dist2(px,py,en.x,en.y) < (width+en.r)**2) damageEnemy(en, wDmg(28,l)*(e?1.6:1));
       }
-      G.shake = Math.max(G.shake, 4); sfxTry('shoot', .12, SFX.crit); break;
+      G.shake = Math.max(G.shake, 4); sfxTry('laser', .12, SFX.laser); break;
     }
     case 'lightning': {
       let src = {x:p.x, y:p.y};
@@ -1038,7 +1133,7 @@ function fireWeapon(id, w){
         if(e) best.stun = .45;
         src = best;
       }
-      sfxTry('shoot', .13, SFX.crit); break;
+      sfxTry('lightning', .13, SFX.lightning); break;
     }
     case 'fireball': {
       const tgt = aimTarget(999);
@@ -1051,7 +1146,7 @@ function fireWeapon(id, w){
           pierce:0, life:4.5, explode:1, expR:(48+l*12)*(e?1.5:1)*p.areaMul, burn:e
         });
       }
-      sfxTry('shoot', .12, SFX.shoot); break;
+      sfxTry('fireball', .12, SFX.fireball); break;
     }
     case 'nova': {
       const R = (96+l*16)*(e?1.5:1)*p.areaMul;
@@ -1061,7 +1156,7 @@ function fireWeapon(id, w){
           damageEnemy(en, wDmg(18,l)*(e?1.6:1)*p.aoeMul, {knock:e?360:260});
       }
       burst(p.x, p.y, WDEF.nova.c, 20, 260); G.shake = Math.max(G.shake, 6);
-      sfxTry('shoot', .15, SFX.boom); break;
+      sfxTry('nova', .15, SFX.nova); break;
     }
     case 'thunder': {
       const pt = aimPoint(220);
@@ -1075,7 +1170,7 @@ function fireWeapon(id, w){
         }
       }
       burst(tx, ty, '#fde047', 24, 300); G.shake = Math.max(G.shake, 8);
-      sfxTry('shoot', .12, SFX.boom); break;
+      sfxTry('thunder', .12, SFX.thunder); break;
     }
     case 'poison': {
       const pt = aimPoint(150);
@@ -1083,7 +1178,7 @@ function fireWeapon(id, w){
       const R = (86+l*16) * (e?1.4:1) * p.areaMul, dur = (3 + l*.4 + (e?2:0)) * p.statusMul;
       G.zones.push({x:zx, y:zy, r:R, life:dur, max:dur, tick:0,
         dmg:wDmg(8,l)*(e?1.5:1)*p.aoeMul, color:'#4ade80'});
-      sfxTry('shoot', .2, SFX.shoot); break;
+      sfxTry('poison', .2, SFX.poison); break;
     }
     case 'meteor': {
       const n = 2 + l + (e?3:0);
@@ -1095,7 +1190,7 @@ function fireWeapon(id, w){
         const x = pt.x + rand(-spread,spread), y = pt.y + rand(-spread,spread);
         G.pending.push({t:i*.13, fn:()=> explode(x, y, R, wDmg(26,l)*(e?1.5:1)*p.aoeMul, '#fb923c', false, true)});
       }
-      sfxTry('shoot', .25, SFX.boom); break;
+      sfxTry('meteor', .25, SFX.meteor); break;
     }
     case 'frost': {
       const R = (130+l*18) * (e?1.4:1) * p.areaMul;
@@ -1107,7 +1202,7 @@ function fireWeapon(id, w){
         }
       }
       burst(p.x, p.y, '#67e8f9', 18, 200); G.shake = Math.max(G.shake, 5);
-      sfxTry('shoot', .15, SFX.boom); break;
+      sfxTry('frost', .15, SFX.frost); break;
     }
     case 'whip': {
       const tgt = aimTarget(999);
@@ -1125,7 +1220,7 @@ function fireWeapon(id, w){
         }
       }
       burst(p.x+Math.cos(a)*R*.6, p.y+Math.sin(a)*R*.6, '#fb7185', 12, 200);
-      sfxTry('shoot', .12, SFX.shoot); break;
+      sfxTry('whip', .12, SFX.whip); break;
     }
     case 'boomerang': {
       const n = (e?3:1) + p.extraProj;
@@ -1139,14 +1234,14 @@ function fireWeapon(id, w){
           pierce:99, home:true, life:4
         });
       }
-      sfxTry('shoot', .1, SFX.shoot); break;
+      sfxTry('boomerang', .1, SFX.boomerang); break;
     }
     case 'blackhole': {
       const pt = aimPoint(220);
       const R = (120+l*18)*(e?1.4:1)*p.areaMul, dur = (4+l*.5+(e?2:0))*p.statusMul;
       G.zones.push({type:'gravity', x:pt.x, y:pt.y, r:R, life:dur, max:dur, tick:0,
         dmg:wDmg(14,l)*p.aoeMul, color:'#a78bfa', pull:p.pullMul});
-      sfxTry('shoot', .2, SFX.boom); break;
+      sfxTry('blackhole', .2, SFX.blackhole); break;
     }
     case 'spikes': {
       const n = 1 + Math.floor(l/2) + (e?2:0);
@@ -1157,7 +1252,7 @@ function fireWeapon(id, w){
         G.zones.push({type:'spike', x, y, r:R, life:dur, max:dur, tick:rand(0,.3),
           dmg:wDmg(20,l)*p.aoeMul, color:'#fbbf24'});
       }
-      sfxTry('shoot', .2, SFX.shoot); break;
+      sfxTry('spikes', .2, SFX.spikes); break;
     }
     case 'flame': {
       const tgt = aimTarget(999);
@@ -1174,7 +1269,7 @@ function fireWeapon(id, w){
           G.burn.push({x:en.x, y:en.y, t:.9*p.statusMul, tick:.2, dmg:wDmg(4,l)*p.burnMul});
         }
       }
-      sfxTry('shoot', .1, SFX.shoot); break;
+      sfxTry('flame', .1, SFX.flame); break;
     }
     case 'bat': {
       const n = 2 + Math.floor(l/2) + (e?2:0) + p.extraProj;
@@ -1188,7 +1283,7 @@ function fireWeapon(id, w){
           homing:true, target:tgt, life:4, vamp:e?2:1
         });
       }
-      sfxTry('shoot', .1, SFX.shoot); break;
+      sfxTry('bat', .1, SFX.bat); break;
     }
     case 'orbit': case 'drone': case 'shield': case 'tesla': syncCompanions(); break;
   }
@@ -1220,6 +1315,7 @@ function updateWeapons(dt){
         if(dist2(kx,ky,en.x,en.y) < (en.r + (ow.evolved?12:8))**2 && (G.t - (k.hit.get(en) || -9)) > .32){
           k.hit.set(en, G.t);
           damageEnemy(en, dmg, {knock:70, summon:true});
+          sfxTry('orbit', .45, SFX.orbit);
         }
       }
     }
@@ -1244,6 +1340,7 @@ function updateWeapons(dt){
           });
         }
         d.t = (dw.evolved ? .45 : .85) * p.cdMul * p.summonCdMul;
+        sfxTry('drone', .12, SFX.drone);
       }
     }
   }
@@ -1257,6 +1354,7 @@ function updateWeapons(dt){
       for(const b of G.ebullets){
         if(b.life > 0 && dist2(s.x,s.y,b.x,b.y) < (12+b.r)**2){
           b.life = 0; burst(s.x,s.y,'#22d3ee',4,90);
+          sfxTry('shield', .2, SFX.shield);
           if(p.blockExtra > 0){
             const a2 = Math.atan2(-b.vy,-b.vx);
             shoot(s.x,s.y,Math.cos(a2)*520,Math.sin(a2)*520,{
@@ -1295,6 +1393,7 @@ function updateWeapons(dt){
           if(!best) break;
           hit.add(best);
           G.effects.push({type:'bolt', x1:sx, y1:sy, x2:best.x, y2:best.y, life:.2, maxLife:.2, color:'#fde047'});
+          sfxTry('tesla', .18, SFX.tesla);
           damageEnemy(best, wDmg(18,tw.level)*p.elemMul*p.summonMul, {elem:true, summon:true});
           if(tw.evolved) best.stun = Math.max(best.stun, .3*p.statusMul);
           sx = best.x; sy = best.y;
@@ -1621,6 +1720,7 @@ function showBanner(t1, t2, color){
 }
 function update(dt){
   G.t += dt;
+  bossMusic = G.enemies.some(e => e.boss && !e.dead);
   const timed = G.mode === 'time';
   if(timed && G.t >= WIN_TIME){ endGame(true); return; }
   if(timed){
@@ -1658,7 +1758,7 @@ function update(dt){
 }
 function endGame(win){
   if(G.screen === 'over') return;
-  G.screen = 'over';
+  G.screen = 'over'; bgmStop(); SFX.wave();
   const waveMode = G.mode === 'wave';
   $('resultTitle').textContent = win ? (waveMode ? '波 次 全 清' : '黎 明 来 临') : '游 戏 结 束';
   $('resultTitle').className = 'result-title ' + (win ? 'win' : 'lose');
@@ -2151,17 +2251,23 @@ $('modeWave').addEventListener('click', () => {
   selectedMode = 'wave';
   $('modeWave').classList.add('active'); $('modeTime').classList.remove('active');
 });
-$('startBtn').addEventListener('click', () => { initAudio(); newGame(selectedMode); showBanner('生存开始', '活下去', '#22d3ee'); });
+$('startBtn').addEventListener('click', () => { initAudio(); newGame(selectedMode); bgmStart(); showBanner('生存开始', '活下去', '#22d3ee'); });
 $('againBtn').addEventListener('click', () => {
   const m = G ? G.mode : selectedMode;
-  newGame(m); showBanner('生存开始', '活下去', '#22d3ee');
+  initAudio(); newGame(m); bgmStart(); showBanner('生存开始', '活下去', '#22d3ee');
 });
-$('menuBtn').addEventListener('click', () => { G = null; $('result').classList.add('hidden'); $('hud').classList.add('hidden'); $('menu').classList.remove('hidden'); });
+$('menuBtn').addEventListener('click', () => { bgmStop(); G = null; $('result').classList.add('hidden'); $('hud').classList.add('hidden'); $('menu').classList.remove('hidden'); });
 $('resumeBtn').addEventListener('click', togglePause);
-$('quitBtn').addEventListener('click', () => { $('pause').classList.add('hidden'); $('hud').classList.add('hidden'); $('menu').classList.remove('hidden'); G = null; });
+$('quitBtn').addEventListener('click', () => { bgmStop(); $('pause').classList.add('hidden'); $('hud').classList.add('hidden'); $('menu').classList.remove('hidden'); G = null; });
 $('pauseBtn').addEventListener('click', togglePause);
 $('rerollBtn').addEventListener('click', rerollCards);
-$('muteBtn').addEventListener('click', () => { muted = !muted; $('muteBtn').textContent = muted ? '🔇' : '🔊'; });
+$('muteBtn').addEventListener('click', () => { setMuted(!muted); $('muteBtn').textContent = muted ? '🔇' : '🔊'; $('muteBtn').classList.toggle('off', muted); });
+$('bgmBtn').addEventListener('click', () => {
+  setBgmMuted(!bgmMuted);
+  $('bgmBtn').textContent = bgmMuted ? '🎵‍' : '🎵';
+  $('bgmBtn').classList.toggle('off', bgmMuted);
+  if(!bgmMuted && G && G.screen === 'playing') bgmStart();
+});
 </script>
 <!-- 应用模式：屏蔽浏览器原生交互（选中/拖拽/右键菜单/双击缩放） -->
 <script>
