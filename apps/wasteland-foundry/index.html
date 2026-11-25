@@ -141,6 +141,23 @@ body.dialog-open{overflow:hidden;position:fixed;inset:0;width:100%}
 @media(max-width:360px){.mark{width:28px;height:32px}.topbar{gap:7px}h1{font-size:15px}.header-right{gap:4px}.header-right button{padding:6px}.resource:first-child .resource-value{font-size:24px}.resource{padding:8px}.scene-bottom{right:10px}.main-column>.panel:first-child h2{font-size:11px}}
 @media(display-mode:standalone){.install-pwa{display:none}}
 @media(hover:none){button:hover:not(:disabled){border-color:var(--line);background:var(--panel2)}button.primary:hover:not(:disabled){background:var(--lime);border-color:var(--lime)}}
+/* Mechanical city: expansion is the primary progression surface. */
+.city-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border-bottom:1px solid var(--line)}
+.city-summary>div{background:var(--panel);padding:11px 13px;min-width:0}.city-summary small{display:block;font-size:10px}.city-summary strong{font-size:16px;color:var(--lime)}
+.engineering{margin-top:18px}.engineering-intro{padding:15px 18px;border-bottom:1px solid var(--line);font-size:12px;color:var(--muted)}
+.engineering-intro strong{color:var(--ink)}.engineering-list{padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.engineering-card{padding:15px;border:1px solid var(--line);border-radius:7px;position:relative;background:#20291f;min-width:0}
+.engineering-card.complete{background:#253124;border-color:#667a49}.engineering-card.building{border-color:var(--orange)}
+.engineering-card.complete p{display:none}.engineering-card.complete .bar{display:none}.engineering[hidden]{display:none}
+.engineering-card h3{margin:3px 0 8px;font-size:15px}.engineering-card .engineering-icon{color:var(--orange);font-size:24px;float:right}
+.engineering-card p{font-size:12px;color:var(--muted);line-height:1.8;margin:8px 0;min-height:65px}.engineering-card small{font-size:10px}.engineering-card button{width:100%;min-height:44px;font-size:12px}.engineering-card .bar{margin:10px 0}
+.city-ledger{padding:13px 18px;display:grid;grid-template-columns:1fr 1fr;gap:7px 15px;font-size:11px;border-top:1px solid var(--line)}
+.city-ledger span{display:flex;justify-content:space-between;gap:8px;color:var(--muted)}.city-ledger b{color:var(--ink);font-weight:500;white-space:nowrap}
+.city-policy{padding:13px 18px;border-top:1px solid var(--line);display:flex;align-items:center;gap:9px;justify-content:space-between}.city-policy small{font-size:11px}.city-policy button{font-size:11px;min-height:44px}
+.workshop-details{margin-top:16px}.workshop-details>summary{cursor:pointer;padding:14px 0;font-size:14px;color:var(--muted);min-height:48px}.workshop-details .machine-toolbar{margin-top:0}
+.scene.city-expanded canvas{height:380px}.scene.city-mobile canvas{height:430px}
+.engineering-status{font-size:11px;color:var(--orange)}
+@media(max-width:760px){.city-summary>div{padding:9px}.city-summary strong{font-size:14px}.city-summary small{font-size:9px}.engineering-list{grid-template-columns:1fr;padding:11px}.engineering-card{padding:14px}.engineering-card p{min-height:0;font-size:13px}.engineering-card h3{font-size:16px}.engineering-card button{font-size:14px;min-height:48px}.engineering-intro{padding:13px;font-size:13px}.city-ledger{padding:12px;font-size:11px}.city-policy{flex-wrap:wrap;padding:12px}.city-policy button{font-size:13px}.scene.city-expanded canvas{height:290px}.scene.city-mobile canvas{height:330px}.workshop-details .machines{grid-template-columns:1fr}.engineering-status{font-size:12px}}
 </style>
 </head>
 <body data-mobile-page="production">
@@ -155,9 +172,13 @@ body.dialog-open{overflow:hidden;position:fixed;inset:0;width:100%}
 <div class="layout"><div class="main-column">
 <section class="panel"><div class="panel-head"><div><div class="eyebrow">LIVE PRODUCTION</div><h2>从废墟里，造出下一座城市。</h2></div><small class="mono" id="cycleLabel">第 01 轮建设</small></div>
 <div class="scene"><div class="scene-label" id="sceneLabel">01 / 废弃车场</div><canvas id="factory" aria-label="自动工厂生产线动画"></canvas><div class="scene-bottom"><span id="sceneStatus">采集 → 熔炼 → 制造 → 发货</span><span id="sceneEfficiency">产线待建设</span></div></div>
-<div class="line-summary"><span id="bottleneck">先建造熔炼炉，接通生产线。</span><button id="focusBtn">定位设备 ↗</button></div></section>
+<div class="city-summary"><div><small>工厂形态</small><strong id="cityForm">回收作坊</strong></div><div><small>运行产线</small><strong id="cityLines">1 条</strong></div><div><small>机械工人</small><strong id="cityRobots">0 台</strong></div><div><small>自动收入来源</small><strong id="citySources">0 种</strong></div></div>
+<div class="line-summary"><span id="bottleneck">先建造基础设备，再扩建机械城。</span><button id="startupRescueBtn" hidden>援建并接通产线</button><button id="focusBtn">基础设备 ↗</button></div></section>
+<section class="panel engineering"><div class="panel-head"><div><div class="eyebrow">BUILD THE NEXT MACHINE</div><h2>扩建你的机械城</h2></div><small id="cityBuildStatus">等待第一项工程</small></div><div class="engineering-intro" id="cityIntro">先接通基础产线，之后选择新的机械、产业与物流。工程完工后自动投产。</div><div class="engineering-list" id="engineeringList"></div><div class="city-policy"><small id="robotPolicyHint">机器人装配厂会使用零件和芯片制造机械工人。</small><button id="robotPolicyBtn" disabled>机械工人优先</button></div><div class="city-ledger" id="cityLedger"></div></section>
+<details class="workshop-details" open><summary>基础设备与日常维护</summary>
 <div class="machine-toolbar"><h2>生产设备 <small style="font-size:10px;font-weight:400">/ 自动运行</small></h2><div class="segmented" id="buyModes" aria-label="购买数量"><button class="active" data-mode="1" aria-pressed="true">×1</button><button data-mode="10" aria-pressed="false">×10</button><button data-mode="max" aria-pressed="false">最大</button></div></div>
 <section class="machines" id="machines" aria-label="生产设备"></section>
+</details>
 <section class="panel milestones"><span class="badge">◇</span><div><strong id="milestoneTitle">第一条全自动产线</strong><small id="milestoneDesc">建好熔炼、制造和发货，第一笔收入会自动到账。</small></div></section>
 <section class="panel events" id="events" aria-label="工厂动态"></section>
 </div><aside class="sidebar">
@@ -192,10 +213,34 @@ const TECHS = [
  {id:'auto',name:'智能采购',desc:l=>l?'自动补齐瓶颈 · 保留资金 20%':'解锁自动购买与预算管理',cost:()=>2,max:1},
  {id:'offline',name:'长效蓄能',desc:l=>'离线结算上限 '+(12+l*6)+' 小时',cost:l=>l+1,max:2}
 ];
-function fresh(){return {version:1,cash:100,stock:[0,0,0],levels:[1,0,0,0],specs:[-1,-1,-1,-1],storage:0,order:'parts',chapter:0,progress:0,projectActive:false,chapterClaimed:false,blueprints:[false,false,false],cores:0,totalCores:0,tech:{efficiency:0,starter:0,auto:0,offline:0},autoBuy:false,runValue:0,totalValue:0,totalProduced:0,run:1,lastSeen:Date.now(),emergencyAt:0,lowMotion:false};}
+const ENGINEERING = [
+ {id:'split',name:'双线分流枢纽',icon:'⑂',cost:240,time:8,requires:[],effect:'铺设独立的第二条采集、熔炼、装配线。钢材订单期间，副线仍制造零件；两条线共用货运站。',result:'第二条传送带已展开，副线独立生产中。'},
+ {id:'dispatch',name:'全自动调度塔',icon:'⌘',cost:180,time:6,requires:[],effect:'调度机械接管基础设备，每 3 秒自动采购落后环节。只动用资金的 8%，为大型工程留预算。',result:'基础设备已交给调度塔，安心规划下一块版图。'},
+ {id:'salvage',name:'拆解蜂群母港',icon:'✥',cost:480,time:10,requires:[],effect:'机械蜂群每 20 秒带回一批废铁。机器人增多后，出勤队伍扩充；分拣塔建成后还能带回电子废料。',result:'第一支拆解蜂群已出发，等待整批卸料。'},
+ {id:'sorter',name:'电子回收产业区',icon:'▦',cost:850,time:12,requires:[],effect:'主线采集时分出电子废料，自动拆解成芯片出售。新产业拥有独立仓库与处理设备，不占用金属原料。',result:'分拣塔、电子传送带和芯片加工间已接入。'},
+ {id:'heat',name:'废热涡轮与电站',icon:'ϟ',cost:1600,time:12,requires:[],effect:'回收两条线熔炉的废热。电力优先加速电子加工，剩余电量自动外售；熔炉越忙，电站收入越多。',result:'涡轮开始旋转，第一批电力已并网。'},
+ {id:'robots',name:'自复制机械装配厂',icon:'♙',cost:3200,time:16,requires:['sorter'],effect:'分配 20% 新产零件，与芯片一起装配机械工人。每台消耗 4 零件与 2 芯片，最多 64 台；工人自动加入产线和蜂群。',result:'装配厂上线，机械工人将从流水线上走下来。'},
+ {id:'rail',name:'环城轨道货运',icon:'▰',cost:6500,time:18,requires:['split'],effect:'60% 出货装上列车，每 15 秒集中发车，按原售价的 2.5 倍交付。保留卡车日常收入，列车经过整个厂区。',result:'铁路已贯通，货物正在自动装车。'},
+ {id:'crawler',name:'移动工厂履带底盘',icon:'▱',cost:22000,time:24,requires:['robots','rail'],effect:'厂房展开履带，沿废土自动前进。每 30 秒吞入一处废墟，回收原料并出售珍稀残骸。保留现有产业同时开拓收入。',result:'整座工厂已变形！正在驶向下一处废墟。'}
+];
+const CITY_CHANNELS=[['factory','金属与零件'],['chips','电子回收'],['power','电力外售'],['rail','铁路交付'],['ruins','废墟残骸'],['archive','旧城分红']];
+function freshCity(){return {built:[],construction:null,lane:[0,0,0],waste:0,chips:0,robotParts:0,robotProgress:0,robots:0,robotMode:'build',convoyClock:0,trainClock:0,trainValue:0,crawlerClock:0,ruins:0,archive:0,elapsed:0,revenue:0,income:{factory:0,chips:0,power:0,rail:0,ruins:0,archive:0},lastTrain:0,lastConvoy:0};}
+function fresh(){return {version:2,city:freshCity(),cash:100,stock:[0,0,0],levels:[1,0,0,0],specs:[-1,-1,-1,-1],storage:0,order:'parts',chapter:0,progress:0,projectActive:false,chapterClaimed:false,blueprints:[false,false,false],cores:0,totalCores:0,tech:{efficiency:0,starter:0,auto:0,offline:0},autoBuy:false,runValue:0,totalValue:0,totalProduced:0,run:1,lastSeen:Date.now(),emergencyAt:0,lowMotion:false};}
+function migrateSave(x){if(x.version===1){x.version=2;x.city=freshCity();}return x;}
+function hasCity(id){return state.city.built.includes(id);}
+function validCity(c){
+ if(!c||!Array.isArray(c.built)||new Set(c.built).size!==c.built.length||c.built.some(id=>!ENGINEERING.some(p=>p.id===id)))return false;
+ if(c.built.some(id=>ENGINEERING.find(p=>p.id===id).requires.some(r=>!c.built.includes(r))))return false;
+ if(c.construction!==null){const p=ENGINEERING.find(p=>p.id===c.construction?.id);if(!p||c.built.includes(p.id)||p.requires.some(r=>!c.built.includes(r))||!finite(c.construction.remaining,0,p.time))return false;}
+ if(!Array.isArray(c.lane)||c.lane.length!==3||c.lane.some(n=>!finite(n,0,1e150)))return false;
+ for(const key of ['waste','chips','robotParts','robotProgress','robots','convoyClock','trainClock','trainValue','crawlerClock','ruins','archive','elapsed','revenue','lastTrain','lastConvoy'])if(!finite(c[key],0,1e150))return false;
+ if(!Number.isInteger(c.robots)||c.robots>64||!Number.isInteger(c.ruins)||c.convoyClock>=20||c.trainClock>=15||c.crawlerClock>=30||c.robotProgress>=1||c.robotParts>16||c.waste>5000||c.chips>2000||c.archive>10000)return false;
+ if(!['build','sell'].includes(c.robotMode)||!c.income||CITY_CHANNELS.some(([id])=>!finite(c.income[id],0,1e150)))return false;
+ return true;
+}
 function finite(n,min,max){return typeof n==='number'&&Number.isFinite(n)&&n>=min&&n<=max;}
 function validSave(x){
- if(!x||x.version!==1)return false;
+ if(!x||![1,2].includes(x.version)||x.version===2&&!validCity(x.city))return false;
  for(const key of ['cash','runValue','totalValue','totalProduced'])if(!finite(x[key],0,1e150))return false;
  for(const key of ['cores','totalCores','storage','run','chapter'])if(!Number.isInteger(x[key])||x[key]<0)return false;
  if(x.cores>x.totalCores||x.totalCores>1e9||x.storage>40||x.run<1||x.run>1e9||x.chapter>2)return false;
@@ -210,7 +255,7 @@ function validSave(x){
  return true;
 }
 let state=fresh(),storageWarning=false,loadWarning='';
-try{const raw=localStorage.getItem(SAVE_KEY);if(raw){const parsed=JSON.parse(raw);if(validSave(parsed))state=parsed;else loadWarning='本地存档格式异常，已保留原存档。请通过设置导入备份。';}}catch(e){loadWarning='暂时无法读取存档。可以通过设置导出进度备份。';}
+try{const raw=localStorage.getItem(SAVE_KEY);if(raw){const parsed=JSON.parse(raw);if(validSave(parsed))state=migrateSave(parsed);else loadWarning='本地存档格式异常，已保留原存档。请通过设置导入备份。';}}catch(e){loadWarning='暂时无法读取存档。可以通过设置导出存档备份。';}
 let protectOldSave=!!loadWarning;
 let buyMode='1',actual=[0,0,0,0],idle=[0,0,0,0],earnRate=0,events=[],autoClock=0,toastTimer,simulationClock=performance.now(),lastFrame=performance.now(),lastRender=0;
 const $=id=>document.getElementById(id);
@@ -220,7 +265,7 @@ function toast(text){$('toast').textContent=text;$('toast').hidden=false;clearTi
 function log(text){events.unshift({time:new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'}),text});events=events.slice(0,4);renderEvents();}
 function renderEvents(){$('events').replaceChildren(...events.map(e=>{const d=document.createElement('div'),t=document.createElement('time');t.textContent=e.time;d.append(t,document.createTextNode(e.text));return d;}));}
 function globalMult(){return (1+state.tech.efficiency*.25)*(1+state.blueprints.filter(Boolean).length*.15)*(1+state.chapter*.2);}
-function rate(i){const l=state.levels[i];if(!l)return 0;let m=1;for(const n of [10,25,50,100])if(l>=n)m*=2;let r=MACHINES[i].rate*l*m*globalMult();if(state.specs[i]===0)r*=i===1||i===3?1.8:1.7;return r;}
+function rate(i){const l=state.levels[i];if(!l)return 0;let m=1;for(const n of [10,25,50,100])if(l>=n)m*=2;let r=MACHINES[i].rate*l*m*globalMult()*(1+state.city.robots*.035)*(i===3&&hasCity('split')?2:1);if(state.specs[i]===0)r*=i===1||i===3?1.8:1.7;return r;}
 function capacities(){const m=Math.pow(2,state.storage);return [Math.max(200,state.levels[0]*45)*m,Math.max(100,state.levels[1]*25)*m,Math.max(100,state.levels[2]*20)*m];}
 function cost(i,l=state.levels[i]){return Math.ceil(MACHINES[i].base*Math.pow(1.19,l));}
 function price(){return (state.order==='parts'?8*(state.specs[2]===1?1.6:1):3)*(state.specs[3]===1?1.4:1);}
@@ -233,32 +278,106 @@ function bottleneck(){
  if(state.projectActive&&state.order==='parts')normalized[3]/=.75;
  return active.reduce((a,b)=>normalized[a]<=normalized[b]?a:b);
 }
-function buy(i,mode=buyMode,budget=state.cash){
+function startupReserve(){return state.levels.reduce((sum,l,i)=>sum+(l===0?cost(i,0):0),0);}
+function machineBudget(i){return Math.max(0,state.cash-startupReserve()+(state.levels[i]===0?cost(i,0):0));}
+function rescueStartup(){
+ const reserve=startupReserve();if(!reserve||state.cash>=reserve)return false;
+ // Aid pays only for missing hardware, never awards money or production value.
+ state.cash=0;state.levels=state.levels.map(l=>l||1);return true;
+}
+function buy(i,mode=buyMode,budget=state.cash,silent=false){
+ budget=Math.min(budget,machineBudget(i));
  let n=0,spent=0,l=state.levels[i],limit=mode==='max'?500:Number(mode);
  while(n<limit&&l+n<500){const c=cost(i,l+n);if(spent+c>Math.min(state.cash,budget)+1e-8)break;spent+=c;n++;}
  if(!n)return false;
  state.cash=Math.max(0,state.cash-spent);state.levels[i]+=n;
- for(const threshold of [10,25,50,100])if(l<threshold&&l+n>=threshold){if(mode!=='auto')log(MACHINES[i].name+'突破 Lv.'+threshold+'，产能翻倍！');}
+ for(const threshold of [10,25,50,100])if(l<threshold&&l+n>=threshold&&!silent)log(MACHINES[i].name+'突破 Lv.'+threshold+'，产能翻倍！');
  return true;
+}
+function engineeringAvailable(p){return p.requires.every(hasCity)&&state.levels.every(l=>l>0);}
+function startEngineering(id){
+ const p=ENGINEERING.find(p=>p.id===id),c=state.city;
+ if(!p||c.construction||hasCity(id)||!engineeringAvailable(p)||state.cash<p.cost)return false;
+ state.cash-=p.cost;c.construction={id,remaining:p.time};return true;
+}
+function cityCredit(channel,amount){if(amount<=0)return;credit(amount);state.city.income[channel]+=amount;state.city.revenue+=amount;}
+function deliverGoods(value){
+ if(hasCity('rail')){state.city.trainValue+=value*.6;cityCredit('factory',value*.4);}
+ else cityCredit('factory',value);
+}
+function reserveRobotParts(parts){
+ const c=state.city;
+ if(!hasCity('robots')||c.robotMode!=='build'||c.robots>=64)return parts;
+ const kept=Math.max(0,Math.min(parts*.2,16-c.robotParts));c.robotParts+=kept;return parts-kept;
+}
+let cityActual={lane:0,chips:0,power:0};
+function cityProduction(dt,extracted,smelted,usedShipping){
+ const c=state.city,m=globalMult()*(1+c.robots*.035),cap=capacities();cityActual={lane:0,chips:0,power:0};
+ if(hasCity('split')){
+  // Separate buffers and simultaneous processing: this branch keeps assembling during steel orders.
+  const throughput=(1+Math.sqrt(state.levels[2]))*m;
+  const raw=Math.max(0,Math.min(throughput*4*dt,cap[0]-c.lane[0]));c.lane[0]+=raw;extracted+=raw;
+  const ingot=Math.max(0,Math.min(throughput*2*dt,c.lane[0]/2,cap[1]-c.lane[1]));c.lane[0]-=ingot*2;c.lane[1]+=ingot;smelted+=ingot;
+  const parts=Math.max(0,Math.min(throughput*dt,c.lane[1]/2,cap[2]-c.lane[2]));c.lane[1]-=parts*2;c.lane[2]+=reserveRobotParts(parts);state.totalProduced+=parts;
+  const delivered=Math.max(0,Math.min(c.lane[2],rate(3)*dt-usedShipping));c.lane[2]-=delivered;
+  deliverGoods(delivered*8*(state.specs[2]===1?1.6:1)*(state.specs[3]===1?1.4:1));cityActual.lane=parts/dt;
+ }
+ if(hasCity('salvage')){
+  c.convoyClock+=dt;
+  while(c.convoyClock>=20){c.convoyClock-=20;const load=(80+c.robots*12)*globalMult();state.stock[0]=Math.min(cap[0],state.stock[0]+load);c.lastConvoy=load;if(hasCity('sorter'))c.waste=Math.min(5000,c.waste+load*.35);}
+ }
+ let power=hasCity('heat')?smelted*1.8:0;
+ if(hasCity('sorter')){
+  c.waste=Math.min(5000,c.waste+extracted*.22);
+  const boost=Math.min(power,.8*m*dt);power-=boost;
+  const chips=Math.min(c.waste/3,(1+boost/(dt||1))*.7*m*dt,Math.max(0,2000-c.chips));c.waste-=chips*3;c.chips+=chips;cityActual.chips=chips/dt;
+ }
+ if(hasCity('robots')&&c.robotMode==='build'&&c.robots<64){
+  const work=Math.min(dt/4*m,c.robotParts/4,c.chips/2,64-c.robots-c.robotProgress);
+  c.robotParts=Math.max(0,c.robotParts-work*4);c.chips=Math.max(0,c.chips-work*2);c.robotProgress+=work;
+  if(c.robotProgress>=1-1e-9){const made=Math.floor(c.robotProgress+1e-9);c.robots+=made;c.robotProgress=Math.max(0,c.robotProgress-made);}
+ }
+ if(hasCity('sorter')){
+  const reserve=hasCity('robots')&&c.robotMode==='build'&&c.robots<64?4:0;
+  const sell=Math.max(0,Math.min(c.chips-reserve,3*m*dt));c.chips-=sell;cityCredit('chips',sell*18);
+ }
+ cityActual.power=power/dt;cityCredit('power',power*1.2);
+ if(hasCity('rail')){c.trainClock+=dt;while(c.trainClock>=15){c.trainClock-=15;c.lastTrain=c.trainValue*2.5;cityCredit('rail',c.lastTrain);c.trainValue=0;}}
+ if(hasCity('crawler')){
+  c.crawlerClock+=dt;
+  while(c.crawlerClock>=30){c.crawlerClock-=30;c.ruins++;const load=200+c.robots*10;state.stock[0]=Math.min(cap[0],state.stock[0]+load);c.waste=Math.min(5000,c.waste+load*.4);cityCredit('ruins',(300+c.robots*35)*globalMult());}
+ }
+ cityCredit('archive',c.archive*dt);
+ const oldElapsed=c.elapsed;c.elapsed+=dt;
+ if(hasCity('dispatch')&&Math.floor(c.elapsed/3)>Math.floor(oldElapsed/3)){
+  const i=bottleneck();if(state.levels[i]<100)buy(i,'1',state.cash*.08,true);
+ }
+ // Construction is paid up front and completes automatically, including while offline.
+ if(c.construction){c.construction.remaining=Math.max(0,c.construction.remaining-dt);if(c.construction.remaining===0){c.built.push(c.construction.id);c.construction=null;}}
 }
 // Fixed 0.25-second steps keep live and offline production identical, including finite warehouses.
 function step(dt,offline=false){
+ // Fixed relief income is independent of equipment and excluded from industrial value/dividends.
+ state.cash+=dt;
+ const revenueBefore=state.runValue;
  const caps=capacities(),rates=[0,1,2,3].map(rate),scrapPer=state.specs[1]===1?1.2:2;
  const a=Math.max(0,Math.min(rates[0]*dt,caps[0]-state.stock[0]));state.stock[0]+=a;
- if(state.specs[0]===1)credit(a*.4);
+ if(state.specs[0]===1)cityCredit('factory',a*.4);
  const b=Math.max(0,Math.min(rates[1]*dt,state.stock[0]/scrapPer,caps[1]-state.stock[1]));state.stock[0]-=b*scrapPer;state.stock[1]+=b;
  const target=CHAPTERS[state.chapter].need;
  const making=state.order==='parts';
  const c=making?Math.max(0,Math.min(rates[2]*dt,state.stock[1]/2,caps[2]-state.stock[2])):0;
  state.stock[1]-=c*2;
  const allocated=state.projectActive&&!state.chapterClaimed?Math.min(c*.25,Math.max(0,target-state.progress)):0;
- state.progress=Math.min(target,state.progress+allocated);state.stock[2]+=c-allocated;state.totalProduced+=c;
+ state.progress=Math.min(target,state.progress+allocated);state.stock[2]+=reserveRobotParts(c-allocated);state.totalProduced+=c;
  if(state.progress>=target)state.projectActive=false;
  const idx=making?2:1,d=Math.max(0,Math.min(rates[3]*dt*(making?1:2),state.stock[idx]));state.stock[idx]-=d;
- const income=d*price()+(state.specs[0]===1?a*.4:0);credit(d*price());
- actual=[a/dt,b/dt,c/dt,d/dt];earnRate=income/dt;
+ deliverGoods(d*price());cityProduction(dt,a,b,making?d:d/2);
+ actual=[a/dt,b/dt,c/dt,d/dt];
+ // Smooth periodic train/ruin payouts so the HUD reflects ongoing business between deliveries.
+ earnRate+=((state.runValue-revenueBefore)/dt-earnRate)*(1-Math.exp(-dt/8));
  for(let i=0;i<4;i++)if(rates[i]>0&&actual[i]<rates[i]*(i===3&&!making?2:1)*.9&&!(i===2&&!making))idle[i]+=dt;
- if(state.autoBuy&&state.tech.auto){autoClock+=dt;if(autoClock>=2){autoClock=0;const i=bottleneck();buy(i,'1',state.cash*.8);}}
+ if(state.autoBuy&&state.tech.auto){autoClock+=dt;if(autoClock>=2){autoClock=0;const i=bottleneck();buy(i,'1',state.cash*.8,true);}}
 }
 function simulate(seconds,offline=false){const steps=Math.floor(seconds/.25);for(let i=0;i<steps;i++)step(.25,offline);return steps*.25;}
 function catchUp(){
@@ -268,13 +387,15 @@ function catchUp(){
  simulate(seconds,true);state.lastSeen=Date.now();
  const worst=bottleneck();return {elapsed,seconds,gain:state.cash-before,produced:state.totalProduced-produced,progress:state.progress-progress,worst,idle:Math.max(...idle),limited:elapsed>limit};
 }
-function report(r){if(!r||r.elapsed<20)return;showModal('<div class="eyebrow">WELCOME BACK, OPERATOR</div><h2>你离开时，工厂一直在运转。</h2><div class="report-stat"><span>结算时长</span><strong>'+duration(r.seconds)+'</strong></div><div class="report-stat"><span>资金净增加'+(state.autoBuy?'（已扣自动采购）':'')+'</span><strong>¥ '+fmt(r.gain)+'</strong></div><div class="report-stat"><span>生产机械零件</span><strong>'+fmt(r.produced)+' 件</strong></div><div class="report-stat"><span>拆解计划进度</span><strong>+'+fmt(r.progress)+' 零件</strong></div><p>当前瓶颈：'+MACHINES[r.worst].name+'。'+(r.idle>1?'部分设备累计低负载运行 '+duration(r.idle)+'，补齐产能可以减少等待。':'产线运行稳定。')+'</p>'+(r.limited?'<p>已达到离线结算上限，多余时长未计入。</p>':'')+'<div class="dialog-actions"><button class="primary" data-action="close">继续建设</button></div>');}
+function report(r){if(!r||r.elapsed<20)return;showModal('<div class="eyebrow">WELCOME BACK, OPERATOR</div><h2>你离开时，机械城一直在扩张。</h2><div class="report-stat"><span>结算时长</span><strong>'+duration(r.seconds)+'</strong></div><div class="report-stat"><span>资金净增加（已扣自动采购）</span><strong>¥ '+fmt(r.gain)+'</strong></div><div class="report-stat"><span>生产机械零件</span><strong>'+fmt(r.produced)+' 件</strong></div><div class="report-stat"><span>拆解计划进度</span><strong>+'+fmt(r.progress)+' 零件</strong></div><div class="report-stat"><span>运行工程 / 机械工人</span><strong>'+state.city.built.length+' 项 / '+state.city.robots+' 台</strong></div><p>已建工程会自动生产。新工程需要你决定投资，收入账本可查看芯片、电力、铁路等产业收益。</p>'+(r.limited?'<p>已达到离线结算上限，多余时长未计入。</p>':'')+'<div class="dialog-actions"><button class="primary" data-action="close">继续扩建</button></div>');}
 function save(){if(protectOldSave)return false;try{state.lastSeen=Date.now();localStorage.setItem(SAVE_KEY,JSON.stringify(state));storageWarning=false;$('saveStatus').textContent='已保存 '+new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});return true;}catch(e){$('saveStatus').textContent='存档不可用 · 请导出备份';if(!storageWarning){toast('浏览器无法保存进度，请在设置中导出存档。');storageWarning=true;}return false;}}
 function storageCost(){return Math.ceil(120*Math.pow(3.1,state.storage));}
 function prestigeGain(){return state.runValue<25000?0:Math.floor(Math.sqrt(state.runValue/25000));}
+function nextArchiveIncome(){const c=state.city;return Math.min(10000,c.archive+Math.max(0,c.revenue-c.income.archive)/Math.max(1,c.elapsed)*.15);}
 function doPrestige(){
  const gain=prestigeGain();if(!gain)return;
  const old=state,next=fresh();next.cores=old.cores+gain;next.totalCores=old.totalCores+gain;next.tech={...old.tech};next.blueprints=[...old.blueprints];next.totalValue=old.totalValue;next.run=old.run+1;next.lowMotion=old.lowMotion;next.autoBuy=old.autoBuy;
+ next.city.archive=nextArchiveIncome();
  const starter=next.tech.starter;if(starter){next.levels=[1,1,1,1].map(()=>1+starter*2);next.cash=100+starter*250;}
  state=next;autoClock=0;actual=[0,0,0,0];earnRate=0;idle=[0,0,0,0];simulationClock=performance.now();events=[];log('第 '+state.run+' 轮建设开始，熔铸获得 '+gain+' 个核心。');closeModal();save();render();toast('迁厂完成！核心科技与蓝图已保留。');
 }
@@ -304,25 +425,27 @@ function specsModal(i){
  showModal('<div class="eyebrow">MACHINE SPECIALIZATION</div><h2>'+MACHINES[i].name+' · 专精</h2><p>首次选择免费，之后每次切换花费 ¥'+fmt(fee)+'。专精会持续生效至本轮迁厂。</p>'+MACHINES[i].specs.map((s,n)=>'<button class="order-option '+(state.specs[i]===n?'selected':'')+'" data-spec-machine="'+i+'" data-spec="'+n+'"><strong>'+s+'</strong><small>'+(state.specs[i]===n?'当前专精':'选择这条技术路线')+'</small></button>').join('')+'<div class="dialog-actions"><button data-action="close">返回</button></div>');
 }
 function settings(){showModal('<div class="eyebrow">FACTORY CONTROL</div><h2>工厂设置</h2><div class="settings-group"><strong>本地存档</strong><p>每 10 秒保存一次。存档仅保存在当前浏览器；移动 HTML 文件或更换浏览器前请导出备份。</p><button data-action="export">导出存档</button><button data-action="import">导入存档</button>'+(protectOldSave?'<p class="danger">原存档已受保护，不会被自动覆盖。导入有效备份或明确重开后恢复保存。</p>':'')+'</div><div class="settings-group install-pwa"><strong>安装到手机桌面</strong><p>用 Safari 打开本站的 HTTPS 页面，点分享按钮 →「添加到主屏幕」。从桌面启动可使用独立窗口。首次安装后请导入原入口的存档备份。</p><button data-action="install-guide">查看 Safari / 安卓步骤</button></div><div class="settings-group"><label><input type="checkbox" id="motionToggle" '+(state.lowMotion?'checked':'')+'> 减少动画（生产与离线收益照常）</label></div><div class="settings-group"><strong>仓储扩建 · Lv.'+state.storage+'</strong><p>所有仓库容量翻倍。大仓库能缓冲积压，持续收入仍取决于产线是否平衡。</p><button data-action="storage" '+(state.storage>=40||state.cash<storageCost()?'disabled':'')+'>扩建 ¥'+fmt(storageCost())+'</button></div><div class="settings-group"><strong>应急回收</strong><p>每 30 秒可回收 ¥12 和 12 废铁，帮助起步或调整产线。</p><button data-action="emergency" '+(Date.now()-state.emergencyAt<30000?'disabled':'')+'>启动应急回收</button></div><div class="settings-group"><button class="danger ghost" data-action="reset">清空存档，重新开始</button></div><div class="dialog-actions"><button class="primary" data-action="close">返回工厂</button></div>');}
-function help(){showModal('<div class="eyebrow">OPERATOR HANDBOOK</div><h2>把废墟，变成一条生产线。</h2><div class="inline-help"><p><b>01 / 接通产线</b><br>用开局 ¥100 建好熔炼炉、制造机和货运站。设备建成就会自动运行。</p><p><b>02 / 补齐瓶颈</b><br>废铁 → 金属锭 → 零件 → 资金。库存积压说明下游处理不够快；缺料说明上游跟不上。荧光边框标出理论产能最低的设备。</p><p><b>03 / 选择经营路线</b><br>精密零件每件 ¥8；钢材每锭 ¥3，运输速度翻倍，并暂停制造。设备 Lv.10 解锁专精；Lv.10 / 25 / 50 / 100 各获得一次产能翻倍。</p><p><b>04 / 拆解旧世界</b><br>分配 25% 新产零件搭建拆解设施。完成后领取资金、解锁下一地区，并取得永久蓝图。钢材订单期间拆解暂停。</p><p><b>05 / 熔铸迁厂</b><br>本轮累计产值达到 ¥25K 后可以迁厂。每轮核心数 = ⌊√(产值 / 25K)⌋。重建普通设备、仓库与地区，保留核心、科技和蓝图。</p><p><b>06 / 放心离开</b><br>离线默认结算 12 小时，科技最多提升至 24 小时。订单、仓库、专精、自动采购都参与离线模拟；拆解完成后等待你回来领取。</p></div><div class="dialog-actions"><button class="primary" data-action="close">开始建设</button></div>');}
+function help(){showModal('<div class="eyebrow">MECHANICAL CITY HANDBOOK</div><h2>让工厂，长成一座机械城。</h2><div class="inline-help"><p><b>01 / 接通第一条线</b><br>用开局 ¥100 建好熔炼炉、制造机和货运站，之后全部自动生产。日常升级与专精在基础设备面板内。</p><p><b>02 / 决定下一块版图</b><br>双线枢纽增加独立的采集、熔炼与制造副线，并扩充装卸口。副线始终生产零件，主线可切换订单。蜂群每 20 秒带回材料；电子产业从来料中回收芯片；电站把熔炉废热变成电力。</p><p><b>03 / 让机械接管日常</b><br>调度塔每 3 秒检查设备，仅用现有资金的 8% 自动采购，最高维护到 Lv.100。核心科技智能采购可按原规则投入更多资金；想优先攒工程款时，可关闭该科技开关。</p><p><b>04 / 自己制造工人</b><br>装配厂分配 20% 新产零件，每 4 零件和 2 芯片造出一台工人。工人提高设备效率、扩大蜂群，最多 64 台。可随时切换为芯片出售优先。</p><p><b>05 / 让收入结构变形</b><br>铁路将 60% 出货装车，每 15 秒按 2.5 倍售价交付，其余仍由卡车出售。移动底盘每 30 秒吞入废墟，带来原料和珍稀残骸收入。收入账本分别记录各产业的实际收益。</p><p><b>06 / 开拓下一区域</b><br>产值 ¥25K 后可以迁厂，核心数 = ⌊√(产值 / 25K)⌋。新区域重建普通设备和工程，保留核心、科技与蓝图；旧城留下平均产业收入的 15% 作为持续分红（合计上限 ¥10K / 秒）。工程施工、机械生产和周期交付均参与离线结算，默认上限 12 小时。</p></div><div class="dialog-actions"><button class="primary" data-action="close">开始扩建</button></div>');}
 function render(){
- const caps=capacities(),bn=bottleneck(),ch=CHAPTERS[state.chapter];
- $('cash').textContent='¥ '+fmt(state.cash);$('income').textContent='+'+fmt(earnRate)+' / 秒 · 本轮产值 ¥'+fmt(state.runValue);
+ const caps=capacities(),ch=CHAPTERS[state.chapter];
+ $('cash').textContent='¥ '+fmt(state.cash);$('income').textContent='约 +'+fmt(earnRate+1)+' / 秒（含保底 ¥1）· 本轮产值 ¥'+fmt(state.runValue);
  for(const [i,id]of ['scrap','ingot','parts'].entries()){$(id).textContent=fmt(state.stock[i]);$(id+'Cap').textContent='容量 '+fmt(caps[i])+' · '+Math.min(100,Math.floor(state.stock[i]/caps[i]*100))+'%';}
  $('cycleLabel').textContent='第 '+String(state.run).padStart(2,'0')+' 轮建设';$('sceneLabel').textContent='0'+(state.chapter+1)+' / '+ch.name;
  $('sceneStatus').textContent=state.order==='parts'?'采集 → 熔炼 → 制造 → 发货':'采集 → 熔炼 ─────────→ 钢材发货';
  $('sceneEfficiency').textContent='全局效率 ×'+globalMult().toFixed(2);
- $('bottleneck').textContent=!state.levels[bn]?'建设'+MACHINES[bn].name+'，接通自动产线。':'当前瓶颈：'+MACHINES[bn].name+' · 升级以提高整线收入';
+ const building=state.city.construction,missingDevice=state.levels.findIndex(l=>!l);
+ $('startupRescueBtn').hidden=startupReserve()<=state.cash;
+ $('bottleneck').textContent=missingDevice>=0?'建好剩余基础设备，启动第一条自动产线。':building?ENGINEERING.find(p=>p.id===building.id).name+'正在施工 · '+duration(building.remaining)+' 后自动投产':hasCity('dispatch')?'调度塔正在维护基础产线 · 资金优先留给扩建':'基础产线已运行 · 选择新产业，或让调度塔接手维护';
  for(let i=0;i<4;i++){
   const el=$('machine'+i),l=state.levels[i],r=rate(i),paused=i===2&&state.order==='steel';
-  el.classList.toggle('bottleneck',i===bn);el.querySelector('.level').textContent=l?'Lv.'+l:'未建造';
+  el.classList.remove('bottleneck');el.querySelector('.level').textContent=l?'Lv.'+l:'未建造';
   const target=r*(i===3&&state.order==='steel'?2:1),util=target?Math.min(100,Math.round(actual[i]/target*100)):0;
   el.querySelector('.status-text').textContent=!l?'等待建造':paused?'钢材订单 · 制造暂停':util>=90?'持续生产':util<1?(i===0?'仓库已满':'缺料或下游积压'):'部分负载 '+util+'%';
   el.querySelector('.throughput').textContent=fmt(target)+' / 秒';el.querySelector('.bar i').style.width=(paused?0:util)+'%';
   const next=[10,25,50,100].find(n=>n>l),mDesc=el.querySelector('.machine-desc');
-  mDesc.textContent=MACHINES[i].desc+(next?' Lv.'+next+' 产能 ×2。':' 已完成全部产能突破。');
+   mDesc.textContent=MACHINES[i].desc+(startupReserve()&&l?' 启动资金已预留，请先建齐产线。':next?' Lv.'+next+' 产能 ×2。':' 已完成全部产能突破。');
   const count=buyMode==='max'?500:Number(buyMode);let num=0,total=0;
-  while(num<count&&l+num<500){const p=cost(i,l+num);if(total+p>state.cash+1e-8)break;total+=p;num++;}
+  while(num<count&&l+num<500){const p=cost(i,l+num);if(total+p>machineBudget(i)+1e-8)break;total+=p;num++;}
   const btn=el.querySelector('.buy');btn.disabled=!num;btn.querySelector('.buy-label').textContent=l>=500?'已满级':!l?'建造'+(num>1?' +'+num:''):'升级 +'+(num||1);btn.querySelector('.buy-price').textContent=l>=500?'MAX':'¥'+fmt(num?total:cost(i));
   const spec=el.querySelector('.spec');spec.disabled=l<10;spec.textContent=l<10?'◇ Lv.10 解锁设备专精':state.specs[i]<0?'◇ 选择专精 · 首次免费':MACHINES[i].specs[state.specs[i]]+' ↗';
  }
@@ -347,8 +470,40 @@ function render(){
  else if(!gain){title='下一站：熔铸第一枚核心';desc='本轮产值 ¥'+fmt(state.runValue)+' / ¥25K · 迁厂后解锁永久科技。';}
  else{title='已可迁厂 · '+gain+' 枚核心';desc='继续经营可获得更多核心；下一个目标：本轮产值 ¥'+fmt(nextCore)+'。';}
  $('milestoneTitle').textContent=title;$('milestoneDesc').textContent=desc;
+ renderCity();
+}
+function cityForm(){return hasCity('crawler')?'移动机械城':hasCity('robots')?'自造机械工厂':hasCity('rail')?'轨道工业城':hasCity('sorter')?'综合回收园':hasCity('split')?'双线自动工厂':'回收作坊';}
+let lastBuiltCount=-1,lastSceneSize='';
+function renderCity(){
+ const c=state.city,ready=state.levels.every(l=>l>0);
+ document.querySelector('.engineering').hidden=!ready;
+ $('cityForm').textContent=cityForm();$('cityLines').textContent=(hasCity('split')?2:1)+' 条';$('cityRobots').textContent=c.robots+' / 64';
+ const sourceCount=CITY_CHANNELS.filter(([id])=>c.income[id]>0).length;$('citySources').textContent=sourceCount+' 种';
+ $('cityBuildStatus').textContent=c.construction?'施工 '+duration(c.construction.remaining):c.built.length+' / '+ENGINEERING.length+' 项已投产';
+ $('cityIntro').textContent=!ready?'用开局资金接通基础设备，之后投资大型工程。':hasCity('crawler')?'移动机械城正在吞入废墟。继续增加工人，或开拓下一地区，让旧工厂留下持续分红。':'选择下一块版图：扩线提高规模，蜂群带回材料，电子回收与电站开辟额外收入。';
+ for(const p of ENGINEERING){
+  const el=$('engineering-'+p.id),built=hasCity(p.id),active=c.construction?.id===p.id,available=engineeringAvailable(p),btn=el.querySelector('button');
+  el.classList.toggle('complete',built);el.classList.toggle('building',active);
+  el.querySelector('.bar i').style.width=built?'100%':active?(1-c.construction.remaining/p.time)*100+'%':'0%';
+  el.querySelector('.engineering-status').textContent=built?'已投产 · 全自动':active?'工程机械施工中':!ready?'先接通基础产线':!available?'前置：'+p.requires.filter(id=>!hasCity(id)).map(id=>ENGINEERING.find(q=>q.id===id).name).join('、'):'建造用时 '+p.time+' 秒';
+  btn.disabled=built||!!c.construction||!available||state.cash<p.cost;btn.textContent=built?'✓ 已投入运行':active?'施工中 · '+duration(c.construction.remaining):'建造 · ¥'+fmt(p.cost);
+ }
+ const mode=$('robotPolicyBtn');mode.disabled=!hasCity('robots');mode.textContent=c.robotMode==='build'?'机械工人优先 · 切换为出售':'芯片收入优先 · 切换为造工人';
+ $('robotPolicyHint').textContent=hasCity('robots')?'工人 '+c.robots+' / 64 · 正在装配 '+Math.floor(c.robotProgress*100)+'% · 材料 '+fmt(c.robotParts)+' 零件 / '+fmt(c.chips)+' 芯片':'建成装配厂后，可选择优先造机械工人或出售芯片。';
+ $('cityLedger').innerHTML=CITY_CHANNELS.map(([id,label])=>'<span>'+label+'<b>¥'+fmt(c.income[id])+'</b></span>').join('')+'<span>电子废料 / 芯片<b>'+fmt(c.waste)+' / '+fmt(c.chips)+'</b></span><span>列车待交付<b>¥'+fmt(c.trainValue*2.5)+'</b></span>';
+ const railway=hasCity('rail')?' · 列车 '+Math.ceil(15-c.trainClock)+'s':'';
+ $('sceneStatus').textContent=cityForm()+railway;
+ if(c.built.length){$('milestoneTitle').textContent=cityForm()+' · '+c.built.length+' 项工程';$('milestoneDesc').textContent=hasCity('crawler')?'已自动吞入 '+c.ruins+' 处废墟。迁厂后旧城保留平均产业收入的 15% 为持续分红。':'大型工程会改变机械和收入结构；基础设备由调度塔自动维护。';}
+ if(c.built.length!==lastBuiltCount){
+  if(lastBuiltCount>=0&&c.built.length>lastBuiltCount){const p=ENGINEERING.find(p=>p.id===c.built[c.built.length-1]);if(p){log(p.name+'完工！'+p.result);toast(p.result);}}
+  lastBuiltCount=c.built.length;
+  document.querySelector('.workshop-details').open=!ready||c.built.length===0;
+ }
+ const size=hasCity('crawler')?'city-mobile':c.built.length||c.construction?'city-expanded':'';
+ if(size!==lastSceneSize){canvas.parentElement.classList.remove('city-mobile','city-expanded');if(size)canvas.parentElement.classList.add(size);lastSceneSize=size;resize();}
 }
 function buildUI(){
+ $('engineeringList').innerHTML=ENGINEERING.map((p,i)=>'<article class="engineering-card" id="engineering-'+p.id+'"><span class="engineering-icon" aria-hidden="true">'+p.icon+'</span><small>ENGINEERING / '+String(i+1).padStart(2,'0')+'</small><h3>'+p.name+'</h3><p>'+p.effect+'</p><div class="engineering-status"></div><div class="bar"><i></i></div><button data-engineering="'+p.id+'"></button></article>').join('');
  $('machines').innerHTML=MACHINES.map((m,i)=>'<article class="panel machine" id="machine'+i+'"><div class="machine-top"><div class="machine-title"><span class="machine-icon" aria-hidden="true">'+m.icon+'</span><div><h3>'+m.name+'</h3><small>0'+(i+1)+' / '+['EXTRACT','SMELT','ASSEMBLE','DELIVER'][i]+'</small></div></div><span class="level mono"></span></div><div class="machine-status"><span class="status-text"></span><span class="throughput mono"></span></div><div class="bar"><i></i></div><p class="machine-desc"></p><div class="machine-buy"><button class="buy" data-buy="'+i+'"><span class="buy-label"></span><span class="buy-price mono"></span></button></div><button class="spec" data-open-spec="'+i+'"></button></article>').join('');
  $('coreUpgrades').innerHTML=TECHS.map(t=>'<div class="core-upgrade" id="tech-'+t.id+'"><div>'+t.name+'<small></small></div><button data-tech="'+t.id+'"></button></div>').join('')+'<div class="core-upgrade" id="autoSetting" hidden><label for="autoToggle">启用智能采购<small>每 2 秒检查瓶颈，保留 20% 资金</small></label><input id="autoToggle" type="checkbox"></div>';
 }
@@ -359,7 +514,7 @@ function rect(x,y,w,h,color){ctx.fillStyle=color;ctx.fillRect(x,y,w,h);}
 function draw(t){
  if(!ctx)return;const reduced=state.lowMotion||matchMedia('(prefers-reduced-motion: reduce)').matches;
  if(reduced)t=0;
- ctx.clearRect(0,0,cw,ch);const sy=ch/244;ctx.save();ctx.scale(cw/850,sy);const w=850,y=149;
+ ctx.clearRect(0,0,cw,ch);const expanded=state.city.built.length>0||!!state.city.construction,sy=ch/(expanded?(hasCity('crawler')?600:510):244);ctx.save();ctx.scale(cw/850,sy);const w=850,y=149;
  const sky=ctx.createLinearGradient(0,0,0,210);sky.addColorStop(0,'#15201b');sky.addColorStop(1,'#283024');ctx.fillStyle=sky;ctx.fillRect(0,0,w,244);
  ctx.strokeStyle='#83946c0c';ctx.lineWidth=1;for(let x=0;x<w;x+=28){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,244);ctx.stroke();}for(let yy=0;yy<244;yy+=28){ctx.beginPath();ctx.moveTo(0,yy);ctx.lineTo(w,yy);ctx.stroke();}
  for(let i=0;i<17;i++){const x=i*57-12,h=22+Math.sin(i*7+state.chapter)*23;rect(x,87-h,35,h+40,'#222d23');rect(x+5,79-h,8,8,'#2e3a2a');}
@@ -386,7 +541,88 @@ function draw(t){
  rect(697,100,89,8,'#7d8962');rect(700,108,6,68,'#4f5e44');rect(777,108,6,68,'#4f5e44');ctx.fillStyle=state.levels[3]?'#b3c19a':'#53624a';ctx.fillRect(718,132,43,29);ctx.fillStyle='#779b8b';ctx.fillRect(763,140,20,21);rect(768,143,10,9,'#243a31');rect(713,161,77,7,'#344a37');for(const x of [730,775]){ctx.fillStyle='#141d17';ctx.beginPath();ctx.arc(x,169,8,0,Math.PI*2);ctx.fill();ctx.fillStyle='#829774';ctx.beginPath();ctx.arc(x,169,3,0,Math.PI*2);ctx.fill();}
  if(actual[3]>.001){for(let k=0;k<3;k++){const p=(t*.0008+k*.33)%1;rect(790+p*25,164-k*3,6,2,'rgba(144,165,123,'+(1-p)*.5+')');}}
  ctx.font='10px ui-monospace, monospace';ctx.textAlign='center';for(let i=0;i<4;i++){ctx.fillStyle=state.levels[i]?'#a8b38e':'#607057';ctx.fillText(['EXTRACT','SMELT','ASSEMBLE','DELIVER'][i],xs[i],211);const lamps=state.levels[i]?Math.min(5,1+Math.floor(state.levels[i]/10)):0;for(let k=0;k<5;k++)rect(xs[i]-15+k*7,190,4,3,k<lamps?'#cce787':'#344331');}
+ if(expanded)drawCity(t);
  ctx.restore();
+}
+function drawCity(t){
+ const c=state.city,moving=state.levels.every(l=>l>0),phase=t*.001;
+ rect(0,228,850,hasCity('crawler')?372:282,'#17221c');
+ ctx.strokeStyle='#344633';ctx.lineWidth=1;
+ for(let x=0;x<850;x+=34){ctx.beginPath();ctx.moveTo(x,228);ctx.lineTo(x,510);ctx.stroke();}
+ for(let y=238;y<510;y+=34){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(850,y);ctx.stroke();}
+ function text(s,x,y,color='#acbd99',size=11){ctx.fillStyle=color;ctx.font=size+'px system-ui, sans-serif';ctx.textAlign='left';ctx.fillText(s,x,y);}
+ function belt(x,y,w,color='#d3ed88'){
+  rect(x,y,w,12,'#0c1610');rect(x,y,w,2,'#506744');rect(x,y+11,w,2,'#506744');
+  for(let k=0;k<8;k++){const p=(k/8+(moving?phase*.13:0))%1;rect(x+p*(w-8),y-5,7,7,color);}
+ }
+ function zone(x,y,w,h,label,color){rect(x,y,w,h,'#233021');ctx.strokeStyle=color;ctx.lineWidth=1;ctx.strokeRect(x,y,w,h);text(label,x+10,y+18,color);}
+ function gear(x,y,r,color){ctx.save();ctx.translate(x,y);ctx.rotate(phase);ctx.strokeStyle=color;ctx.lineWidth=4;ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.stroke();for(let k=0;k<8;k++){ctx.rotate(Math.PI/4);rect(-3,-r-5,6,9,color);}ctx.restore();}
+ if(hasCity('split')){
+  text('02 / 独立副线 · 零件制造',28,249,'#d3ed88');belt(42,301,747,'#9fc6bd');
+  for(let i=0;i<4;i++){
+   const x=70+i*207;rect(x,267,63,35,'#738565');rect(x+7,274,49,22,'#263b2a');
+   if(i===1){rect(x+13,280,36,14,'#e8a46a');rect(x+40,250,10,17,'#839b72');}
+   if(i===2)gear(x+31,283,11,'#b5cfa4');
+   if(i===3){rect(x+5,279,42,17,'#9fc6bd');rect(x+50,284,20,12,'#738565');}
+  }
+  text('独立仓储 '+fmt(c.lane[0])+' / '+fmt(c.lane[1])+' / '+fmt(c.lane[2]),30,333,'#7f9a82',10);
+ }else{text('预留扩建地块 / 建造双线分流枢纽',28,287,'#52644c',12);}
+ if(hasCity('heat')){
+  zone(23,352,191,111,'废热回收 / 电力外售','#e8bb71');
+  for(let i=0;i<2;i++){const x=59+i*78;rect(x-16,392,32,45,'#887c50');gear(x,407,14,'#dcc281');}
+  for(let i=0;i<3;i++)rect(38+i*12,444,7,8,'#d3ed88');
+  text('剩余并网 '+fmt(cityActual.power)+' / s',33,456,'#d6c083',10);
+ }
+ if(hasCity('sorter')){
+  zone(230,352,229,111,'电子分拣 / 芯片加工','#94c5c4');
+  belt(244,433,201,'#94c5c4');rect(248,391,36,40,'#678d80');rect(253,383,26,11,'#94c5c4');
+  for(let i=0;i<3;i++){rect(303+i*45,404,30,27,'#507562');rect(309+i*45,411,18,14,'#a9dbb3');}
+  text('芯片 '+fmt(c.chips)+' · 废料 '+fmt(c.waste),241,456,'#94c5c4',10);
+ }
+ if(hasCity('robots')){
+  zone(475,352,214,111,'机械工人 / 自动装配','#b7adce');belt(487,434,187,'#b7adce');
+  const arm=8*Math.sin(phase*3);ctx.strokeStyle='#b7adce';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(502,426);ctx.lineTo(513,392);ctx.lineTo(548,406+arm);ctx.stroke();
+  rect(555,412-c.robotProgress*10,20,20,'#c5bdd7');rect(559,406-c.robotProgress*10,12,8,'#dce8cc');
+  for(let i=0;i<Math.min(4,c.robots);i++){rect(593+i*18,417,12,14,'#ab9dbb');rect(596+i*18,410,6,7,'#d3ed88');}
+  text(c.robots+' / 64 台 · 装配 '+Math.floor(c.robotProgress*100)+'%',487,456,'#c8bdda',10);
+  // Finished workers leave the assembly hall and circulate between the production zones.
+  for(let i=0;i<Math.min(14,c.robots);i++){
+   const x=35+((phase*24+i*57)%770),y=341;
+   rect(x,y-8,8,8,'#b7adce');rect(x+2,y-13,4,5,'#d3ed88');
+   rect(x+Math.sin(phase*5+i)*2,y,2,4,'#94a782');rect(x+6-Math.sin(phase*5+i)*2,y,2,4,'#94a782');
+  }
+ }
+ if(hasCity('dispatch')){
+  zone(707,352,120,111,'调度塔','#d3ed88');rect(751,389,30,49,'#7a9461');rect(743,378,46,15,'#a6be86');
+  for(let i=0;i<3;i++)rect(756,397+i*11,20,4,'#d3ed88');
+  ctx.strokeStyle='#d3ed88';ctx.lineWidth=1;ctx.beginPath();ctx.arc(766,375,15+Math.sin(phase*2)*4,Math.PI,0);ctx.stroke();
+  text('自动维护中',718,456,'#a6be86',10);
+ }
+ if(hasCity('salvage')){
+  for(let i=0;i<Math.min(7,2+Math.floor(c.robots/10));i++){
+   const x=25+((phase*38+i*117)%790),y=40+Math.sin(phase*2+i)*7;
+   rect(x,y,15,7,'#b7cc91');rect(x+5,y+7,6,9,'#7c9463');rect(x-7,y-2,29,2,'#9bb582');
+   ctx.strokeStyle='#9bb582';ctx.beginPath();ctx.moveTo(x-3,y-6);ctx.lineTo(x-3,y+3);ctx.moveTo(x+20,y-6);ctx.lineTo(x+20,y+3);ctx.stroke();
+  }
+  text('蜂群回港 '+Math.ceil(20-c.convoyClock)+'s · 上批 '+fmt(c.lastConvoy)+' 废铁',388,23,'#a4bf82',10);
+ }
+ if(hasCity('rail')){
+  rect(15,477,820,3,'#9a9c7c');rect(15,492,820,3,'#9a9c7c');for(let x=20;x<835;x+=19)rect(x,475,3,24,'#6a7659');
+  const trainX=(c.trainClock/15)*1050-180;
+  for(let i=0;i<4;i++){rect(trainX-i*49,463,44,19,i===0?'#d3ed88':'#94a782');rect(trainX-i*49+5,458,32,6,'#667a52');for(let k=0;k<2;k++){ctx.fillStyle='#101a12';ctx.beginPath();ctx.arc(trainX-i*49+10+k*23,486,4,0,Math.PI*2);ctx.fill();}}
+  text('下一车 ¥'+fmt(c.trainValue*2.5),650,474,'#e9d5a2',10);
+ }
+ if(hasCity('crawler')){
+  rect(8,512,834,18,'#6c7f4d');rect(28,530,794,39,'#34472c');
+  for(let x=49;x<814;x+=48){ctx.strokeStyle='#a0b579';ctx.lineWidth=4;ctx.beginPath();ctx.arc(x,551,13,0,Math.PI*2);ctx.stroke();rect(x+Math.sin(phase*3)*8-3,544,6,14,'#879b63');}
+  ctx.strokeStyle='#bbcf91';ctx.lineWidth=5;ctx.strokeRect(23,528,805,43);
+  for(let k=0;k<12;k++){const x=850-((phase*40+k*81)%900);rect(x,583,28,3,'#45553a');}
+  text('移动机械城 / 已吞入 '+c.ruins+' 处废墟 / 下一处 '+Math.ceil(30-c.crawlerClock)+'s',31,590,'#d3ed88',12);
+ }
+ if(c.construction){
+  const p=ENGINEERING.find(p=>p.id===c.construction.id);rect(28,232,320,23,'#392e1c');text('施工中 '+p.name+' · '+Math.ceil(c.construction.remaining)+'s',38,248,'#edbd79',11);
+  ctx.strokeStyle='#e8a46a';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(816,330);ctx.lineTo(816,245);ctx.lineTo(710,245);ctx.moveTo(738,245);ctx.lineTo(738,280+Math.sin(phase)*8);ctx.stroke();
+ }
 }
 function exportSave(){
  save();const blob=new Blob([JSON.stringify({...state,lastSeen:Date.now()},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='废土工厂-第'+state.run+'轮-'+new Date().toISOString().slice(0,10)+'.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('存档已导出。');
@@ -394,6 +630,7 @@ function exportSave(){
 document.addEventListener('click',e=>{
  const b=e.target.closest('button');if(!b||b.disabled)return;
  if(b.dataset.mobileTarget){mobilePage(b.dataset.mobileTarget);return;}
+ if(b.dataset.engineering){if(startEngineering(b.dataset.engineering)){log(ENGINEERING.find(p=>p.id===b.dataset.engineering).name+'开工，工程机械正在进场。');save();render();}return;}
  if(b.dataset.buy!==undefined){const i=Number(b.dataset.buy);if(buy(i)){if(state.levels[i]===1)log(MACHINES[i].name+'已接入产线。');save();render();}return;}
  if(b.dataset.mode){buyMode=b.dataset.mode;document.querySelectorAll('[data-mode]').forEach(el=>{el.classList.toggle('active',el===b);el.setAttribute('aria-pressed',String(el===b));});render();return;}
  if(b.dataset.order){state.order=b.dataset.order;log('切换订单：'+(state.order==='parts'?'精密零件':'批量钢材')+'。');save();render();return;}
@@ -402,20 +639,22 @@ document.addEventListener('click',e=>{
  if(b.dataset.tech){const t=TECHS.find(t=>t.id===b.dataset.tech),l=state.tech[t.id],c=t.cost(l);if(l<t.max&&state.cores>=c){state.cores-=c;state.tech[t.id]++;log('永久科技升级：'+t.name+'。');save();render();}return;}
  switch(b.id){
   case 'helpBtn':help();return;case 'settingsBtn':settings();return;
-  case 'focusBtn':$('machine'+bottleneck()).scrollIntoView({behavior:state.lowMotion?'instant':'smooth',block:'center'});return;
+  case 'focusBtn':document.querySelector('.workshop-details').open=true;$('machines').scrollIntoView({behavior:state.lowMotion?'instant':'smooth',block:'center'});return;
+  case 'robotPolicyBtn':state.city.robotMode=state.city.robotMode==='build'?'sell':'build';save();render();return;
   case 'projectBtn':if(state.progress>=CHAPTERS[state.chapter].need)claimProject();else{state.projectActive=!state.projectActive;save();render();}return;
-  case 'prestigeBtn':{const g=prestigeGain();if(!g)return;showModal('<div class="eyebrow">A NEW BEGINNING</div><h2>把这座工厂，熔成下一次机会。</h2><div class="report-stat"><span>本轮累计产值</span><strong>¥'+fmt(state.runValue)+'</strong></div><div class="report-stat"><span>本次获得核心</span><strong>+'+g+'</strong></div><p>迁厂会重建资金、设备、专精、仓库和地区进度。核心、永久科技、已收录蓝图和动画偏好会保留。'+(state.tech.starter?'便携工厂会为新一轮提供基础设备。':'新一轮从 ¥100 和一台采集机开始。')+'</p><div class="dialog-actions"><button data-action="close">继续经营</button><button class="primary" data-action="prestige">熔铸，前往新废土</button></div>');return;}
+  case 'prestigeBtn':{const g=prestigeGain();if(!g)return;showModal('<div class="eyebrow">A NEW BEGINNING</div><h2>让旧城运转，去开拓下一片废土。</h2><div class="report-stat"><span>本轮累计产值</span><strong>¥'+fmt(state.runValue)+'</strong></div><div class="report-stat"><span>本次获得核心</span><strong>+'+g+'</strong></div><div class="report-stat"><span>迁厂后旧城持续分红</span><strong>¥'+fmt(nextArchiveIncome())+' / 秒</strong></div><p>旧城新增本轮平均产业收入的 15% 为分红，含此前分红总上限 ¥10K / 秒。新区域重建资金、设备、工程、专精、仓库与地区进度；核心、永久科技、蓝图和动画偏好保留。'+(state.tech.starter?'便携工厂会为新一轮提供基础设备。':'新一轮从 ¥100 和一台采集机开始。')+'</p><div class="dialog-actions"><button data-action="close">继续经营</button><button class="primary" data-action="prestige">熔铸，前往新废土</button></div>');return;}
  }
  switch(b.dataset.action){
   case 'close':closeModal();break;
   case 'prestige':doPrestige();break;
   case 'export':exportSave();break;
   case 'import':$('fileInput').click();break;
-  case 'storage':if(state.storage<40&&state.cash>=storageCost()){state.cash-=storageCost();state.storage++;save();render();settings();toast('全部仓库容量翻倍！');}break;
+  case 'startupRescueBtn':if(rescueStartup()){save();render();toast('援建设备已就位，产线已接通。');}return;
+  case 'storage':if(state.storage<40&&state.cash-startupReserve()>=storageCost()){state.cash-=storageCost();state.storage++;save();render();settings();toast('全部仓库容量翻倍！');}else toast('请先保留建齐基础产线的启动资金。');break;
   case 'emergency':if(Date.now()-state.emergencyAt>=30000){state.emergencyAt=Date.now();credit(12);state.stock[0]=Math.min(capacities()[0],state.stock[0]+12);save();render();settings();toast('回收到 ¥12 和 12 废铁。');}break;
   case 'reset':showModal('<h2>重新开始？</h2><p>这会清空当前工厂、核心、蓝图与永久科技。可以先返回设置导出备份。</p><div class="dialog-actions"><button data-action="close">取消</button><button class="danger" data-action="confirm-reset">确认清空并重开</button></div>');break;
   case 'confirm-reset':state=fresh();protectOldSave=false;events=[];actual=[0,0,0,0];earnRate=0;autoClock=0;simulationClock=performance.now();closeModal();log('新工厂上线。用 ¥100 接通第一条自动生产线。');save();render();break;
-  case 'confirm-import':if(pendingImport){state=pendingImport;pendingImport=null;protectOldSave=false;events=[];actual=[0,0,0,0];earnRate=0;autoClock=0;simulationClock=performance.now();const r=catchUp();log('已导入备份存档。');save();render();closeModal();report(r);toast('存档导入成功。');}break;
+  case 'confirm-import':if(pendingImport){state=migrateSave(pendingImport);pendingImport=null;protectOldSave=false;events=[];actual=[0,0,0,0];earnRate=0;autoClock=0;lastBuiltCount=-1;simulationClock=performance.now();const r=catchUp();log('已导入备份存档。');save();render();closeModal();report(r);toast('存档导入成功。');}break;
   case 'install-guide':showModal('<div class="eyebrow">INSTALL ON MOBILE</div><h2>把工厂装进手机桌面</h2><div class="settings-group"><strong>iPhone / iPad · Safari</strong><p>1. 在 Safari 中打开本游戏的 HTTPS 网页地址。<br>2. 点击「分享」，选择「添加到主屏幕」。<br>3. 开启「作为 Web App 打开」（若有该选项）。<br>4. 从桌面图标进入，在设置中导入存档备份。</p><p class="muted">本地文件预览不支持可靠安装。当前单 HTML 版本支持离线收益计算，但网页在断网后重新冷启动仍需要站点提供离线缓存。</p></div><div class="settings-group"><strong>Android · Chrome</strong><p>在 Chrome 中打开 HTTPS 网页地址，点右上角菜单，选择「添加到主屏幕」。是否显示「安装」取决于浏览器和站点配置。</p></div><div class="settings-group"><strong>存档提醒</strong><p>桌面图标、Safari 与普通浏览器可能使用不同的本地存储。换入口之前，请在设置中导出存档，再导入。</p></div><div class="dialog-actions"><button data-action="settings">返回设置</button><button class="primary" data-action="close">知道了</button></div>');break;
   case 'settings':settings();break;
  }
