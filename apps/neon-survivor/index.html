@@ -328,10 +328,12 @@ const pick = a => a[(Math.random() * a.length) | 0];
 const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
 const dist2 = (x1, y1, x2, y2) => (x1 - x2) ** 2 + (y1 - y2) ** 2;
 function fmt(t){ const s = Math.floor(t); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
-// 玩家固定在屏幕中心，世界坐标 → 屏幕坐标由相机换算
+// 相机视野放大：看到的区域更小更近，与参考图一致
+const CAM_ZOOM = 1.3;
+// 屏幕坐标 → 世界坐标（考虑相机位移与缩放）
 function screenToWorld(sx, sy){
   const c = G.cam;
-  return { x: sx + c.x - W/2, y: sy + c.y - H/2 };
+  return { x: (sx - W/2)/CAM_ZOOM + c.x, y: (sy - H/2)/CAM_ZOOM + c.y };
 }
 
 /* ---------------- 音频引擎：WebAudio 合成 SFX + 8bit BGM（零外部文件） ---------------- */
@@ -910,7 +912,7 @@ function spawnEnemy(type, x, y){
     // 屏幕内任意位置随机刷新（含中场），但与玩家保持安全距离，避免贴脸出现
     const safe = 210;
     let ok = false;
-    const c = G.cam, hw = W/2-24, hh = H/2-24;
+    const c = G.cam, hw = W/(2*CAM_ZOOM)-24, hh = H/(2*CAM_ZOOM)-24;
     for(let tries = 0; tries < 16; tries++){
       px = c.x + rand(-hw, hw); py = c.y + rand(-hh, hh);
       if(dist2(px,py,G.p.x,G.p.y) > safe*safe){ ok = true; break; }
@@ -1032,9 +1034,11 @@ function nearestEnemy(x, y, maxDist){
 // 按住左键时，用「玩家 → 光标」的方向代替自动索敌
 function getAimAngle(fallback){
   if(pointer.down){
-    const w = screenToWorld(pointer.x, pointer.y);
-    const dx = w.x - G.p.x, dy = w.y - G.p.y;
-    if(dx*dx + dy*dy > 1) return Math.atan2(dy, dx);
+    // 玩家在屏幕上的实际位置（相机会略微滞后）
+    const psx = W/2 + (G.p.x-G.cam.x)*CAM_ZOOM;
+    const psy = H/2 + (G.p.y-G.cam.y)*CAM_ZOOM;
+    const dx = pointer.x-psx, dy = pointer.y-psy;
+    if(dx*dx + dy*dy > 30*30) return Math.atan2(dy, dx);
   }
   return fallback;
 }
@@ -1430,9 +1434,14 @@ function updatePlayer(dt){
   if(len > 0){ if(len>1){dx /= len; dy /= len;} p.lastDX = dx/Math.min(len,1); p.lastDY = dy/Math.min(len,1); }
   if(p.dashT > 0){ p.x += p.dvx*dt; p.y += p.dvy*dt; }
   else { p.x += dx*p.speed*dt; p.y += dy*p.speed*dt; }
-  // 世界无限延伸：相机精确跟随玩家，因此玩家始终显示在屏幕中心
-  G.cam.x = p.x; G.cam.y = p.y;
-  if(touchInput.aim.id!==null&&pointer.down){const a=Math.atan2(touchInput.aim.y,touchInput.aim.x);pointer.x=W/2+Math.cos(a)*210;pointer.y=H/2+Math.sin(a)*210;}
+  // 相机平滑跟随：平时有轻微滞后（不会每帧死钉在正中心），冲刺等大位移时自动加速跟上
+  const tau = .08;
+  let k = 1 - Math.exp(-dt/tau);
+  const gap = Math.hypot(p.x-G.cam.x, p.y-G.cam.y);
+  if(gap > 160) k = Math.min(1, k + (gap-160)/160*.6);
+  G.cam.x += (p.x-G.cam.x)*k;
+  G.cam.y += (p.y-G.cam.y)*k;
+  if(touchInput.aim.id!==null&&pointer.down){const a=Math.atan2(touchInput.aim.y,touchInput.aim.x);pointer.x=W/2+Math.cos(a)*260;pointer.y=H/2+Math.sin(a)*260;}
   if(p.dashT > 0 && Math.random() < .8) G.particles.push({x:p.x, y:p.y, vx:rand(-30,30), vy:rand(-30,30), life:.3, max:.3, r:rand(3,8), color:'#22d3ee'});
 }
 function tryDash(){
@@ -1563,7 +1572,7 @@ function updateBullets(dt){
       }
     }
     b.x += b.vx*dt; b.y += b.vy*dt;
-    if(Math.abs(b.x-G.cam.x) > W/2+60 || Math.abs(b.y-G.cam.y) > H/2+60) b.life = 0;
+    if(Math.abs(b.x-G.cam.x) > W/(2*CAM_ZOOM)+60 || Math.abs(b.y-G.cam.y) > H/(2*CAM_ZOOM)+60) b.life = 0;
     for(const e of G.enemies){
       if(e.dead || b.hit.has(e)) continue;
       if(dist2(b.x,b.y,e.x,e.y) < (b.r+e.r)**2){
@@ -1581,7 +1590,7 @@ function updateEBullets(dt){
   const p = G.p;
   for(const b of G.ebullets){
     b.life -= dt; b.x += b.vx*dt; b.y += b.vy*dt;
-    if(Math.abs(b.x-G.cam.x) > W/2+40 || Math.abs(b.y-G.cam.y) > H/2+40) b.life = 0;
+    if(Math.abs(b.x-G.cam.x) > W/(2*CAM_ZOOM)+40 || Math.abs(b.y-G.cam.y) > H/(2*CAM_ZOOM)+40) b.life = 0;
     if(dist2(b.x,b.y,p.x,p.y) < (b.r+p.r)**2){ hurtPlayer(b.dmg); b.life = 0; }
   }
   G.ebullets = G.ebullets.filter(b => b.life > 0);
@@ -1798,8 +1807,9 @@ function endGame(win){
 /* ---------------- 渲染 ---------------- */
 function drawBackground(){
   ctx.fillStyle = '#05060f'; ctx.fillRect(0, 0, W, H);
-  const ox = G ? -G.cam.x : 0, oy = G ? -G.cam.y : 0;
-  const step = 70;
+  const step = 70*CAM_ZOOM;
+  const ox = G ? ((-G.cam.x*CAM_ZOOM + W/2) % step + step) % step : 0;
+  const oy = G ? ((-G.cam.y*CAM_ZOOM + H/2) % step + step) % step : 0;
   ctx.lineWidth = 1;
   ctx.strokeStyle = 'rgba(60,100,190,.09)';
   ctx.beginPath();
@@ -1993,8 +2003,10 @@ function draw(){
   if(!G){ return; }
   ctx.save();
   if(G.shake > .2) ctx.translate(rand(-G.shake,G.shake), rand(-G.shake,G.shake));
-  // 相机：玩家固定在屏幕中心，场景随玩家移动而反向滚动
-  ctx.translate(W/2 - G.cam.x, H/2 - G.cam.y);
+  // 相机：以屏幕中心为轴缩放并跟随玩家，场景反向滚动
+  ctx.translate(W/2, H/2);
+  ctx.scale(CAM_ZOOM, CAM_ZOOM);
+  ctx.translate(-G.cam.x, -G.cam.y);
   // gems
   for(const g of G.gems){
     const col = g.tier === 1 ? '#fbbf24' : g.tier === 2 ? '#c084fc' : '#22d3ee';
@@ -2216,7 +2228,7 @@ function syncTouchControls(){
   if(!active&&(touchInput.move.id!==null||touchInput.aim.id!==null))resetTouch();
   if(active&&touchInput.aim.id!==null){
     const s=touchInput.aim;pointer.down=Math.hypot(s.x,s.y)>.08;
-    if(pointer.down){const a=Math.atan2(s.y,s.x);pointer.x=W/2+Math.cos(a)*210;pointer.y=H/2+Math.sin(a)*210;}
+    if(pointer.down){const a=Math.atan2(s.y,s.x);pointer.x=W/2+Math.cos(a)*260;pointer.y=H/2+Math.sin(a)*260;}
   }
   if(active){const cd=G.p.dashCd;$('dashBtn').disabled=cd>0;$('dashBtn').querySelector('small').textContent=cd>0?cd.toFixed(1)+'s':'冲刺';}
 }
