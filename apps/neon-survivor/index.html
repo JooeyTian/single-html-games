@@ -332,14 +332,15 @@ function fmt(t){ const s = Math.floor(t); return Math.floor(s / 60) + ':' + Stri
 /* ---------------- 音频引擎：WebAudio 合成 SFX + 8bit BGM（零外部文件） ---------------- */
 let AC = null, muted = false, bgmMuted = false, lastSfx = {};
 let sfxGain = null, musicGain = null;
+const SFX_VOL = .85, BGM_VOL = .42, SFX_BOOST = 1.8, MUSIC_BOOST = 2.0;
 function initAudio(){
   if(!AC){
     try{
       const Ctx = window.AudioContext || window.webkitAudioContext;
       AC = new Ctx();
-      sfxGain = AC.createGain(); sfxGain.gain.value = muted ? 0 : .85;
+      sfxGain = AC.createGain(); sfxGain.gain.value = muted ? 0 : SFX_VOL;
       sfxGain.connect(AC.destination);
-      musicGain = AC.createGain(); musicGain.gain.value = bgmMuted ? 0 : .26;
+      musicGain = AC.createGain(); musicGain.gain.value = bgmMuted ? 0 : BGM_VOL;
       musicGain.connect(AC.destination);
     }catch(e){ AC = null; }
   }
@@ -347,11 +348,11 @@ function initAudio(){
 }
 function setMuted(v){
   muted = v;
-  if(AC && sfxGain) sfxGain.gain.setTargetAtTime(v ? 0 : .85, AC.currentTime, .01);
+  if(AC && sfxGain) sfxGain.gain.setTargetAtTime(v ? 0 : SFX_VOL, AC.currentTime, .01);
 }
 function setBgmMuted(v){
   bgmMuted = v;
-  if(AC && musicGain) musicGain.gain.setTargetAtTime(v ? 0 : .26, AC.currentTime, .01);
+  if(AC && musicGain) musicGain.gain.setTargetAtTime(v ? 0 : BGM_VOL, AC.currentTime, .01);
 }
 // 核心合成器（可指定起始时间，供 BGM 音序器精确排程）
 function toneAt(freq, t, dur, type, vol, slide, dest, opt){
@@ -363,7 +364,8 @@ function toneAt(freq, t, dur, type, vol, slide, dest, opt){
   if(opt && opt.detune) o.detune.setValueAtTime(opt.detune, t);
   const atk = (opt && opt.atk) || .004;
   g.gain.setValueAtTime(.0001, t);
-  g.gain.exponentialRampToValueAtTime(Math.max(.0002, vol || .05), t + atk);
+  const boost = dest === musicGain ? MUSIC_BOOST : SFX_BOOST;
+  g.gain.exponentialRampToValueAtTime(Math.max(.0002, (vol || .05) * boost), t + atk);
   g.gain.exponentialRampToValueAtTime(.0001, t + dur);
   o.connect(g); g.connect(dest || sfxGain || AC.destination);
   o.start(t); o.stop(t + dur + .02);
@@ -376,7 +378,8 @@ function noiseAt(t, dur, vol, ftype, freq, dest, slideF){
   const src = AC.createBufferSource(), g = AC.createGain(), f = AC.createBiquadFilter();
   f.type = ftype || 'lowpass'; f.frequency.setValueAtTime(freq || 900, t);
   if(slideF) f.frequency.exponentialRampToValueAtTime(Math.max(60, freq + slideF), t + dur);
-  g.gain.setValueAtTime(Math.max(.0002, vol || .1), t);
+  const boost = dest === musicGain ? MUSIC_BOOST : SFX_BOOST;
+  g.gain.setValueAtTime(Math.max(.0002, (vol || .1) * boost), t);
   g.gain.exponentialRampToValueAtTime(.0001, t + dur);
   src.buffer = buf; src.connect(f); f.connect(g); g.connect(dest || sfxGain || AC.destination);
   src.start(t);
