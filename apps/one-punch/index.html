@@ -2,8 +2,8 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>一拳</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>一拳 · 究极进化</title>
 <style>
   :root {
     --panel: #14142c;
@@ -12,180 +12,189 @@
     --gold: #ffd166;
     --text: #eaeaf8;
     --dim: #8a8aae;
+    --rare: #5fa8ff;
+    --epic: #c05fff;
   }
   * { box-sizing: border-box; }
   html, body {
-    margin: 0;
-    height: 100%;
-    background: #05050c;
-    color: var(--text);
+    margin: 0; height: 100%;
+    background: #05050c; color: var(--text);
     font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
-    user-select: none;
-    overflow: hidden;
+    user-select: none; overflow: hidden;
   }
   body { display: flex; justify-content: center; }
 
   #app {
-    width: 1040px;
-    max-width: 100vw;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 12px;
+    width: 1100px; max-width: 100vw; height: 100vh;
+    display: flex; flex-direction: column; gap: 8px;
+    padding: 10px; overflow-y: auto;
   }
 
   /* ---------- HUD ---------- */
   #hud {
-    display: flex;
-    align-items: center;
-    gap: 18px;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 10px 16px;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px;
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 8px 14px;
   }
-  .hud-item { display: flex; flex-direction: column; gap: 2px; min-width: 64px; }
+  .hud-item { display: flex; flex-direction: column; gap: 2px; min-width: 58px; }
   .hud-label { font-size: 10px; color: var(--dim); letter-spacing: 1px; }
-  .hud-value { font-size: 20px; font-weight: 800; line-height: 1.1; }
+  .hud-value { font-size: 19px; font-weight: 800; line-height: 1.1; }
   #gold { color: var(--gold); }
-  #monsterName { color: var(--accent); font-size: 17px; }
+  #monsterName { color: var(--accent); font-size: 16px; }
   #hpWrap {
-    flex: 1;
-    height: 16px;
-    background: #1c1c34;
-    border: 1px solid #34345c;
-    border-radius: 8px;
-    overflow: hidden;
+    flex: 1; min-width: 160px; height: 16px;
+    background: #1c1c34; border: 1px solid #34345c;
+    border-radius: 8px; overflow: hidden;
   }
   #hpBar {
-    height: 100%;
-    width: 100%;
+    height: 100%; width: 100%;
     background: linear-gradient(90deg, #ff4655, #ff9a5b);
-    transition: width .1s linear;
+    transition: width .12s linear;
   }
 
   /* ---------- battlefield ---------- */
   #battlefield {
-    position: relative;
-    flex: 1;
-    min-height: 260px;
-    border-radius: 12px;
-    overflow: hidden;
-    border: 1px solid var(--border);
-    background: #05050e;
+    position: relative; flex: 1; min-height: 230px;
+    border-radius: 12px; overflow: hidden;
+    border: 1px solid var(--border); background: #05050e;
     cursor: pointer;
   }
   #game { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-  #combo {
-    position: absolute;
-    top: 14px;
-    left: 18px;
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--gold);
-    letter-spacing: 1px;
-    pointer-events: none;
+  #combo, #chainLabel {
+    position: absolute; font-weight: 800; letter-spacing: 1px;
+    pointer-events: none; text-shadow: 0 2px 8px #000;
   }
+  #combo { top: 12px; left: 16px; font-size: 14px; color: var(--gold); }
+  #chainLabel { top: 12px; right: 16px; font-size: 16px; color: #ff9a3d; }
+  #skillBar {
+    position: absolute; bottom: 8px; left: 12px; right: 12px;
+    display: flex; flex-wrap: wrap; gap: 5px; pointer-events: none;
+  }
+  .skillChip {
+    font-size: 10px; padding: 3px 7px; border-radius: 10px;
+    background: rgba(20,20,45,.8); border: 1px solid var(--border);
+  }
+  .skillChip.rare { border-color: var(--rare); color: #bfe0ff; }
+  .skillChip.epic { border-color: var(--epic); color: #e6c6ff; }
 
   /* ---------- controls ---------- */
-  #controls { display: flex; gap: 12px; align-items: stretch; }
+  #controls { display: flex; gap: 10px; align-items: stretch; }
   #punchBtn {
-    flex: 1;
-    padding: 16px;
-    font-size: 26px;
-    font-weight: 900;
-    letter-spacing: 8px;
-    color: #fff;
+    flex: 1; padding: 14px; font-size: 26px; font-weight: 900;
+    letter-spacing: 8px; color: #fff; font-family: inherit;
     background: linear-gradient(180deg, #ff5563, #c22334);
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    font-family: inherit;
-    box-shadow: 0 5px 0 #7a1220, 0 10px 24px rgba(255, 70, 85, .28);
+    border: none; border-radius: 10px; cursor: pointer;
+    box-shadow: 0 5px 0 #7a1220, 0 10px 24px rgba(255,70,85,.28);
     transition: transform .05s, box-shadow .05s, filter .1s;
   }
   #punchBtn:hover { filter: brightness(1.08); }
   #punchBtn:active { transform: translateY(5px); box-shadow: 0 0 0 #7a1220; }
   .hint {
-    width: 150px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    font-size: 11px;
-    line-height: 1.5;
-    color: var(--dim);
-    border: 1px dashed var(--border);
-    border-radius: 10px;
+    width: 120px; text-align: center; display: flex; align-items: center;
+    justify-content: center; font-size: 11px; line-height: 1.5; color: var(--dim);
+    border: 1px dashed var(--border); border-radius: 10px;
   }
+  #soundCtrl {
+    width: 190px; display: flex; align-items: center; gap: 7px; padding: 0 10px;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+    font-size: 11px; color: var(--dim);
+  }
+  #muteBtn {
+    background: #23234a; border: 1px solid var(--border); color: var(--text);
+    border-radius: 6px; padding: 5px 8px; cursor: pointer; font-size: 11px;
+  }
+  #volume { flex: 1; accent-color: var(--accent); }
 
   /* ---------- shop ---------- */
-  #shop { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  #shop { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
   .upg {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px;
-    text-align: left;
-    color: var(--text);
-    cursor: pointer;
-    font-family: inherit;
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 10px; text-align: left;
+    color: var(--text); cursor: pointer; font-family: inherit;
     transition: border-color .15s, background .15s, transform .05s;
   }
   .upg:hover:not(:disabled) { border-color: var(--accent); background: #1c1c3c; }
   .upg:active:not(:disabled) { transform: scale(.97); }
   .upg:disabled { opacity: .45; cursor: not-allowed; }
-  .upg-name { font-size: 13px; font-weight: 800; }
+  .upg-name { font-size: 12px; font-weight: 800; }
   .upg-lv { font-size: 10px; color: var(--dim); font-weight: 500; }
-  .upg-effect { font-size: 10px; color: #9a9ac0; margin-top: 6px; min-height: 14px; }
-  .upg-cost { font-size: 12px; color: var(--gold); margin-top: 6px; font-weight: 700; }
+  .upg-effect { font-size: 10px; color: #9a9ac0; margin-top: 4px; min-height: 13px; }
+  .upg-cost { font-size: 11px; color: var(--gold); margin-top: 4px; font-weight: 700; }
+
+  /* ---------- stats ---------- */
+  #stats {
+    display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px;
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 6px 8px;
+  }
+  .stat { text-align: center; }
+  .stat span { display: block; font-size: 9px; color: var(--dim); letter-spacing: .5px; }
+  .stat b { display: block; font-size: 14px; color: var(--text); margin-top: 2px; }
+  .stat.hi b { color: var(--gold); }
 
   /* ---------- prestige ---------- */
   #prestigeBar {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 8px 14px;
+    display: flex; align-items: center; gap: 14px;
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 6px 14px;
   }
-  #prestigeInfo { flex: 1; font-size: 12px; color: var(--dim); }
+  #prestigeInfo { flex: 1; font-size: 11px; color: var(--dim); }
   #prestigeBtn {
-    padding: 8px 20px;
-    font-size: 13px;
-    font-weight: 800;
-    letter-spacing: 2px;
-    color: #fff;
-    background: linear-gradient(180deg, #7a4dff, #4a1fd0);
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-family: inherit;
+    padding: 7px 18px; font-size: 13px; font-weight: 800; letter-spacing: 2px;
+    color: #fff; background: linear-gradient(180deg, #7a4dff, #4a1fd0);
+    border: none; border-radius: 8px; cursor: pointer; font-family: inherit;
   }
   #prestigeBtn:disabled { background: #2c2c4a; color: #6a6a8a; cursor: not-allowed; }
   #prestigeBtn:not(:disabled):hover { filter: brightness(1.15); }
 
+  /* ---------- card modal ---------- */
+  #cardModal {
+    position: fixed; inset: 0; z-index: 100; display: none;
+    align-items: center; justify-content: center; flex-direction: column; gap: 18px;
+    background: rgba(5,5,12,.86); backdrop-filter: blur(5px);
+  }
+  #cardModal.show { display: flex; }
+  #cardTitle { font-size: 24px; font-weight: 900; letter-spacing: 4px; color: var(--gold); }
+  #cardSub { font-size: 12px; color: var(--dim); margin-top: -12px; }
+  #cardRow { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+  .card {
+    width: 210px; min-height: 240px; padding: 14px; cursor: pointer;
+    border: 2px solid #666; border-radius: 12px;
+    background: linear-gradient(180deg, #1e1e40, #0e0e22);
+    display: flex; flex-direction: column; gap: 8px;
+    transition: transform .15s, box-shadow .15s;
+  }
+  .card:hover { transform: translateY(-10px); box-shadow: 0 12px 32px rgba(0,0,0,.6); }
+  .card.common { border-color: #777; }
+  .card.rare { border-color: var(--rare); box-shadow: 0 0 18px rgba(95,168,255,.25); }
+  .card.epic { border-color: var(--epic); box-shadow: 0 0 24px rgba(192,95,255,.35); }
+  .card .rarity { font-size: 10px; letter-spacing: 2px; color: var(--dim); }
+  .card.rare .rarity { color: #8fc8ff; }
+  .card.epic .rarity { color: #d9a6ff; }
+  .card .cname { font-size: 20px; font-weight: 900; }
+  .card .clv { font-size: 11px; color: var(--gold); }
+  .card .cdesc { font-size: 12px; line-height: 1.6; color: #bdbde0; flex: 1; }
+
   /* ---------- toast ---------- */
   #toast {
-    position: fixed;
-    top: 24px;
-    left: 50%;
-    transform: translate(-50%, -16px);
-    background: #1c1c3c;
-    border: 1px solid var(--accent);
-    padding: 10px 22px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 700;
-    opacity: 0;
-    pointer-events: none;
-    transition: .25s;
-    z-index: 99;
+    position: fixed; top: 24px; left: 50%; transform: translate(-50%, -16px);
+    background: #1c1c3c; border: 1px solid var(--accent);
+    padding: 10px 22px; border-radius: 8px; font-size: 13px; font-weight: 700;
+    opacity: 0; pointer-events: none; transition: .25s; z-index: 200;
     box-shadow: 0 8px 30px rgba(0,0,0,.5);
   }
   #toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  @media (max-width: 780px) {
+    #shop { grid-template-columns: repeat(2, 1fr); }
+    #stats { grid-template-columns: repeat(4, 1fr); }
+    .card { width: 160px; }
+  }
+
+  /* 应用模式：禁用文字选中、长按菜单、点击高亮与双击/双指缩放 */
+  * { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+  input, textarea, select, [contenteditable] { -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
+  html, body { touch-action: manipulation; }
 </style>
 </head>
 <body>
@@ -196,17 +205,36 @@
     <div id="hpWrap"><div id="hpBar"></div></div>
     <div class="hud-item"><span class="hud-label">金币</span><span class="hud-value" id="gold">0</span></div>
     <div class="hud-item"><span class="hud-label">每拳伤害</span><span class="hud-value" id="dps">1</span></div>
+    <div class="hud-item"><span class="hud-label">理论秒伤</span><span class="hud-value" id="tdps">1</span></div>
+    <div class="hud-item"><span class="hud-label">连击</span><span class="hud-value" id="comboHud">0</span></div>
     <div class="hud-item"><span class="hud-label">境界</span><span class="hud-value" id="realm">0</span></div>
   </div>
 
   <div id="battlefield">
     <canvas id="game"></canvas>
     <div id="combo"></div>
+    <div id="chainLabel"></div>
+    <div id="skillBar"></div>
   </div>
 
   <div id="controls">
     <button id="punchBtn">打</button>
     <div class="hint">点击怪物<br>或按空格键</div>
+    <div id="soundCtrl">
+      <button id="muteBtn">🔊</button>
+      <span>音量</span><input id="volume" type="range" min="0" max="100" value="50">
+    </div>
+  </div>
+
+  <div id="stats">
+    <div class="stat hi"><span>实测秒伤</span><b id="stAdps">0</b></div>
+    <div class="stat"><span>累计伤害</span><b id="stTotal">0</b></div>
+    <div class="stat"><span>最高单拳</span><b id="stMax">0</b></div>
+    <div class="stat"><span>连锁击杀</span><b id="stChain">0</b></div>
+    <div class="stat"><span>总击杀</span><b id="stKills">0</b></div>
+    <div class="stat"><span>暴击率</span><b id="stCrit">5%</b></div>
+    <div class="stat"><span>暴击倍率</span><b id="stCritDmg">2.0x</b></div>
+    <div class="stat"><span>技能数</span><b id="stSkills">0</b></div>
   </div>
 
   <div id="shop"></div>
@@ -216,61 +244,118 @@
     <button id="prestigeBtn" disabled>突破极限</button>
   </div>
 </div>
+
+<div id="cardModal">
+  <div id="cardTitle">技能觉醒</div>
+  <div id="cardSub">选择一张卡牌强化你的流派（已拥有的技能会持续升级）</div>
+  <div id="cardRow"></div>
+</div>
 <div id="toast"></div>
 
 <script>
 "use strict";
 
-const SAVE_KEY = "onePunchSave_v1";
+const SAVE_KEY = "onePunchSave_v2";
+const OLD_KEY = "onePunchSave_v1";
 
+/* ---------- data ---------- */
 const MONSTERS = [
-  { name: "史莱姆",   color: "#5fe08a" },
-  { name: "哥布林",   color: "#a8e05f" },
-  { name: "巨龙",     color: "#ff5f5f" },
-  { name: "山岳巨人", color: "#d0a060" },
-  { name: "星球",     color: "#5fa8ff" },
-  { name: "宇宙",     color: "#c05fff" },
+  { name: "史莱姆",     color: "#5fe08a", mech: "none",  armor: 0    },
+  { name: "哥布林",     color: "#a8e05f", mech: "dodge", armor: 0    },
+  { name: "骷髅兵",     color: "#d8d8e8", mech: "none",  armor: 0.05 },
+  { name: "蝙蝠群",     color: "#b46bd8", mech: "regen", armor: 0    },
+  { name: "石甲虫",     color: "#c0a060", mech: "armor", armor: 0.28 },
+  { name: "幽灵",       color: "#9fd8ff", mech: "phase", armor: 0    },
+  { name: "吸血鬼",     color: "#e05f7f", mech: "regen", armor: 0.05 },
+  { name: "分裂史莱姆", color: "#7fe0a8", mech: "split", armor: 0    },
+  { name: "水晶巨像",   color: "#6fd0e0", mech: "shield",armor: 0.1  },
+  { name: "狂暴狼人",   color: "#e08a4f", mech: "rage",  armor: 0    },
+  { name: "巨龙",       color: "#ff5f5f", mech: "armor", armor: 0.18 },
+  { name: "山岳巨人",   color: "#d0a060", mech: "armor", armor: 0.32 },
+  { name: "星球",       color: "#5fa8ff", mech: "shield",armor: 0.12 },
+  { name: "宇宙",       color: "#c05fff", mech: "rage",  armor: 0.1  },
 ];
 
 const UPGRADES = [
-  { id: "power",   name: "力量",     base: 10,  growth: 1.55,
-    desc: () => "每拳 +" + fmt(getDamage() * 0.4) + " 伤害" },
-  { id: "crit",    name: "暴击率",   base: 30,  growth: 1.7,
-    desc: () => "暴击率 " + (getCritChance() * 100).toFixed(0) + "%" },
-  { id: "critDmg", name: "暴击伤害", base: 55,  growth: 1.7,
+  { id: "power",   name: "力量",     base: 10,  growth: 1.45,
+    desc: () => "基础伤害 " + fmt(getBaseDamage()) },
+  { id: "crit",    name: "暴击率",   base: 30,  growth: 1.60,
+    desc: () => getCritChance() >= 0.85 - 1e-9 ? "已达上限 85%" : "暴击率 " + (getCritChance()*100).toFixed(0) + "%" },
+  { id: "critDmg", name: "暴击伤害", base: 55,  growth: 1.60,
     desc: () => "暴击 " + getCritMult().toFixed(1) + " 倍" },
-  { id: "combo",   name: "连击",     base: 140, growth: 1.95,
-    desc: () => "每次 " + (1 + state.comboLv) + " 段" },
-  { id: "auto",    name: "自动出拳", base: 320, growth: 2.15,
+  { id: "combo",   name: "连击",     base: 140, growth: 1.75,
+    desc: () => "每层 +" + (6*(1+0.1*state.comboLv)).toFixed(1) + "% · 上限 " + (20+3*state.comboLv) + " 层" },
+  { id: "auto",    name: "自动出拳", base: 320, growth: 1.90,
     desc: () => state.autoLv + " 次/秒" },
+  { id: "gold",    name: "金币加成", base: 90,  growth: 1.60,
+    desc: () => "击杀金币 +" + (state.goldLv*15) + "%" },
+  { id: "pierce",  name: "穿透连锁", base: 260, growth: 1.80,
+    desc: () => "一拳最多命中 " + (1+state.pierceLv) + " 个目标" },
+  { id: "execute", name: "处决",     base: 400, growth: 1.85,
+    desc: () => "伤害达 " + (3-0.3*state.executeLv).toFixed(1) + " 倍血量即处决" },
 ];
+
+const SKILLS = [
+  { id:"burst", name:"爆裂拳", rarity:"rare", max:5,
+    desc:l => "每拳 " + (20+10*l) + "% 概率爆炸，对周围怪物造成 " + (40+20*l) + "% 伤害" },
+  { id:"thunder", name:"霹雷", rarity:"epic", max:5,
+    desc:l => "每 " + Math.max(3,8-l) + " 拳落雷，对所有怪物造成 " + (60+30*l) + "% 伤害并麻痹" },
+  { id:"steal", name:"妙手空空", rarity:"common", max:5,
+    desc:l => "击杀时 " + (15*l) + "% 概率偷取额外 " + (50*l) + "% 金币" },
+  { id:"arc", name:"连锁电弧", rarity:"rare", max:4,
+    desc:l => "连锁击杀时向下一目标追加 " + (30*l) + "% 伤害" },
+  { id:"critMark", name:"暴击印记", rarity:"epic", max:4,
+    desc:l => "暴击后 " + (20*l) + "% 概率让下一拳必定暴击（突破 85% 上限）" },
+  { id:"goldFist", name:"黄金拳", rarity:"common", max:5,
+    desc:l => "击杀金币随当前连击层数提升，每层 +" + (2*l) + "%" },
+  { id:"armorBreak", name:"碎甲", rarity:"rare", max:4,
+    desc:l => "无视护甲与护盾，并追加 " + (5*l) + "% 真实伤害" },
+  { id:"giantKiller", name:"巨人杀手", rarity:"common", max:5,
+    desc:l => "对精英与 Boss 伤害 +" + (50*l) + "%" },
+  { id:"ultimate", name:"终极一拳", rarity:"epic", max:5,
+    desc:l => "每 " + Math.max(8,30-4*l) + " 拳蓄力，造成 " + (3+2*l) + " 倍伤害并穿透全部" },
+  { id:"timeSand", name:"时之沙", rarity:"rare", max:4,
+    desc:l => "连击衰减窗口 +" + (0.3*l) + " 秒，连击上限 +" + (3*l) + " 层" },
+  { id:"autoSync", name:"自动同步", rarity:"common", max:4,
+    desc:l => "自动出拳有 " + (30*l) + "% 概率叠加连击层数" },
+  { id:"lucky", name:"幸运星", rarity:"epic", max:2,
+    desc:l => "选卡时多 " + l + " 个选项，并提高稀有卡概率" },
+];
+
+const RARITY_TEXT = { common:"普通", rare:"稀有", epic:"史诗" };
 
 function defaultState() {
   return {
-    stage: 1,
-    runMaxStage: 1,
-    gold: 0,
-    realm: 0,
-    powerLv: 0,
-    critLv: 0,
-    critDmgLv: 0,
-    comboLv: 0,
-    autoLv: 0,
-    monsterHp: 10,
+    version: 2,
+    stage: 1, runMaxStage: 1, gold: 0, realm: 0,
+    powerLv:0, critLv:0, critDmgLv:0, comboLv:0,
+    autoLv:0, goldLv:0, pierceLv:0, executeLv:0,
+    skills: {},
+    monsters: [],
+    kills:0, chainKills:0, totalDamage:0, maxHit:0,
+    killsSinceCard:0, punches:0,
     lastSeen: Date.now(),
   };
 }
 
-let state = loadGame();
-
 function loadGame() {
-  try {
-    const raw = localStorage.getItem(SAVE_KEY);
-    if (!raw) return defaultState();
-    return Object.assign(defaultState(), JSON.parse(raw));
-  } catch (e) {
-    return defaultState();
+  let raw = localStorage.getItem(SAVE_KEY);
+  if (raw) {
+    try { return Object.assign(defaultState(), JSON.parse(raw)); } catch (e) {}
   }
+  // migrate from v1
+  try {
+    const old = localStorage.getItem(OLD_KEY);
+    if (old) {
+      const o = JSON.parse(old);
+      const s = defaultState();
+      for (const k of ["stage","runMaxStage","gold","realm","powerLv","critLv","critDmgLv","comboLv","autoLv"]) {
+        if (typeof o[k] === "number") s[k] = o[k];
+      }
+      return s;
+    }
+  } catch (e) {}
+  return defaultState();
 }
 
 function saveGame() {
@@ -278,583 +363,950 @@ function saveGame() {
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) {}
 }
 
+let state = loadGame();
+
 /* ---------- formulas ---------- */
-function monsterHpFor(stage) {
-  return Math.floor(10 * Math.pow(1.3, stage - 1));
+function prestigeMult() { return 1 + state.realm * 0.5; }
+function monsterHpFor(stage) { return Math.max(1, Math.floor(10 * Math.pow(1.25, stage-1))); }
+function goldFor(stage) { return Math.ceil(2 * Math.pow(1.32, stage-1)); }
+function getBaseDamage() { return (1 + state.powerLv) * Math.pow(1.35, state.powerLv) * prestigeMult(); }
+function getCritChance() { return Math.min(0.85, 0.05 + state.critLv*0.05); }
+function getCritMult() { return 2 + state.critDmgLv*0.5; }
+function getComboMult() { return 1 + comboStacks * 0.06 * (1 + 0.1*state.comboLv); }
+function skillLv(id) { return state.skills[id] || 0; }
+function upgradeCost(u) { return Math.ceil(u.base * Math.pow(u.growth, state[u.id+"Lv"])); }
+function prestigeGain() { return Math.max(1, Math.floor(Math.pow(state.runMaxStage, 0.6))); }
+
+function expectedPerPunch() {
+  const cc = getCritChance(), cm = getCritMult();
+  return getBaseDamage() * (1 + 20*0.06*(1+0.1*state.comboLv)) * (1 - cc + cc*cm);
 }
-function goldFor(stage) {
-  return Math.ceil(2 * Math.pow(1.27, stage - 1));
-}
-function prestigeMult() {
-  return 1 + state.realm * 0.35;
-}
-function getDamage() {
-  return (1 + state.powerLv) * Math.pow(1.28, state.powerLv) * prestigeMult();
-}
-function getCritChance() {
-  return Math.min(1, 0.05 + state.critLv * 0.05);
-}
-function getCritMult() {
-  return 2 + state.critDmgLv * 0.5;
-}
-function upgradeCost(u) {
-  return Math.ceil(u.base * Math.pow(u.growth, state[u.id + "Lv"]));
-}
-function prestigeGain() {
-  return Math.max(1, Math.floor(Math.pow(state.runMaxStage, 0.6)));
-}
+function expectedDps() { return expectedPerPunch() * Math.max(1, state.autoLv); }
+
 function fmt(n) {
   if (!isFinite(n)) return "∞";
   if (n < 1000) return Math.floor(n).toString();
   const units = ["", "K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "No", "Dc"];
-  const i = Math.floor(Math.log10(n) / 3);
+  const i = Math.floor(Math.log10(n)/3);
   if (i >= units.length) return n.toExponential(2).replace("e+", "e");
-  return (n / Math.pow(1000, i)).toFixed(2) + units[i];
+  return (n/Math.pow(1000,i)).toFixed(2) + units[i];
 }
 
-/* ---------- canvas setup ---------- */
+/* ---------- audio ---------- */
+let audioCtx = null, masterGain = null, muted = false, volume = 0.5;
+let lastSound = 0, lastKillSound = 0;
+
+function initAudio() {
+  if (audioCtx) return;
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = volume;
+    masterGain.connect(audioCtx.destination);
+  } catch (e) { audioCtx = null; }
+}
+function tone(freq, endFreq, dur, type, gain, delay) {
+  if (!audioCtx || muted) return;
+  const t = audioCtx.currentTime + (delay||0);
+  const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+  o.type = type;
+  o.frequency.setValueAtTime(freq, t);
+  if (endFreq) o.frequency.exponentialRampToValueAtTime(Math.max(20,endFreq), t+dur);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(gain, t+0.008);
+  g.gain.exponentialRampToValueAtTime(0.0001, t+dur);
+  o.connect(g); g.connect(masterGain);
+  o.start(t); o.stop(t+dur+0.03);
+}
+function noise(dur, gain, cutoff) {
+  if (!audioCtx || muted) return;
+  const len = Math.floor(audioCtx.sampleRate*dur);
+  const buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i=0;i<len;i++) d[i] = (Math.random()*2-1)*(1-i/len);
+  const src = audioCtx.createBufferSource(); src.buffer = buf;
+  const f = audioCtx.createBiquadFilter(); f.type="lowpass"; f.frequency.value=cutoff||1400;
+  const g = audioCtx.createGain(); g.gain.value=gain;
+  src.connect(f); f.connect(g); g.connect(masterGain); src.start();
+}
+function playSound(kind) {
+  if (!audioCtx || muted) return;
+  const now = performance.now();
+  if (kind === "punch" || kind === "crit") {
+    if (now-lastSound < 75) return;
+    lastSound = now;
+    const p = 1 + Math.min(comboStacks,20)*0.04;
+    tone(120*p, 50*p, 0.13, "sine", kind==="crit"?0.5:0.36);
+    noise(0.07, 0.16, 1200);
+    if (kind==="crit") tone(700*p, 1100*p, 0.10, "triangle", 0.20, 0.01);
+  } else if (kind === "kill") {
+    if (now-lastKillSound < 90) return;
+    lastKillSound = now;
+    tone(320, 90, 0.16, "sawtooth", 0.16);
+    noise(0.10, 0.10, 900);
+  } else if (kind === "coin") {
+    tone(1200, 1600, 0.09, "sine", 0.14);
+  } else if (kind === "card") {
+    [523,659,784,1046].forEach((f,i)=>tone(f,f,0.20,"sine",0.13,i*0.08));
+  } else if (kind === "prestige") {
+    [392,523,659,784,1046].forEach((f,i)=>tone(f,f,0.35,"triangle",0.15,i*0.11));
+  } else if (kind === "thunder") {
+    noise(0.24, 0.22, 2400);
+    tone(90, 30, 0.28, "sawtooth", 0.26);
+  } else if (kind === "upgrade") {
+    tone(880, 1320, 0.09, "sine", 0.16);
+  }
+}
+
+/* ---------- canvas ---------- */
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
-let W = 0, H = 0;
-let stars = [];
+let W = 0, H = 0, stars = [];
 
 function resizeCanvas() {
   const bf = document.getElementById("battlefield");
   W = canvas.width = bf.clientWidth;
   H = canvas.height = bf.clientHeight;
   stars = [];
-  for (let i = 0; i < 170; i++) {
-    stars.push({
-      x: Math.random() * W,
-      y: Math.random() * H * 0.85,
-      r: Math.random() * 1.5 + 0.3,
-      phase: Math.random() * 10,
-    });
+  for (let i=0;i<170;i++) {
+    stars.push({ x:Math.random()*W, y:Math.random()*H*0.85,
+      r:Math.random()*1.5+0.3, phase:Math.random()*10 });
   }
 }
 window.addEventListener("resize", resizeCanvas);
 
-/* ---------- animation state ---------- */
-let hitT = 0;     // monster white flash, 1 -> 0
-let punchT = 0;   // fist thrust, 1 -> 0
-let spawnT = 0;   // monster spawn scale, 1 -> 0
-let shakeT = 0;   // screen shake, 1 -> 0
+/* ---------- fx ---------- */
+let texts = [], particles = [], bolts = [];
+let hitT = 0, punchT = 0, shakeT = 0;
+let pending = { amt:0, crit:false, exec:false, t:0 };
+let comboStacks = 0, comboTimer = 0, nextCrit = false, punches = 0;
 
-/* ---------- procedural art: background ---------- */
-function drawBackground() {
-  const g = ctx.createRadialGradient(W / 2, H * 0.45, 20, W / 2, H * 0.45, Math.max(W, H) * 0.75);
-  g.addColorStop(0, "#161638");
-  g.addColorStop(1, "#05050e");
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, W, H);
-
-  const t = performance.now() / 620;
-  for (const s of stars) {
-    ctx.globalAlpha = 0.25 + 0.45 * (0.5 + 0.5 * Math.sin(t + s.phase));
-    ctx.fillStyle = "#cdd6ff";
-    ctx.fillRect(s.x, s.y, s.r, s.r);
-  }
-  ctx.globalAlpha = 1;
-
-  ctx.strokeStyle = "rgba(120,100,255,.10)";
-  ctx.lineWidth = 1;
-  const hy = H * 0.64;
-  for (let i = 0; i <= 12; i++) {
-    const y = hy + Math.pow(i / 12, 1.6) * (H - hy);
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(W, y);
-    ctx.stroke();
-  }
-  for (let i = -12; i <= 12; i++) {
-    ctx.beginPath();
-    ctx.moveTo(W / 2 + i * 16, hy);
-    ctx.lineTo(W / 2 + i * 170, H);
-    ctx.stroke();
-  }
-}
-
-/* ---------- procedural art: monsters ---------- */
-function drawSlime(cx, cy, s) {
-  ctx.save();
-  ctx.translate(cx, cy);
-  ctx.shadowColor = "#5fe08a";
-  ctx.shadowBlur = 30;
-  ctx.beginPath();
-  ctx.moveTo(-s, s * 0.5);
-  ctx.bezierCurveTo(-s, -s * 0.6, -s * 0.5, -s, 0, -s);
-  ctx.bezierCurveTo(s * 0.5, -s, s, -s * 0.6, s, s * 0.5);
-  ctx.bezierCurveTo(s, s * 0.82, -s, s * 0.82, -s, s * 0.5);
-  ctx.closePath();
-  const g = ctx.createLinearGradient(0, -s, 0, s);
-  g.addColorStop(0, "#7cf0a8");
-  g.addColorStop(1, "#249a58");
-  ctx.fillStyle = g;
-  ctx.fill();
-  ctx.shadowBlur = 0;
-  ctx.fillStyle = "rgba(255,255,255,.4)";
-  ctx.beginPath();
-  ctx.ellipse(-s * 0.32, -s * 0.42, s * 0.22, s * 0.11, -0.5, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = "#08221a";
-  ctx.beginPath(); ctx.ellipse(-s * 0.3, s * 0.04, s * 0.09, s * 0.13, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.ellipse(s * 0.3, s * 0.04, s * 0.09, s * 0.13, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.strokeStyle = "#08221a";
-  ctx.lineWidth = 3;
-  ctx.beginPath(); ctx.arc(0, s * 0.2, s * 0.2, 0.12 * Math.PI, 0.88 * Math.PI); ctx.stroke();
-  ctx.restore();
-}
-
-function drawGoblin(cx, cy, s) {
-  ctx.save();
-  ctx.translate(cx, cy);
-  ctx.shadowColor = "#a8e05f";
-  ctx.shadowBlur = 24;
-  ctx.fillStyle = "#5a9e3a";
-  ctx.beginPath(); ctx.moveTo(-s * 0.5, -s * 0.45); ctx.lineTo(-s * 1.05, -s * 0.9); ctx.lineTo(-s * 0.45, -s * 0.05); ctx.closePath(); ctx.fill();
-  ctx.beginPath(); ctx.moveTo(s * 0.5, -s * 0.45); ctx.lineTo(s * 1.05, -s * 0.9); ctx.lineTo(s * 0.45, -s * 0.05); ctx.closePath(); ctx.fill();
-  const g = ctx.createLinearGradient(0, -s, 0, s);
-  g.addColorStop(0, "#8fd45a"); g.addColorStop(1, "#3f7a28");
-  ctx.fillStyle = g;
-  ctx.beginPath(); ctx.ellipse(0, -s * 0.2, s * 0.6, s * 0.56, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.shadowBlur = 0;
-  ctx.fillStyle = "#5a9e3a";
-  ctx.beginPath(); ctx.ellipse(0, s * 0.55, s * 0.4, s * 0.38, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = "#ffdd55";
-  ctx.beginPath(); ctx.ellipse(-s * 0.23, -s * 0.28, s * 0.12, s * 0.09, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.ellipse(s * 0.23, -s * 0.28, s * 0.12, s * 0.09, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = "#111";
-  ctx.fillRect(-s * 0.26, -s * 0.32, s * 0.055, s * 0.08);
-  ctx.fillRect(s * 0.205, -s * 0.32, s * 0.055, s * 0.08);
-  ctx.strokeStyle = "#1b3a12";
-  ctx.lineWidth = 3;
-  ctx.beginPath(); ctx.arc(0, -s * 0.02, s * 0.23, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke();
-  ctx.save();
-  ctx.translate(s * 0.78, s * 0.3);
-  ctx.rotate(-0.5);
-  ctx.fillStyle = "#7a5230"; ctx.fillRect(-s * 0.055, 0, s * 0.11, s * 0.85);
-  ctx.fillStyle = "#9a6a3c";
-  ctx.beginPath(); ctx.ellipse(0, -s * 0.08, s * 0.19, s * 0.25, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.restore();
-  ctx.restore();
-}
-
-function drawDragon(cx, cy, s) {
-  ctx.save();
-  ctx.translate(cx, cy);
-  ctx.shadowColor = "#ff5f5f";
-  ctx.shadowBlur = 26;
-  ctx.fillStyle = "#8b1e2d";
-  ctx.beginPath(); ctx.moveTo(-s * 0.2, -s * 0.05); ctx.lineTo(-s * 1.3, -s * 0.95); ctx.lineTo(-s * 0.95, s * 0.12); ctx.lineTo(-s * 1.18, s * 0.5); ctx.lineTo(-s * 0.22, s * 0.3); ctx.closePath(); ctx.fill();
-  ctx.beginPath(); ctx.moveTo(s * 0.2, -s * 0.05); ctx.lineTo(s * 1.3, -s * 0.95); ctx.lineTo(s * 0.95, s * 0.12); ctx.lineTo(s * 1.18, s * 0.5); ctx.lineTo(s * 0.22, s * 0.3); ctx.closePath(); ctx.fill();
-  const g = ctx.createLinearGradient(0, -s, 0, s);
-  g.addColorStop(0, "#ff6b5b"); g.addColorStop(1, "#9b1626");
-  ctx.fillStyle = g;
-  ctx.beginPath(); ctx.ellipse(0, 0, s * 0.6, s * 0.68, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.shadowBlur = 0;
-  ctx.fillStyle = "#ffd166";
-  ctx.beginPath(); ctx.moveTo(-s * 0.34, -s * 0.5); ctx.lineTo(-s * 0.48, -s * 1.02); ctx.lineTo(-s * 0.09, -s * 0.6); ctx.closePath(); ctx.fill();
-  ctx.beginPath(); ctx.moveTo(s * 0.34, -s * 0.5); ctx.lineTo(s * 0.48, -s * 1.02); ctx.lineTo(s * 0.09, -s * 0.6); ctx.closePath(); ctx.fill();
-  ctx.shadowColor = "#ffe066"; ctx.shadowBlur = 14; ctx.fillStyle = "#ffe066";
-  ctx.beginPath(); ctx.ellipse(-s * 0.24, -s * 0.1, s * 0.1, s * 0.07, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.ellipse(s * 0.24, -s * 0.1, s * 0.1, s * 0.07, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.shadowBlur = 0;
-  ctx.fillStyle = "#5a0c16";
-  ctx.beginPath(); ctx.ellipse(0, s * 0.3, s * 0.3, s * 0.17, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = "#fff";
-  for (let i = -2; i <= 2; i++) {
-    ctx.beginPath();
-    ctx.moveTo(i * s * 0.1 - 4, s * 0.24);
-    ctx.lineTo(i * s * 0.1 + 4, s * 0.24);
-    ctx.lineTo(i * s * 0.1, s * 0.36);
-    ctx.closePath(); ctx.fill();
-  }
-  ctx.restore();
-}
-
-function drawGiant(cx, cy, s) {
-  ctx.save();
-  ctx.translate(cx, cy);
-  ctx.shadowColor = "#d0a060";
-  ctx.shadowBlur = 20;
-  const g = ctx.createLinearGradient(0, -s, 0, s);
-  g.addColorStop(0, "#8d8d99"); g.addColorStop(1, "#43434f");
-  ctx.fillStyle = g;
-  ctx.beginPath();
-  ctx.moveTo(-s * 0.8, -s * 0.5); ctx.lineTo(-s * 0.4, -s * 0.95); ctx.lineTo(s * 0.35, -s * 0.9); ctx.lineTo(s * 0.85, -s * 0.4);
-  ctx.lineTo(s * 0.7, s * 0.8); ctx.lineTo(-s * 0.7, s * 0.8); ctx.closePath(); ctx.fill();
-  ctx.shadowBlur = 0;
-  ctx.strokeStyle = "#ff8a3d"; ctx.lineWidth = 3;
-  ctx.shadowColor = "#ff8a3d"; ctx.shadowBlur = 10;
-  ctx.beginPath(); ctx.moveTo(-s * 0.4, -s * 0.9); ctx.lineTo(-s * 0.15, -s * 0.2); ctx.lineTo(-s * 0.45, s * 0.2); ctx.lineTo(-s * 0.1, s * 0.78); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(s * 0.35, -s * 0.85); ctx.lineTo(s * 0.1, -s * 0.25); ctx.lineTo(s * 0.4, s * 0.3); ctx.stroke();
-  ctx.fillStyle = "#ff8a3d"; ctx.shadowColor = "#ff8a3d"; ctx.shadowBlur = 12;
-  ctx.fillRect(-s * 0.32, -s * 0.25, s * 0.18, s * 0.08);
-  ctx.fillRect(s * 0.14, -s * 0.25, s * 0.18, s * 0.08);
-  ctx.shadowBlur = 0;
-  ctx.restore();
-}
-
-function drawPlanet(cx, cy, s) {
-  ctx.save();
-  ctx.translate(cx, cy);
-  ctx.strokeStyle = "rgba(150,200,255,.65)"; ctx.lineWidth = 8;
-  ctx.beginPath(); ctx.ellipse(0, 0, s * 1.25, s * 0.38, -0.35, Math.PI, Math.PI * 2); ctx.stroke();
-  const g = ctx.createRadialGradient(-s * 0.3, -s * 0.3, s * 0.1, 0, 0, s);
-  g.addColorStop(0, "#8fd0ff"); g.addColorStop(0.6, "#3a7fd5"); g.addColorStop(1, "#16306e");
-  ctx.fillStyle = g; ctx.shadowColor = "#5fa8ff"; ctx.shadowBlur = 28;
-  ctx.beginPath(); ctx.arc(0, 0, s, 0, Math.PI * 2); ctx.fill();
-  ctx.shadowBlur = 0;
-  ctx.fillStyle = "rgba(120,220,180,.5)";
-  ctx.beginPath(); ctx.ellipse(-s * 0.3, -s * 0.1, s * 0.28, s * 0.14, 0.4, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.ellipse(s * 0.35, s * 0.3, s * 0.22, s * 0.12, -0.3, 0, Math.PI * 2); ctx.fill();
-  ctx.strokeStyle = "rgba(190,220,255,.85)"; ctx.lineWidth = 8;
-  ctx.beginPath(); ctx.ellipse(0, 0, s * 1.25, s * 0.38, -0.35, 0, Math.PI); ctx.stroke();
-  ctx.restore();
-}
-
-function drawCosmos(cx, cy, s) {
-  ctx.save();
-  ctx.translate(cx, cy);
-  ctx.rotate(performance.now() / 2000 * 0.15);
-  ctx.shadowColor = "#c05fff";
-  ctx.shadowBlur = 24;
-  for (let arm = 0; arm < 3; arm++) {
-    for (let i = 0; i < 48; i++) {
-      const a = arm * Math.PI * 2 / 3 + i * 0.09;
-      const r = s * 0.08 + i * s * 0.021;
-      ctx.fillStyle = i % 4 === 0 ? "#ffffff" : (arm === 0 ? "#c05fff" : arm === 1 ? "#5f8fff" : "#ff7fd0");
-      ctx.globalAlpha = 1 - i / 55;
-      ctx.beginPath();
-      ctx.arc(Math.cos(a) * r, Math.sin(a) * r * 0.7, Math.max(0.6, 3 - i * 0.04), 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-  ctx.globalAlpha = 1;
-  const g = ctx.createRadialGradient(0, 0, 0, 0, 0, s * 0.3);
-  g.addColorStop(0, "#fff"); g.addColorStop(0.3, "#ffd6ff"); g.addColorStop(1, "rgba(192,95,255,0)");
-  ctx.fillStyle = g;
-  ctx.beginPath(); ctx.arc(0, 0, s * 0.3, 0, Math.PI * 2); ctx.fill();
-  ctx.shadowBlur = 0;
-  ctx.restore();
-}
-
-const MONSTER_DRAWERS = [drawSlime, drawGoblin, drawDragon, drawGiant, drawPlanet, drawCosmos];
-
-function drawFist(px, py, scale) {
-  ctx.save();
-  ctx.translate(px, py);
-  ctx.scale(scale, scale);
-  ctx.rotate(-0.25);
-  ctx.shadowColor = "#ff9a3d";
-  ctx.shadowBlur = 22;
-  const g = ctx.createLinearGradient(0, -40, 0, 60);
-  g.addColorStop(0, "#ffb347"); g.addColorStop(1, "#8a3b0c");
-  ctx.fillStyle = g;
-  ctx.beginPath(); ctx.roundRect(-26, -10, 52, 86, 14); ctx.fill();
-  ctx.fillStyle = "#ffcd6b";
-  for (let i = 0; i < 4; i++) {
-    ctx.beginPath(); ctx.arc(-22 + i * 15, -22, 11, 0, Math.PI * 2); ctx.fill();
-  }
-  ctx.beginPath(); ctx.ellipse(-30, 6, 12, 18, -0.4, 0, Math.PI * 2); ctx.fill();
-  ctx.shadowBlur = 0;
-  ctx.strokeStyle = "#6b2a08"; ctx.lineWidth = 3;
-  ctx.beginPath(); ctx.roundRect(-26, -10, 52, 86, 14); ctx.stroke();
-  ctx.restore();
-}
-
-/* ---------- particles & damage text ---------- */
-let texts = [];
-let particles = [];
-
-function spawnDamage(dmg, crit, index) {
+function spawnDamage(amount, crit, exec) {
   texts.push({
-    x: W / 2 + (Math.random() - 0.5) * 140,
-    y: H * 0.46 - 30 - index * 16,
-    vy: -0.65 - Math.random() * 0.45,
+    x: W*0.46 + (Math.random()-0.5)*100,
+    y: H*0.42 - 20,
+    vy: -0.65 - Math.random()*0.35,
     life: 1,
-    txt: (crit ? "暴击 " : "") + fmt(dmg),
-    crit: crit,
+    txt: (exec ? "处决 " : crit ? "暴击 " : "") + fmt(amount),
+    kind: exec ? "exec" : crit ? "crit" : "normal",
   });
+  if (texts.length > 14) texts.splice(0, texts.length-14);
 }
-
-function spawnExplosion(color) {
-  for (let i = 0; i < 46; i++) {
-    const a = Math.random() * Math.PI * 2;
-    const sp = 2 + Math.random() * 8;
-    particles.push({
-      x: W / 2, y: H * 0.46,
-      vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
-      life: 1, color: color, size: 2 + Math.random() * 6,
-    });
+function spawnNote(txt, color) {
+  texts.push({ x:W*0.5 + (Math.random()-0.5)*70, y:H*0.36, vy:-0.9, life:1, txt, kind:"note", color:color||"#8fe0ff" });
+  if (texts.length > 14) texts.splice(0, texts.length-14);
+}
+function spawnExplosion(color, big) {
+  const n = big ? 70 : 38;
+  for (let i=0;i<n;i++) {
+    const a = Math.random()*Math.PI*2, sp = 2+Math.random()*8;
+    particles.push({ x:W*0.46, y:H*0.46, vx:Math.cos(a)*sp, vy:Math.sin(a)*sp,
+      life:1, color, size:2+Math.random()*6 });
   }
+  if (particles.length > 400) particles.splice(0, particles.length-400);
+}
+function spawnLightning() {
+  bolts.push({ life:1, pts:(()=>{ const p=[]; for(let i=0;i<8;i++) p.push({x:Math.random()*W,y:i/8*H*0.8}); return p; })() });
+}
+function addPendingDamage(amt, crit, exec) {
+  pending.amt += amt;
+  pending.crit = pending.crit || crit;
+  pending.exec = pending.exec || exec;
+  const now = performance.now();
+  if (now-pending.t >= 85 || pending.amt >= monsterHpFor(state.stage)*80) flushPending();
+}
+function flushPending() {
+  if (pending.amt <= 0) return;
+  const amt = pending.amt;
+  spawnDamage(amt, pending.crit, pending.exec);
+  state.maxHit = Math.max(state.maxHit, amt);
+  punchT = 1; hitT = 1;
+  shakeT = Math.min(1, 0.3 + Math.log10(1+amt)*0.1);
+  pending = { amt:0, crit:false, exec:false, t:performance.now() };
 }
 
 function updateFx(dt) {
-  for (const t of texts) {
-    t.y += t.vy * dt;
-    t.life -= dt / 950;
-  }
-  texts = texts.filter(t => t.life > 0);
-
+  const now = performance.now();
+  if (pending.amt>0 && now-pending.t>=85) flushPending();
+  for (const t of texts) { t.y += t.vy*dt/16; t.life -= dt/900; }
+  texts = texts.filter(t=>t.life>0);
   for (const p of particles) {
-    p.x += p.vx * dt / 16;
-    p.y += p.vy * dt / 16;
-    p.vy += 0.18 * dt / 16;
-    p.life -= dt / 720;
+    p.x += p.vx*dt/16; p.y += p.vy*dt/16; p.vy += 0.18*dt/16; p.life -= dt/720;
   }
-  particles = particles.filter(p => p.life > 0);
-
-  if (hitT > 0) hitT = Math.max(0, hitT - dt / 120);
-  if (punchT > 0) punchT = Math.max(0, punchT - dt / 180);
-  if (spawnT > 0) spawnT = Math.max(0, spawnT - dt / 350);
-  if (shakeT > 0) shakeT = Math.max(0, shakeT - dt / 180);
+  particles = particles.filter(p=>p.life>0);
+  for (const b of bolts) b.life -= dt/260;
+  bolts = bolts.filter(b=>b.life>0);
+  if (hitT>0) hitT = Math.max(0, hitT-dt/140);
+  if (punchT>0) punchT = Math.max(0, punchT-dt/190);
+  if (shakeT>0) shakeT = Math.max(0, shakeT-dt/200);
+  for (const m of state.monsters) if (m.flash>0) m.flash = Math.max(0, m.flash-dt/150);
+  if (comboTimer>0) {
+    comboTimer -= dt;
+    if (comboTimer<=0) comboStacks = 0;
+  }
 }
 
 function drawFx() {
-  for (const p of particles) {
-    ctx.globalAlpha = Math.max(0, p.life);
-    ctx.fillStyle = p.color;
+  for (const b of bolts) {
+    ctx.globalAlpha = b.life;
+    ctx.strokeStyle = "#bfe6ff"; ctx.lineWidth = 3;
+    ctx.shadowColor = "#7fd0ff"; ctx.shadowBlur = 14;
     ctx.beginPath();
-    ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
-    ctx.fill();
+    for (let i=0;i<b.pts.length;i++) {
+      const p=b.pts[i];
+      if(i===0) ctx.moveTo(p.x,0); else ctx.lineTo(p.x,p.y);
+    }
+    ctx.stroke(); ctx.shadowBlur = 0;
+  }
+  for (const p of particles) {
+    ctx.globalAlpha = Math.max(0,p.life);
+    ctx.fillStyle = p.color;
+    ctx.beginPath(); ctx.arc(p.x,p.y,p.size*p.life,0,Math.PI*2); ctx.fill();
   }
   ctx.textAlign = "center";
   for (const t of texts) {
-    ctx.globalAlpha = Math.min(1, t.life * 2.2);
-    const sz = (t.crit ? 38 : 24) * (0.65 + 0.35 * t.life);
+    ctx.globalAlpha = Math.min(1, t.life*2.2);
+    const sz = (t.kind==="crit"||t.kind==="exec" ? 36 : t.kind==="note" ? 20 : 24) * (0.7+0.3*t.life);
     ctx.font = "900 " + sz + "px 'Segoe UI', sans-serif";
-    ctx.lineWidth = 5;
-    ctx.strokeStyle = "#05050c";
+    ctx.lineWidth = 5; ctx.strokeStyle = "#05050c";
     ctx.strokeText(t.txt, t.x, t.y);
-    ctx.fillStyle = t.crit ? "#ff4655" : "#ffffff";
+    ctx.fillStyle = t.kind==="crit" ? "#ff4655" : t.kind==="exec" ? "#ffd166" : (t.color||"#ffffff");
     ctx.fillText(t.txt, t.x, t.y);
   }
   ctx.globalAlpha = 1;
 }
 
-/* ---------- master draw ---------- */
-function draw() {
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-  drawBackground();
-
-  ctx.save();
-  if (shakeT > 0) {
-    ctx.translate((Math.random() - 0.5) * shakeT * 11, (Math.random() - 0.5) * shakeT * 11);
+/* ---------- procedural art ---------- */
+function drawBackground() {
+  const g = ctx.createRadialGradient(W/2,H*0.45,20,W/2,H*0.45,Math.max(W,H)*0.75);
+  g.addColorStop(0,"#161638"); g.addColorStop(1,"#05050e");
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  const t = performance.now()/620;
+  for (const s of stars) {
+    ctx.globalAlpha = 0.25+0.45*(0.5+0.5*Math.sin(t+s.phase));
+    ctx.fillStyle = "#cdd6ff"; ctx.fillRect(s.x,s.y,s.r,s.r);
   }
-
-  const cx = W / 2;
-  const cy = H * 0.46;
-  const s = Math.min(120, H * 0.2);
-
-  ctx.save();
-  if (spawnT > 0) {
-    const sc = 0.35 + 0.65 * (1 - spawnT);
-    ctx.translate(cx, cy); ctx.scale(sc, sc); ctx.translate(-cx, -cy);
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = "rgba(120,100,255,.10)"; ctx.lineWidth = 1;
+  const hy = H*0.64;
+  for (let i=0;i<=12;i++) {
+    const y = hy+Math.pow(i/12,1.6)*(H-hy);
+    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke();
   }
-  MONSTER_DRAWERS[(state.stage - 1) % MONSTERS.length](cx, cy, s);
-  if (hitT > 0) {
-    ctx.globalAlpha = hitT * 0.55;
-    ctx.fillStyle = "#ffffff";
-    ctx.beginPath(); ctx.arc(cx, cy, s * 0.78, 0, Math.PI * 2); ctx.fill();
-    ctx.globalAlpha = 1;
+  for (let i=-12;i<=12;i++) {
+    ctx.beginPath(); ctx.moveTo(W/2+i*16,hy); ctx.lineTo(W/2+i*170,H); ctx.stroke();
+  }
+}
+
+function drawSlime(cx,cy,s) {
+  ctx.save(); ctx.translate(cx,cy);
+  ctx.shadowColor="#5fe08a"; ctx.shadowBlur=28;
+  ctx.beginPath();
+  ctx.moveTo(-s,s*0.5);
+  ctx.bezierCurveTo(-s,-s*0.6,-s*0.5,-s,0,-s);
+  ctx.bezierCurveTo(s*0.5,-s,s,-s*0.6,s,s*0.5);
+  ctx.bezierCurveTo(s,s*0.82,-s,s*0.82,-s,s*0.5);
+  ctx.closePath();
+  const g=ctx.createLinearGradient(0,-s,0,s);
+  g.addColorStop(0,"#7cf0a8"); g.addColorStop(1,"#249a58");
+  ctx.fillStyle=g; ctx.fill(); ctx.shadowBlur=0;
+  ctx.fillStyle="rgba(255,255,255,.4)";
+  ctx.beginPath(); ctx.ellipse(-s*0.32,-s*0.42,s*0.22,s*0.11,-0.5,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle="#08221a";
+  ctx.beginPath(); ctx.ellipse(-s*0.3,s*0.04,s*0.09,s*0.13,0,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(s*0.3,s*0.04,s*0.09,s*0.13,0,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle="#08221a"; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.arc(0,s*0.2,s*0.2,0.12*Math.PI,0.88*Math.PI); ctx.stroke();
+  ctx.restore();
+}
+function drawGoblin(cx,cy,s,tint) {
+  tint = tint || "#a8e05f";
+  ctx.save(); ctx.translate(cx,cy);
+  ctx.shadowColor=tint; ctx.shadowBlur=24;
+  ctx.fillStyle="#5a9e3a";
+  ctx.beginPath(); ctx.moveTo(-s*0.5,-s*0.45); ctx.lineTo(-s*1.05,-s*0.9); ctx.lineTo(-s*0.45,-s*0.05); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(s*0.5,-s*0.45); ctx.lineTo(s*1.05,-s*0.9); ctx.lineTo(s*0.45,-s*0.05); ctx.closePath(); ctx.fill();
+  const g=ctx.createLinearGradient(0,-s,0,s);
+  g.addColorStop(0,tint); g.addColorStop(1,"#3f7a28");
+  ctx.fillStyle=g;
+  ctx.beginPath(); ctx.ellipse(0,-s*0.2,s*0.6,s*0.56,0,0,Math.PI*2); ctx.fill();
+  ctx.shadowBlur=0; ctx.fillStyle="#5a9e3a";
+  ctx.beginPath(); ctx.ellipse(0,s*0.55,s*0.4,s*0.38,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle="#ffdd55";
+  ctx.beginPath(); ctx.ellipse(-s*0.23,-s*0.28,s*0.12,s*0.09,0,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(s*0.23,-s*0.28,s*0.12,s*0.09,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle="#111";
+  ctx.fillRect(-s*0.26,-s*0.32,s*0.055,s*0.08); ctx.fillRect(s*0.205,-s*0.32,s*0.055,s*0.08);
+  ctx.strokeStyle="#1b3a12"; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.arc(0,-s*0.02,s*0.23,0.15*Math.PI,0.85*Math.PI); ctx.stroke();
+  ctx.restore();
+}
+function drawWolf(cx,cy,s) { drawGoblin(cx,cy,s,"#e08a4f"); }
+function drawSkeleton(cx,cy,s) {
+  ctx.save(); ctx.translate(cx,cy);
+  ctx.shadowColor="#d8d8e8"; ctx.shadowBlur=22;
+  const g=ctx.createLinearGradient(0,-s,0,s);
+  g.addColorStop(0,"#f4f4ff"); g.addColorStop(1,"#9a9ab0");
+  ctx.fillStyle=g;
+  ctx.beginPath(); ctx.ellipse(0,-s*0.15,s*0.6,s*0.65,0,0,Math.PI*2); ctx.fill();
+  ctx.fillRect(-s*0.28,s*0.25,s*0.56,s*0.45);
+  ctx.shadowBlur=0; ctx.fillStyle="#15151f";
+  ctx.beginPath(); ctx.ellipse(-s*0.26,-s*0.22,s*0.16,s*0.2,0,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(s*0.26,-s*0.22,s*0.16,s*0.2,0,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(0,-s*0.02); ctx.lineTo(-s*0.1,s*0.16); ctx.lineTo(s*0.1,s*0.16); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle="#15151f"; ctx.lineWidth=2;
+  for(let i=-2;i<=2;i++){ ctx.beginPath(); ctx.moveTo(i*s*0.11,s*0.3); ctx.lineTo(i*s*0.11,s*0.68); ctx.stroke(); }
+  ctx.restore();
+}
+function drawBat(cx,cy,s) {
+  ctx.save(); ctx.translate(cx,cy);
+  const flap = 0.6+0.4*Math.sin(performance.now()/180);
+  ctx.shadowColor="#b46bd8"; ctx.shadowBlur=22;
+  ctx.fillStyle="#6a3a8a";
+  ctx.beginPath();
+  ctx.moveTo(0,0);
+  ctx.quadraticCurveTo(-s*0.7,-s*flap,-s*1.25,-s*0.2*flap);
+  ctx.quadraticCurveTo(-s*0.9,s*0.3,-s*0.5,s*0.1);
+  ctx.quadraticCurveTo(-s*0.3,s*0.4,0,s*0.2);
+  ctx.quadraticCurveTo(s*0.3,s*0.4,s*0.5,s*0.1);
+  ctx.quadraticCurveTo(s*0.9,s*0.3,s*1.25,-s*0.2*flap);
+  ctx.quadraticCurveTo(s*0.7,-s*flap,0,0);
+  ctx.fill();
+  ctx.fillStyle="#8e56ad";
+  ctx.beginPath(); ctx.ellipse(0,-s*0.05,s*0.34,s*0.44,0,0,Math.PI*2); ctx.fill();
+  ctx.shadowBlur=0;
+  ctx.fillStyle="#ffdd66";
+  ctx.beginPath(); ctx.arc(-s*0.14,-s*0.12,s*0.06,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(s*0.14,-s*0.12,s*0.06,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+function drawBeetle(cx,cy,s) {
+  ctx.save(); ctx.translate(cx,cy);
+  ctx.shadowColor="#c0a060"; ctx.shadowBlur=20;
+  const g=ctx.createLinearGradient(0,-s,0,s);
+  g.addColorStop(0,"#e0c080"); g.addColorStop(1,"#6a4a20");
+  ctx.fillStyle=g;
+  ctx.beginPath(); ctx.ellipse(0,0,s*0.72,s*0.85,0,0,Math.PI*2); ctx.fill();
+  ctx.shadowBlur=0;
+  ctx.strokeStyle="#4a3210"; ctx.lineWidth=4;
+  ctx.beginPath(); ctx.moveTo(0,-s*0.8); ctx.lineTo(0,s*0.8); ctx.stroke();
+  ctx.beginPath(); ctx.arc(0,-s*0.15,s*0.5,0.1*Math.PI,0.9*Math.PI); ctx.stroke();
+  ctx.fillStyle="#ffcf6b";
+  ctx.beginPath(); ctx.moveTo(-s*0.18,-s*0.7); ctx.lineTo(0,-s*1.25); ctx.lineTo(s*0.18,-s*0.7); ctx.closePath(); ctx.fill();
+  ctx.fillStyle="#15150f";
+  ctx.beginPath(); ctx.arc(-s*0.3,-s*0.4,s*0.08,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(s*0.3,-s*0.4,s*0.08,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+function drawGhost(cx,cy,s) {
+  ctx.save(); ctx.translate(cx,cy);
+  ctx.shadowColor="#9fd8ff"; ctx.shadowBlur=30;
+  ctx.fillStyle="rgba(190,230,255,.72)";
+  ctx.beginPath();
+  ctx.moveTo(-s*0.7,s*0.7);
+  ctx.bezierCurveTo(-s*1.0,-s*0.3,-s*0.6,-s,0,-s);
+  ctx.bezierCurveTo(s*0.6,-s,s*1.0,-s*0.3,s*0.7,s*0.7);
+  ctx.lineTo(s*0.4,s*0.42); ctx.lineTo(s*0.1,s*0.72); ctx.lineTo(-s*0.2,s*0.42); ctx.lineTo(-s*0.45,s*0.7);
+  ctx.closePath(); ctx.fill();
+  ctx.shadowBlur=0; ctx.fillStyle="#16304a";
+  ctx.beginPath(); ctx.ellipse(-s*0.24,-s*0.25,s*0.1,s*0.16,0,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(s*0.24,-s*0.25,s*0.1,s*0.16,0,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+function drawVampire(cx,cy,s) {
+  ctx.save(); ctx.translate(cx,cy);
+  ctx.shadowColor="#e05f7f"; ctx.shadowBlur=24;
+  ctx.fillStyle="#2a1020";
+  ctx.beginPath(); ctx.moveTo(-s*0.45,-s*0.35); ctx.lineTo(-s*1.05,s*0.85); ctx.lineTo(-s*0.15,s*0.35);
+  ctx.lineTo(s*0.15,s*0.35); ctx.lineTo(s*1.05,s*0.85); ctx.lineTo(s*0.45,-s*0.35); ctx.closePath(); ctx.fill();
+  const g=ctx.createLinearGradient(0,-s,0,s);
+  g.addColorStop(0,"#f0d8d8"); g.addColorStop(1,"#b89090");
+  ctx.fillStyle=g;
+  ctx.beginPath(); ctx.ellipse(0,-s*0.25,s*0.48,s*0.55,0,0,Math.PI*2); ctx.fill();
+  ctx.shadowBlur=0; ctx.fillStyle="#e03050";
+  ctx.beginPath(); ctx.ellipse(-s*0.2,-s*0.3,s*0.09,s*0.07,0,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(s*0.2,-s*0.3,s*0.09,s*0.07,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle="#fff";
+  ctx.beginPath(); ctx.moveTo(-s*0.14,s*0.02); ctx.lineTo(-s*0.05,s*0.02); ctx.lineTo(-s*0.095,s*0.2); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(s*0.14,s*0.02); ctx.lineTo(s*0.05,s*0.02); ctx.lineTo(s*0.095,s*0.2); ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+function drawCrystal(cx,cy,s) {
+  ctx.save(); ctx.translate(cx,cy);
+  ctx.rotate(performance.now()/3000*0.2);
+  ctx.shadowColor="#6fd0e0"; ctx.shadowBlur=28;
+  const g=ctx.createLinearGradient(-s,-s,s,s);
+  g.addColorStop(0,"#d8ffff"); g.addColorStop(0.5,"#5fc8e0"); g.addColorStop(1,"#205c88");
+  ctx.fillStyle=g;
+  ctx.beginPath();
+  ctx.moveTo(0,-s*1.05); ctx.lineTo(s*0.7,-s*0.25); ctx.lineTo(s*0.45,s*0.8);
+  ctx.lineTo(-s*0.45,s*0.8); ctx.lineTo(-s*0.7,-s*0.25); ctx.closePath(); ctx.fill();
+  ctx.shadowBlur=0;
+  ctx.strokeStyle="rgba(255,255,255,.55)"; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(0,-s*1.05); ctx.lineTo(0,s*0.8); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-s*0.7,-s*0.25); ctx.lineTo(s*0.7,-s*0.25); ctx.stroke();
+  ctx.restore();
+}
+function drawDragon(cx,cy,s) {
+  ctx.save(); ctx.translate(cx,cy);
+  ctx.shadowColor="#ff5f5f"; ctx.shadowBlur=26;
+  ctx.fillStyle="#8b1e2d";
+  ctx.beginPath(); ctx.moveTo(-s*0.2,-s*0.05); ctx.lineTo(-s*1.3,-s*0.95); ctx.lineTo(-s*0.95,s*0.12); ctx.lineTo(-s*1.18,s*0.5); ctx.lineTo(-s*0.22,s*0.3); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(s*0.2,-s*0.05); ctx.lineTo(s*1.3,-s*0.95); ctx.lineTo(s*0.95,s*0.12); ctx.lineTo(s*1.18,s*0.5); ctx.lineTo(s*0.22,s*0.3); ctx.closePath(); ctx.fill();
+  const g=ctx.createLinearGradient(0,-s,0,s);
+  g.addColorStop(0,"#ff6b5b"); g.addColorStop(1,"#9b1626");
+  ctx.fillStyle=g;
+  ctx.beginPath(); ctx.ellipse(0,0,s*0.6,s*0.68,0,0,Math.PI*2); ctx.fill();
+  ctx.shadowBlur=0; ctx.fillStyle="#ffd166";
+  ctx.beginPath(); ctx.moveTo(-s*0.34,-s*0.5); ctx.lineTo(-s*0.48,-s*1.02); ctx.lineTo(-s*0.09,-s*0.6); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(s*0.34,-s*0.5); ctx.lineTo(s*0.48,-s*1.02); ctx.lineTo(s*0.09,-s*0.6); ctx.closePath(); ctx.fill();
+  ctx.shadowColor="#ffe066"; ctx.shadowBlur=14; ctx.fillStyle="#ffe066";
+  ctx.beginPath(); ctx.ellipse(-s*0.24,-s*0.1,s*0.1,s*0.07,0,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(s*0.24,-s*0.1,s*0.1,s*0.07,0,0,Math.PI*2); ctx.fill();
+  ctx.shadowBlur=0; ctx.fillStyle="#5a0c16";
+  ctx.beginPath(); ctx.ellipse(0,s*0.3,s*0.3,s*0.17,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle="#fff";
+  for(let i=-2;i<=2;i++){
+    ctx.beginPath(); ctx.moveTo(i*s*0.1-4,s*0.24); ctx.lineTo(i*s*0.1+4,s*0.24); ctx.lineTo(i*s*0.1,s*0.36); ctx.closePath(); ctx.fill();
   }
   ctx.restore();
+}
+function drawGiant(cx,cy,s) {
+  ctx.save(); ctx.translate(cx,cy);
+  ctx.shadowColor="#d0a060"; ctx.shadowBlur=20;
+  const g=ctx.createLinearGradient(0,-s,0,s);
+  g.addColorStop(0,"#8d8d99"); g.addColorStop(1,"#43434f");
+  ctx.fillStyle=g;
+  ctx.beginPath();
+  ctx.moveTo(-s*0.8,-s*0.5); ctx.lineTo(-s*0.4,-s*0.95); ctx.lineTo(s*0.35,-s*0.9); ctx.lineTo(s*0.85,-s*0.4);
+  ctx.lineTo(s*0.7,s*0.8); ctx.lineTo(-s*0.7,s*0.8); ctx.closePath(); ctx.fill();
+  ctx.shadowBlur=0; ctx.strokeStyle="#ff8a3d"; ctx.lineWidth=3;
+  ctx.shadowColor="#ff8a3d"; ctx.shadowBlur=10;
+  ctx.beginPath(); ctx.moveTo(-s*0.4,-s*0.9); ctx.lineTo(-s*0.15,-s*0.2); ctx.lineTo(-s*0.45,s*0.2); ctx.lineTo(-s*0.1,s*0.78); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(s*0.35,-s*0.85); ctx.lineTo(s*0.1,-s*0.25); ctx.lineTo(s*0.4,s*0.3); ctx.stroke();
+  ctx.fillStyle="#ff8a3d"; ctx.shadowBlur=12;
+  ctx.fillRect(-s*0.32,-s*0.25,s*0.18,s*0.08); ctx.fillRect(s*0.14,-s*0.25,s*0.18,s*0.08);
+  ctx.shadowBlur=0; ctx.restore();
+}
+function drawPlanet(cx,cy,s) {
+  ctx.save(); ctx.translate(cx,cy);
+  ctx.strokeStyle="rgba(150,200,255,.65)"; ctx.lineWidth=8;
+  ctx.beginPath(); ctx.ellipse(0,0,s*1.25,s*0.38,-0.35,Math.PI,Math.PI*2); ctx.stroke();
+  const g=ctx.createRadialGradient(-s*0.3,-s*0.3,s*0.1,0,0,s);
+  g.addColorStop(0,"#8fd0ff"); g.addColorStop(0.6,"#3a7fd5"); g.addColorStop(1,"#16306e");
+  ctx.fillStyle=g; ctx.shadowColor="#5fa8ff"; ctx.shadowBlur=28;
+  ctx.beginPath(); ctx.arc(0,0,s,0,Math.PI*2); ctx.fill();
+  ctx.shadowBlur=0; ctx.fillStyle="rgba(120,220,180,.5)";
+  ctx.beginPath(); ctx.ellipse(-s*0.3,-s*0.1,s*0.28,s*0.14,0.4,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(s*0.35,s*0.3,s*0.22,s*0.12,-0.3,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle="rgba(190,220,255,.85)"; ctx.lineWidth=8;
+  ctx.beginPath(); ctx.ellipse(0,0,s*1.25,s*0.38,-0.35,0,Math.PI); ctx.stroke();
+  ctx.restore();
+}
+function drawCosmos(cx,cy,s) {
+  ctx.save(); ctx.translate(cx,cy);
+  ctx.rotate(performance.now()/2000*0.15);
+  ctx.shadowColor="#c05fff"; ctx.shadowBlur=24;
+  for(let arm=0;arm<3;arm++){
+    for(let i=0;i<48;i++){
+      const a=arm*Math.PI*2/3+i*0.09, r=s*0.08+i*s*0.021;
+      ctx.fillStyle=i%4===0?"#ffffff":(arm===0?"#c05fff":arm===1?"#5f8fff":"#ff7fd0");
+      ctx.globalAlpha=1-i/55;
+      ctx.beginPath(); ctx.arc(Math.cos(a)*r,Math.sin(a)*r*0.7,Math.max(0.6,3-i*0.04),0,Math.PI*2); ctx.fill();
+    }
+  }
+  ctx.globalAlpha=1;
+  const g=ctx.createRadialGradient(0,0,0,0,0,s*0.3);
+  g.addColorStop(0,"#fff"); g.addColorStop(0.3,"#ffd6ff"); g.addColorStop(1,"rgba(192,95,255,0)");
+  ctx.fillStyle=g; ctx.beginPath(); ctx.arc(0,0,s*0.3,0,Math.PI*2); ctx.fill();
+  ctx.shadowBlur=0; ctx.restore();
+}
+const MONSTER_DRAWERS = [drawSlime,drawGoblin,drawSkeleton,drawBat,drawBeetle,drawGhost,drawVampire,drawSlime,drawCrystal,drawWolf,drawDragon,drawGiant,drawPlanet,drawCosmos];
 
-  const p = 1 - punchT;
-  const thrust = punchT > 0 ? Math.sin(p * Math.PI) : 0;
-  drawFist(W * 0.82 - W * 0.34 * thrust, H * 0.8 - H * 0.2 * thrust, 1 + 0.3 * thrust);
+function drawFist(px,py,scale) {
+  ctx.save(); ctx.translate(px,py); ctx.scale(scale,scale); ctx.rotate(-0.25);
+  ctx.shadowColor="#ff9a3d"; ctx.shadowBlur=22;
+  const g=ctx.createLinearGradient(0,-40,0,60);
+  g.addColorStop(0,"#ffb347"); g.addColorStop(1,"#8a3b0c");
+  ctx.fillStyle=g; ctx.beginPath(); ctx.roundRect(-26,-10,52,86,14); ctx.fill();
+  ctx.fillStyle="#ffcd6b";
+  for(let i=0;i<4;i++){ ctx.beginPath(); ctx.arc(-22+i*15,-22,11,0,Math.PI*2); ctx.fill(); }
+  ctx.beginPath(); ctx.ellipse(-30,6,12,18,-0.4,0,Math.PI*2); ctx.fill();
+  ctx.shadowBlur=0; ctx.strokeStyle="#6b2a08"; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.roundRect(-26,-10,52,86,14); ctx.stroke();
+  ctx.restore();
+}
 
+function draw() {
+  ctx.setTransform(1,0,0,1,0,0);
+  drawBackground();
+  ctx.save();
+  if (shakeT>0) ctx.translate((Math.random()-0.5)*shakeT*11,(Math.random()-0.5)*shakeT*11);
+
+  const slots = [
+    { x:W*0.46, s:1,    y:H*0.46 },
+    { x:W*0.76, s:0.66, y:H*0.50 },
+    { x:W*0.92, s:0.46, y:H*0.54 },
+  ];
+  const base = Math.min(118,H*0.20);
+  for (let i=Math.min(2,state.monsters.length-1);i>=0;i--) {
+    const m = state.monsters[i], slot = slots[i];
+    const s = base*slot.s;
+    ctx.save();
+    ctx.globalAlpha = i===0 ? 1 : 0.78;
+    if (m.spawnAnim>0) {
+      const sc = 0.4+0.6*(1-m.spawnAnim);
+      ctx.translate(slot.x,slot.y); ctx.scale(sc,sc); ctx.translate(-slot.x,-slot.y);
+      m.spawnAnim = Math.max(0, m.spawnAnim-0.03);
+    }
+    if (m.tier!=="normal") {
+      ctx.shadowColor = m.tier==="boss" ? "#ff4655" : "#ffd166";
+      ctx.shadowBlur = m.tier==="boss" ? 34 : 22;
+    }
+    MONSTER_DRAWERS[m.type](slot.x,slot.y,s);
+    ctx.shadowBlur = 0;
+    if (m.shield>0) {
+      ctx.strokeStyle="rgba(150,220,255,.85)"; ctx.lineWidth=4;
+      ctx.beginPath(); ctx.arc(slot.x,slot.y,s*1.02,-Math.PI/2,-Math.PI/2+Math.PI*2*Math.min(1,m.shield/m.maxHp)); ctx.stroke();
+    }
+    if (m.flash>0) {
+      ctx.globalAlpha = m.flash*0.5; ctx.fillStyle="#fff";
+      ctx.beginPath(); ctx.arc(slot.x,slot.y,s*0.78,0,Math.PI*2); ctx.fill();
+      ctx.globalAlpha = i===0 ? 1 : 0.78;
+    }
+    // hp bar
+    const bw = s*1.5, bx = slot.x-bw/2, by = slot.y+s*0.95;
+    ctx.fillStyle="rgba(10,10,25,.85)"; ctx.fillRect(bx,by,bw,6);
+    ctx.fillStyle=m.tier==="boss"?"#ff4655":m.tier==="elite"?"#ffd166":"#ff7a85";
+    ctx.fillRect(bx,by,bw*Math.max(0,m.hp/m.maxHp),6);
+    ctx.restore();
+  }
+
+  const p = 1-punchT;
+  const thrust = punchT>0 ? Math.sin(p*Math.PI) : 0;
+  drawFist(W*0.84-W*0.34*thrust, H*0.82-H*0.2*thrust, 1+0.3*thrust);
   drawFx();
   ctx.restore();
 }
 
-/* ---------- core actions ---------- */
-function attack() {
-  const crit = Math.random() < getCritChance();
-  const hits = 1 + state.comboLv;
-  const perHit = getDamage() * (crit ? getCritMult() : 1);
-  let total = 0;
-  for (let i = 0; i < hits; i++) {
-    total += perHit;
-    spawnDamage(perHit, crit, i);
+/* ---------- monsters & combat ---------- */
+function tierFor(stage) {
+  if (stage%10===0) return "boss";
+  if (stage%5===0) return "elite";
+  return "normal";
+}
+function makeMonster(stage, tier, type) {
+  tier = tier || tierFor(stage);
+  const t = type===undefined ? (stage-1)%MONSTERS.length : type;
+  const def = MONSTERS[t];
+  const mult = tier==="boss"?5 : tier==="elite"?2.2 : tier==="mini"?0.3 : 1;
+  const hp = Math.max(1, Math.floor(monsterHpFor(stage)*mult));
+  const m = {
+    stage, tier, type:t, maxHp:hp, hp,
+    shield:0, armor:def.armor||0, mech:def.mech,
+    color:def.color, name:def.name, flash:0, spawnAnim:1,
+    noAdvance:tier==="mini", isSplit:tier==="mini",
+  };
+  if (def.mech==="shield") m.shield = hp*(0.25+0.01*(stage%20));
+  return m;
+}
+function refillQueue() {
+  let guard = 0;
+  while (state.monsters.length<3 && guard++<20) {
+    const nextStage = state.monsters.length ? state.monsters[state.monsters.length-1].stage+1 : state.stage;
+    state.monsters.push(makeMonster(nextStage));
   }
-  state.monsterHp -= total;
-
-  const power = perHit;
-  shakeT = Math.min(1, 0.35 + Math.log10(1 + power) * 0.12);
-  hitT = 1;
-  punchT = 1;
-
-  if (state.monsterHp <= 0) killMonster();
-  renderHud();
+}
+function addCombo() {
+  const maxStacks = 20+3*skillLv("timeSand");
+  comboStacks = Math.min(maxStacks, comboStacks+1);
+  comboTimer = 800+300*skillLv("timeSand");
+}
+function damageMonster(m, raw, opts) {
+  if (!opts.ultimate && !opts.thunder && !opts.execute) {
+    if (m.mech==="dodge" && Math.random()<0.08) { spawnNote("闪避","#bfe0ff"); return {dealt:0,killed:false,leftover:0}; }
+    if (m.mech==="phase" && Math.random()<0.25) { spawnNote("虚化","#bfe0ff"); return {dealt:0,killed:false,leftover:0}; }
+  }
+  let dmg = raw;
+  const ab = skillLv("armorBreak");
+  if (m.armor && ab===0) dmg *= (1-m.armor);
+  let absorbed = 0;
+  if (m.shield>0 && ab===0) {
+    absorbed = Math.min(m.shield,dmg);
+    m.shield -= absorbed; dmg -= absorbed;
+  }
+  const trueDmg = raw*0.05*ab;
+  const hpDmg = dmg+trueDmg;
+  m.hp -= hpDmg; m.flash = 1;
+  const dealt = absorbed+hpDmg;
+  state.totalDamage += dealt;
+  damageLog.push({t:performance.now(), amt:dealt});
+  let killed=false, leftover=0;
+  if (m.hp<=0) { leftover=-m.hp; killed=true; }
+  if (killed) killMonster(m);
+  return {dealt, killed, leftover};
+}
+function killMonster(m) {
+  const idx = state.monsters.indexOf(m);
+  if (idx>=0) state.monsters.splice(idx,1);
+  const tierGold = m.tier==="boss"?12 : m.tier==="elite"?4 : 1;
+  let gain = goldFor(m.stage)*tierGold*(1+0.15*state.goldLv);
+  if (skillLv("goldFist")>0) gain *= 1+comboStacks*0.02*skillLv("goldFist");
+  if (skillLv("steal")>0 && Math.random()<0.15*skillLv("steal")) {
+    gain *= 1+0.5*skillLv("steal");
+    spawnNote("偷钱 +"+fmt(gain), "#ffd166");
+  }
+  state.gold += gain;
+  state.kills++;
+  state.runMaxStage = Math.max(state.runMaxStage, m.stage);
+  spawnExplosion(m.color, m.tier!=="normal");
+  playSound("kill");
+  if (m.mech==="split" && !m.isSplit) {
+    const minis = [];
+    for (let i=0;i<2;i++) {
+      const mini = makeMonster(m.stage, "mini", m.type);
+      minis.push(mini);
+    }
+    state.monsters.unshift(...minis);
+    spawnNote("分裂!", "#7fe0a8");
+  }
+  if (!m.noAdvance) {
+    const maxStage = state.monsters.reduce((a,b)=>Math.max(a,b.stage), 0);
+    state.monsters.push(makeMonster(maxStage+1));
+  }
+  if (m.tier==="boss" || m.tier==="elite" || state.killsSinceCard>=12) {
+    state.killsSinceCard = 0;
+    pendingCards++;
+  }
+  refillQueue();
+}
+function applyPunchDamage(raw, opts) {
+  let remaining = raw, hits = 0, extraKills = 0;
+  const maxTargets = Math.min(9, 1+state.pierceLv+(opts.ultimate?5:0));
+  while (remaining>0 && hits<maxTargets && state.monsters.length) {
+    const m = state.monsters[0];
+    const before = state.kills;
+    const res = damageMonster(m, remaining, Object.assign({},opts,{chainIndex:hits}));
+    hits++;
+    if (state.kills>before) extraKills++;
+    if (skillLv("arc")>0 && res.killed && state.monsters.length) {
+      const extra = remaining*0.3*skillLv("arc");
+      damageMonster(state.monsters[0], extra, {source:"arc"});
+    }
+    remaining = res.killed ? res.leftover*(0.75+0.05*state.pierceLv) : 0;
+  }
+  if (extraKills>1) {
+    state.chainKills += extraKills-1;
+    document.getElementById("chainLabel").textContent = "连锁 ×"+extraKills;
+    clearTimeout(applyPunchDamage._t);
+    applyPunchDamage._t = setTimeout(()=>{ document.getElementById("chainLabel").textContent=""; }, 900);
+  }
+  return hits;
 }
 
-function killMonster() {
-  const m = MONSTERS[(state.stage - 1) % MONSTERS.length];
-  spawnExplosion(m.color);
-  state.gold += goldFor(state.stage);
-  state.stage += 1;
-  if (state.stage > state.runMaxStage) state.runMaxStage = state.stage;
-  state.monsterHp = monsterHpFor(state.stage);
-  spawnT = 1;
-  render();
+const damageLog = [];
+function getActualDps() {
+  const now = performance.now();
+  while (damageLog.length && now-damageLog[0].t>5000) damageLog.shift();
+  let sum = 0;
+  for (const d of damageLog) sum += d.amt;
+  return sum/5;
 }
 
+function attack(isAuto) {
+  if (paused || !state.monsters.length) return;
+  punches++;
+  if (isAuto) {
+    const sync = Math.min(1, 0.3*skillLv("autoSync"));
+    if (Math.random()<sync) addCombo();
+  } else addCombo();
+
+  const front = state.monsters[0];
+  let crit = nextCrit || Math.random()<getCritChance();
+  if (nextCrit) nextCrit = false;
+  let raw = getBaseDamage()*getComboMult();
+  if (crit) raw *= getCritMult();
+  if (front.tier!=="normal") raw *= 1+0.5*skillLv("giantKiller");
+
+  const ultEvery = Math.max(8, 30-4*skillLv("ultimate"));
+  const ultimate = skillLv("ultimate")>0 && punches%ultEvery===0;
+  if (ultimate) raw *= 3+2*skillLv("ultimate");
+
+  if (crit && skillLv("critMark")>0 && Math.random()<0.2*skillLv("critMark")) nextCrit = true;
+
+  const execThreshold = 3-0.3*skillLv("execute");
+  const execute = front.tier!=="boss" && raw>=front.maxHp*execThreshold;
+  if (execute) front.hp = Math.min(front.hp, 1);
+
+  const opts = { crit, ultimate, execute, source:"punch" };
+  applyPunchDamage(raw, opts);
+  addPendingDamage(raw, crit, execute);
+  playSound(crit?"crit":"punch");
+
+  const bl = skillLv("burst");
+  if (bl>0 && Math.random()<0.2+0.1*bl) {
+    const bd = raw*(0.4+0.2*bl);
+    for (const m of state.monsters.slice(1)) damageMonster(m, bd, {source:"burst"});
+    spawnExplosion("#ff9a3d", false);
+  }
+  const tl = skillLv("thunder");
+  if (tl>0 && punches%Math.max(3,8-tl)===0) {
+    const td = raw*(0.6+0.3*tl);
+    for (const m of state.monsters.slice()) damageMonster(m, td, {source:"thunder", thunder:true});
+    spawnLightning(); playSound("thunder");
+  }
+}
+
+/* ---------- cards ---------- */
+let pendingCards = 0, paused = false;
+function shuffle(a) {
+  for (let i=a.length-1;i>0;i--) { const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function drawCards() {
+  const n = 3+skillLv("lucky");
+  const upgrades = [], news = [];
+  for (const s of SKILLS) {
+    const lv = skillLv(s.id);
+    if (lv>0 && lv<s.max) upgrades.push({s, upgrade:true, lv});
+    else if (lv===0) news.push({s, upgrade:false, lv:0});
+  }
+  const chosen = [];
+  if (upgrades.length) chosen.push(upgrades.splice(Math.floor(Math.random()*upgrades.length),1)[0]);
+  const pool = shuffle(upgrades.concat(news));
+  for (const c of pool) { if (chosen.length>=n) break; chosen.push(c); }
+  while (chosen.length<n) {
+    chosen.push({ gold:true, amt:Math.ceil(60*Math.pow(1.3,state.stage)) });
+  }
+  return shuffle(chosen).map(c => {
+    if (c.gold) return { gold:true, amt:c.amt, rarity:"common", name:"金币袋",
+      label:"+ "+fmt(c.amt)+" 金", desc:"直接的金币奖励，可用于强化固定属性。" };
+    let rarity = c.s.rarity;
+    if (rarity==="common" && Math.random()<0.3*skillLv("lucky")) rarity="rare";
+    return { id:c.s.id, rarity, name:c.s.name,
+      label: c.upgrade ? "Lv."+c.lv+" → Lv."+(c.lv+1) : "新技能",
+      desc: c.s.desc(c.upgrade?c.lv+1:1) };
+  });
+}
+function showCardModal() {
+  const cards = drawCards();
+  const row = document.getElementById("cardRow");
+  row.innerHTML = "";
+  cards.forEach((c,i) => {
+    const el = document.createElement("div");
+    el.className = "card "+c.rarity;
+    el.innerHTML =
+      '<div class="rarity">'+RARITY_TEXT[c.rarity]+'</div>'+
+      '<div class="cname">'+c.name+'</div>'+
+      '<div class="clv">'+c.label+'</div>'+
+      '<div class="cdesc">'+c.desc+'</div>';
+    el.addEventListener("click", ()=>chooseCard(c));
+    row.appendChild(el);
+  });
+  document.getElementById("cardModal").classList.add("show");
+  paused = true;
+  playSound("card");
+}
+function chooseCard(c) {
+  if (c.gold) state.gold += c.amt;
+  else state.skills[c.id] = (state.skills[c.id]||0)+1;
+  document.getElementById("cardModal").classList.remove("show");
+  paused = false;
+  playSound("upgrade");
+  render(); saveGame();
+}
+
+/* ---------- shop & actions ---------- */
 function buy(u) {
+  if (u.id==="crit" && getCritChance()>=0.85-1e-9) return;
   const cost = upgradeCost(u);
-  if (state.gold < cost) return;
+  if (state.gold<cost) return;
   state.gold -= cost;
-  state[u.id + "Lv"] += 1;
-  render();
-  saveGame();
+  state[u.id+"Lv"]++;
+  playSound("upgrade");
+  render(); saveGame();
 }
-
 function doPrestige() {
-  if (state.runMaxStage < 15) return;
+  if (state.runMaxStage<15) return;
   const gain = prestigeGain();
   state.realm += gain;
-  state.stage = 1;
-  state.runMaxStage = 1;
-  state.gold = 0;
-  state.powerLv = 0;
-  state.critLv = 0;
-  state.critDmgLv = 0;
-  state.comboLv = 0;
-  state.autoLv = 0;
-  state.monsterHp = monsterHpFor(1);
-  spawnT = 1;
-  toast("突破成功！境界 +" + gain + " · 新倍率 x" + prestigeMult().toFixed(1));
-  render();
-  saveGame();
+  state.stage = 1; state.runMaxStage = 1; state.gold = 0;
+  for (const u of UPGRADES) state[u.id+"Lv"] = 0;
+  state.skills = {};
+  state.killsSinceCard = 0; state.punches = 0;
+  comboStacks = 0; comboTimer = 0; nextCrit = false;
+  state.monsters = []; refillQueue();
+  pendingCards = 0;
+  playSound("prestige");
+  toast("突破成功！境界 +"+gain+" · 新倍率 x"+prestigeMult().toFixed(1)+" · 技能已重置");
+  render(); saveGame();
 }
-
 /* ---------- rendering UI ---------- */
 function renderHud() {
-  document.getElementById("stage").textContent = fmt(state.stage);
+  const front = state.monsters[0];
+  document.getElementById("stage").textContent = fmt(front?front.stage:state.stage);
   document.getElementById("gold").textContent = fmt(state.gold);
   document.getElementById("realm").textContent = state.realm;
-  document.getElementById("dps").textContent = fmt(getDamage());
-  document.getElementById("monsterName").textContent = MONSTERS[(state.stage - 1) % MONSTERS.length].name;
-  const maxHp = monsterHpFor(state.stage);
-  const pct = Math.max(0, Math.min(100, state.monsterHp / maxHp * 100));
-  document.getElementById("hpBar").style.width = pct + "%";
-  document.getElementById("combo").textContent =
-    state.comboLv > 0 ? "连击 " + (1 + state.comboLv) + " 段" : "";
-}
+  document.getElementById("dps").textContent = fmt(expectedPerPunch());
+  document.getElementById("tdps").textContent = fmt(expectedDps());
+  document.getElementById("comboHud").textContent = comboStacks;
+  document.getElementById("monsterName").textContent = front
+    ? front.name + (front.tier==="boss"?" · BOSS":front.tier==="elite"?" · 精英":front.tier==="mini"?" · 幼体":"")
+    : "-";
+  const pct = front ? Math.max(0,Math.min(100,front.hp/front.maxHp*100)) : 0;
+  document.getElementById("hpBar").style.width = pct+"%";
+  document.getElementById("combo").textContent = comboStacks>0 ? "连击 "+comboStacks+" 层 · 伤害 x"+getComboMult().toFixed(2) : "";
 
+  document.getElementById("stAdps").textContent = fmt(getActualDps());
+  document.getElementById("stTotal").textContent = fmt(state.totalDamage);
+  document.getElementById("stMax").textContent = fmt(state.maxHit);
+  document.getElementById("stChain").textContent = fmt(state.chainKills);
+  document.getElementById("stKills").textContent = fmt(state.kills);
+  document.getElementById("stCrit").textContent = (getCritChance()*100).toFixed(0)+"%";
+  document.getElementById("stCritDmg").textContent = getCritMult().toFixed(1)+"x";
+  document.getElementById("stSkills").textContent = Object.keys(state.skills).length+"";
+}
 function renderShop() {
   const shop = document.getElementById("shop");
   shop.innerHTML = "";
   for (const u of UPGRADES) {
-    const lv = state[u.id + "Lv"];
+    const lv = state[u.id+"Lv"];
+    const maxed = u.id==="crit" && getCritChance()>=0.85-1e-9;
     const cost = upgradeCost(u);
     const btn = document.createElement("button");
     btn.className = "upg";
-    btn.disabled = state.gold < cost;
+    btn.disabled = maxed || state.gold<cost;
     btn.innerHTML =
-      '<div class="upg-name">' + u.name + ' <span class="upg-lv">Lv.' + lv + '</span></div>' +
-      '<div class="upg-effect">' + u.desc() + '</div>' +
-      '<div class="upg-cost">' + fmt(cost) + ' 金</div>';
-    btn.addEventListener("click", () => buy(u));
+      '<div class="upg-name">'+u.name+' <span class="upg-lv">Lv.'+lv+'</span></div>'+
+      '<div class="upg-effect">'+(maxed?"MAX":u.desc())+'</div>'+
+      '<div class="upg-cost">'+(maxed?"已满级":fmt(cost)+" 金")+'</div>';
+    btn.addEventListener("click", ()=>buy(u));
     shop.appendChild(btn);
   }
 }
-
+function renderSkillBar() {
+  const bar = document.getElementById("skillBar");
+  const owned = SKILLS.filter(s=>skillLv(s.id)>0);
+  bar.innerHTML = owned.length
+    ? owned.map(s=>'<span class="skillChip '+s.rarity+'">'+s.name+' Lv.'+skillLv(s.id)+'</span>').join("")
+    : "";
+}
 function renderPrestige() {
   const btn = document.getElementById("prestigeBtn");
   const info = document.getElementById("prestigeInfo");
-  const ok = state.runMaxStage >= 15;
+  const ok = state.runMaxStage>=15;
   btn.disabled = !ok;
   if (ok) {
-    const nextMult = 1 + (state.realm + prestigeGain()) * 0.35;
-    info.textContent = "可突破：境界 +" + prestigeGain() +
-      " · 新倍率 x" + nextMult.toFixed(1) + " · 当前最高阶段 " + state.runMaxStage;
+    info.textContent = "可突破：境界 +"+prestigeGain()+" · 新倍率 x"+(1+(state.realm+prestigeGain())*0.5).toFixed(1)+
+      " · 当前最高阶段 "+state.runMaxStage+"（会重置固定升级与技能）";
   } else {
-    info.textContent = "突破极限需本轮达到阶段 15（当前最高 " + state.runMaxStage + "）";
+    info.textContent = "突破需本轮达到阶段 15（当前最高 "+state.runMaxStage+"）· 每 5 阶段精英 / 每 10 阶段 Boss / 每 12 击杀触发技能卡";
   }
 }
-
 function render() {
-  renderHud();
-  renderShop();
-  renderPrestige();
+  renderHud(); renderShop(); renderSkillBar(); renderPrestige();
 }
-
 function toast(msg) {
   const el = document.getElementById("toast");
   el.textContent = msg;
   el.classList.add("show");
   clearTimeout(el._timer);
-  el._timer = setTimeout(() => el.classList.remove("show"), 2600);
+  el._timer = setTimeout(()=>el.classList.remove("show"), 2800);
 }
 
-/* ---------- offline progress ---------- */
+/* ---------- offline ---------- */
 function applyOffline() {
   const now = Date.now();
-  const away = Math.min((now - state.lastSeen) / 1000, 3600);
-  if (away > 10 && state.autoLv > 0) {
-    const avgDmg = getDamage() * (1 - getCritChance() + getCritChance() * getCritMult());
-    const gps = state.autoLv * avgDmg / monsterHpFor(state.stage) * goldFor(state.stage);
-    const earned = Math.floor(gps * away * 0.5);
-    if (earned > 0) {
+  const away = Math.min((now-state.lastSeen)/1000, 3600);
+  if (away>10 && state.autoLv>0) {
+    const dps = expectedDps()*0.5;
+    const gps = dps/monsterHpFor(state.stage)*goldFor(state.stage);
+    const earned = Math.floor(gps*away);
+    if (earned>0) {
       state.gold += earned;
-      setTimeout(() => toast("离线收益 +" + fmt(earned) + " 金"), 400);
+      setTimeout(()=>toast("离线收益 +"+fmt(earned)+" 金"), 400);
     }
   }
   state.lastSeen = now;
 }
 
 /* ---------- main loop ---------- */
-let lastTs = performance.now();
-let autoAcc = 0;
-
+let lastTs = performance.now(), autoAcc = 0, hudAcc = 0;
 function loop(ts) {
-  const dt = Math.min(50, ts - lastTs);
+  const dt = Math.min(50, ts-lastTs);
   lastTs = ts;
+  if (!paused) {
+    if (state.autoLv>0) {
+      const interval = 1000/state.autoLv;
+      autoAcc += dt;
+      let n=0;
+      while (autoAcc>=interval && n<60) { attack(true); autoAcc-=interval; n++; }
+      if (n>=60) autoAcc = 0;
+    } else autoAcc = 0;
 
-  if (state.autoLv > 0) {
-    const interval = 1000 / state.autoLv;
-    autoAcc += dt;
-    let n = 0;
-    while (autoAcc >= interval && n < 30) {
-      attack();
-      autoAcc -= interval;
-      n++;
+    // regen / rage
+    for (const m of state.monsters) {
+      if (m.mech==="regen") m.hp = Math.min(m.maxHp, m.hp+m.maxHp*0.012*dt/1000);
+      if (m.mech==="rage") m.hp = Math.min(m.maxHp, m.hp+m.maxHp*0.02*dt/1000);
     }
-    if (n >= 30) autoAcc = 0;
-  } else {
-    autoAcc = 0;
+    updateFx(dt);
+    if (pendingCards>0) { pendingCards--; showCardModal(); }
+    hudAcc += dt;
+    if (hudAcc>180) { hudAcc=0; renderHud(); }
   }
-
-  updateFx(dt);
   draw();
   requestAnimationFrame(loop);
 }
 
 /* ---------- events ---------- */
-document.getElementById("punchBtn").addEventListener("click", attack);
-document.getElementById("battlefield").addEventListener("click", attack);
+document.getElementById("punchBtn").addEventListener("click", ()=>{ initAudio(); attack(false); });
+document.getElementById("battlefield").addEventListener("click", ()=>{ initAudio(); attack(false); });
 document.getElementById("prestigeBtn").addEventListener("click", doPrestige);
-document.addEventListener("keydown", e => {
-  if (e.code === "Space") {
-    e.preventDefault();
-    attack();
-  }
+document.getElementById("muteBtn").addEventListener("click", e=>{
+  muted = !muted;
+  e.currentTarget.textContent = muted ? "🔇" : "🔊";
 });
-document.addEventListener("visibilitychange", () => {
-  if (document.hidden) saveGame();
+document.getElementById("volume").addEventListener("input", e=>{
+  volume = e.target.value/100;
+  if (masterGain) masterGain.gain.value = volume;
 });
+document.addEventListener("keydown", e=>{
+  if (e.code==="Space") { e.preventDefault(); initAudio(); attack(false); }
+});
+document.addEventListener("pointerdown", initAudio, {once:true});
+document.addEventListener("visibilitychange", ()=>{ if (document.hidden) saveGame(); });
 window.addEventListener("beforeunload", saveGame);
 
 /* ---------- init ---------- */
 applyOffline();
-state.monsterHp = monsterHpFor(state.stage);
+if (!state.monsters.length) refillQueue();
 resizeCanvas();
 render();
 saveGame();
 requestAnimationFrame(loop);
 setInterval(saveGame, 5000);
+</script>
+<!-- 应用模式：屏蔽浏览器原生交互（选中/拖拽/右键菜单/双击缩放） -->
+<script>
+(function () {
+  var EDITABLE = 'input,textarea,select,[contenteditable]';
+  ['selectstart', 'dragstart'].forEach(function (type) {
+    document.addEventListener(type, function (e) {
+      if (e.target && e.target.closest && e.target.closest(EDITABLE)) return;
+      e.preventDefault();
+    });
+  });
+  document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+  ['gesturestart', 'gesturechange', 'gestureend'].forEach(function (type) {
+    document.addEventListener(type, function (e) { e.preventDefault(); }, { passive: false });
+  });
+  window.addEventListener('wheel', function (e) {
+    if (e.ctrlKey || e.metaKey) e.preventDefault();
+  }, { passive: false });
+  window.addEventListener('keydown', function (e) {
+    if ((e.ctrlKey || e.metaKey) && ['+','-','=','0'].indexOf(e.key) >= 0) e.preventDefault();
+  });
+})();
 </script>
 </body>
 </html>
