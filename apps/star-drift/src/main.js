@@ -365,7 +365,7 @@ const nebulaGroup = new THREE.Group();
 scene.add(nebulaGroup);
 
 const nebulaSprites = [];
-const NEBULA_COUNT = isCoarse ? 4 : 6;
+const NEBULA_COUNT = isCoarse ? 5 : 9;
 for (let i = 0; i < NEBULA_COUNT; i++) {
   const mat = nebulaMaterialTemplate.clone();
   mat.uniforms.uMap.value = nebulaTexture;
@@ -375,7 +375,7 @@ for (let i = 0; i < NEBULA_COUNT; i++) {
   const z = -420 + i * 62 + rand(-20, 20);
   mesh.position.set(rand(-160, 160), 0.22 * z + rand(-45, 45), z);
   mesh.renderOrder = -5;
-  mesh.userData.opacity = rand(0.34, 0.62);
+  mesh.userData.opacity = rand(0.4, 0.72);
   mesh.userData.seed = rand(0, 10);
   mesh.userData.drift = rand(0.02, 0.055);
   nebulaGroup.add(mesh);
@@ -385,6 +385,123 @@ for (let i = 0; i < NEBULA_COUNT; i++) {
 /* ------------------------------------------------------------
    星空
    ------------------------------------------------------------ */
+/* ------------------------------------------------------------
+    远方的行星：给星海一个可以凝望的焦点
+    ------------------------------------------------------------ */
+const planetGroup = new THREE.Group();
+planetGroup.position.set(185, 78, -470);
+scene.add(planetGroup);
+
+const planetMat = new THREE.ShaderMaterial({
+  uniforms: {
+    uLight: { value: new THREE.Color(0x8ec4ff) },
+    uDark: { value: new THREE.Color(0x101a35) },
+    uGlow: { value: new THREE.Color(0x8ec4ff) },
+  },
+  vertexShader: /* glsl */ `
+    varying vec3 vN, vV;
+    void main() {
+      vec4 mv = modelViewMatrix * vec4(position, 1.0);
+      vN = normalize(normalMatrix * normal);
+      vV = normalize(-mv.xyz);
+      gl_Position = projectionMatrix * mv;
+    }
+  `,
+  fragmentShader: /* glsl */ `
+    varying vec3 vN, vV;
+    uniform vec3 uLight, uDark, uGlow;
+    void main() {
+      vec3 n = normalize(vN);
+      float lit = smoothstep(-0.18, 0.62, dot(n, normalize(vec3(-0.62, 0.38, 0.7))));
+      float fres = pow(1.0 - max(dot(n, normalize(vV)), 0.0), 3.0);
+      float bands = sin(n.y * 26.0 + sin(n.x * 9.0) * 0.9) * 0.5 + 0.5;
+      vec3 col = mix(uDark, uLight, lit) * (0.9 + bands * 0.12);
+      col += uGlow * fres * (0.14 + lit * 0.22);
+      gl_FragColor = vec4(col, 1.0);
+    }
+  `,
+});
+const planet = new THREE.Mesh(new THREE.SphereGeometry(62, 48, 32), planetMat);
+planetGroup.add(planet);
+
+const planetRing = new THREE.Mesh(
+  new THREE.RingGeometry(1.32, 2.05, 96),
+  new THREE.MeshBasicMaterial({
+    color: 0x8ec4ff,
+    transparent: true,
+    opacity: 0.16,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+  })
+);
+planetRing.rotation.set(1.18, 0.28, 0.2);
+planetRing.scale.setScalar(62);
+planetGroup.add(planetRing);
+
+const planetGlow = new THREE.Sprite(
+  new THREE.SpriteMaterial({
+    map: glowTexture,
+    color: 0x8ec4ff,
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    opacity: 0.22,
+  })
+);
+planetGlow.scale.set(280, 280, 1);
+planetGlow.position.z = -8;
+planetGroup.add(planetGlow);
+
+/* 偶尔划过的流星 */
+const meteor = new THREE.Sprite(
+  new THREE.SpriteMaterial({
+    map: glowTexture,
+    color: 0xffffff,
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    opacity: 0,
+  })
+);
+meteor.scale.set(16, 0.5, 1);
+meteor.renderOrder = 4;
+scene.add(meteor);
+const meteorFrom = new THREE.Vector3();
+const meteorTo = new THREE.Vector3();
+let meteorLife = 0;
+let meteorTimer = rand(3, 9);
+
+function launchMeteor() {
+  const dir = Math.random() < 0.5 ? -1 : 1;
+  meteorFrom.set(rand(-120, 45), rand(38, 92), rand(-280, -150));
+  meteorTo.set(
+    meteorFrom.x + dir * rand(70, 150),
+    meteorFrom.y - rand(40, 90),
+    meteorFrom.z + rand(30, 80)
+  );
+  meteor.material.rotation = Math.atan2(meteorTo.y - meteorFrom.y, meteorTo.x - meteorFrom.x);
+  meteorLife = 1;
+}
+
+function updateMeteor(dt) {
+  if (meteorLife <= 0) {
+    meteor.material.opacity = 0;
+    meteorTimer -= dt;
+    if (meteorTimer <= 0) {
+      launchMeteor();
+      meteorTimer = rand(9, 20);
+    }
+    return;
+  }
+  meteorLife -= dt * 0.62;
+  const t = clamp(1 - meteorLife, 0, 1);
+  meteor.position.lerpVectors(meteorFrom, meteorTo, t);
+  meteor.material.opacity = Math.sin(Math.PI * t) * 0.8 * (1 - palette.sea * 0.6);
+  meteor.material.color.copy(palette.star);
+  if (meteorLife <= 0) meteor.material.opacity = 0;
+}
+
 const STAR_COUNT = isCoarse ? 3200 : 5600;
 
 function buildStars() {
@@ -566,6 +683,9 @@ const crystalMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
 const rockBaseColor = new THREE.Color(0x64749f);
 const rockFarColor = new THREE.Color(0x3a466a);
 const warmWhite = new THREE.Color(0xfff0d8);
+const planetLightTmp = new THREE.Color();
+const planetDarkTmp = new THREE.Color();
+const planetDeep = new THREE.Color(0x101a35);
 
 function makeRock(radius, seed, detail = 2) {
   const geo = new THREE.IcosahedronGeometry(radius, detail);
@@ -586,12 +706,15 @@ function makeRock(radius, seed, detail = 2) {
 }
 
 const islands = [];
+const islandRocks = [];
 const ISLAND_COUNT = isCoarse ? 4 : 5;
 for (let i = 0; i < ISLAND_COUNT; i++) {
   const group = new THREE.Group();
   const radius = rand(1.4, 3.6);
   const detail = i < 3 ? 3 : 2;
   const rock = new THREE.Mesh(makeRock(radius, rand(0, 20), detail), i < 3 ? rockMaterial : rockMaterialFar);
+  rock.userData.islandRoot = group;
+  islandRocks.push(rock);
   group.add(rock);
 
   // 岛上几颗发光晶体
@@ -625,6 +748,8 @@ for (let i = 0; i < ISLAND_COUNT; i++) {
   halo.position.y = -radius * 0.42;
   halo.userData.isHalo = true;
   group.add(halo);
+  group.userData.halo = halo;
+  group.userData.glow = 0;
 
   group.userData = {
     spin: rand(-0.06, 0.06),
@@ -1047,6 +1172,76 @@ for (let i = 0; i < 8; i++) {
 }
 
 // 星火粒子
+/* 连点星辰，慢慢连成一幅星座 */
+const CONSTELLATION_MAX = 6;
+const constellationStars = [];
+const constellationGeo = new THREE.BufferGeometry();
+const constellationPositions = new Float32Array(CONSTELLATION_MAX * 2 * 3);
+const constellationAttr = new THREE.BufferAttribute(constellationPositions, 3);
+constellationAttr.setUsage(THREE.DynamicDrawUsage);
+constellationGeo.setAttribute("position", constellationAttr);
+constellationGeo.setDrawRange(0, 0);
+const constellationMat = new THREE.LineBasicMaterial({
+  color: 0xffffff,
+  transparent: true,
+  opacity: 0,
+  blending: THREE.AdditiveBlending,
+  depthTest: false,
+  depthWrite: false,
+});
+const constellationLines = new THREE.LineSegments(constellationGeo, constellationMat);
+constellationLines.frustumCulled = false;
+constellationLines.renderOrder = 7;
+scene.add(constellationLines);
+let constellationLife = 0;
+let constellationSparkle = 0;
+
+function addToConstellation(star) {
+  const idx = constellationStars.indexOf(star);
+  if (idx >= 0) constellationStars.splice(idx, 1);
+  constellationStars.push(star);
+  if (constellationStars.length > CONSTELLATION_MAX) constellationStars.shift();
+  constellationLife = 1;
+  constellationSparkle = 1;
+  if (constellationStars.length === CONSTELLATION_MAX) {
+    for (const s of constellationStars) spawnSparks(s.position, 5);
+    audio.chime(0.5);
+    audio.note(PENTATONIC[7] * 0.5, 0, 0.4);
+  }
+}
+
+function updateConstellation(dt) {
+  constellationLife = Math.max(0, constellationLife - dt * 0.07);
+  constellationSparkle = Math.max(0, constellationSparkle - dt * 0.8);
+  for (let i = constellationStars.length - 1; i >= 0; i--) {
+    if (constellationStars[i].position.z > 13) constellationStars.splice(i, 1);
+  }
+  let k = 0;
+  for (let i = 1; i < constellationStars.length; i++) {
+    const a = constellationStars[i].position;
+    let nearest = null;
+    let min = Infinity;
+    for (let j = 0; j < i; j++) {
+      const d = a.distanceTo(constellationStars[j].position);
+      if (d < min) {
+        min = d;
+        nearest = constellationStars[j].position;
+      }
+    }
+    if (!nearest || min > 38) continue;
+    constellationPositions[k++] = a.x;
+    constellationPositions[k++] = a.y;
+    constellationPositions[k++] = a.z;
+    constellationPositions[k++] = nearest.x;
+    constellationPositions[k++] = nearest.y;
+    constellationPositions[k++] = nearest.z;
+  }
+  constellationGeo.setDrawRange(0, k / 3);
+  if (k) constellationAttr.needsUpdate = true;
+  constellationMat.color.copy(palette.star).lerp(palette.accent, 0.45);
+  constellationMat.opacity = constellationLife * (0.24 + constellationSparkle * 0.26);
+}
+
 const MAX_SPARKS = 220;
 const sparkGeo = new THREE.BufferGeometry();
 const sparkPositions = new Float32Array(MAX_SPARKS * 3);
@@ -1383,6 +1578,8 @@ const state = {
   pointerNX: 0,
   pointerNY: 0,
   hover: false,
+  targetFov: 46,
+  lanternBoost: 0,
   fade: 0.001,
   frameAvg: 16.7,
   frames: 0,
@@ -1441,6 +1638,7 @@ function bloomStar(star) {
   audio.note(PENTATONIC[Math.floor(Math.random() * 5) + 4] * 0.5, pan, 0.35);
 
   star.material.opacity = 1;
+  addToConstellation(star);
 }
 
 function spawnRippleAt(event) {
@@ -1459,6 +1657,79 @@ function spawnRippleAt(event) {
   ring.sprite.scale.setScalar(0.8);
   audio.init();
   audio.note(PENTATONIC[0] * 2, clamp(point.x / 20, -0.6, 0.6), 0.22);
+}
+
+/* 纸船与浮岛也可以轻触 */
+const boatMeshes = [hull, deck, sail, mast, lantern];
+
+function celebrateBoat() {
+  state.lanternBoost = 1;
+  state.boatVX += rand(-0.35, 0.35);
+  const p = _v.set(boat.position.x, boat.position.y + 0.6, boat.position.z).clone();
+  spawnSparks(p, 22);
+  const ring = rings.find((r) => r.life <= 0) || rings[0];
+  ring.life = 0.9;
+  ring.sprite.visible = true;
+  ring.sprite.position.copy(p);
+  ring.sprite.material.color.copy(palette.accent).multiplyScalar(1.4);
+  ring.scale = 1.1;
+  ring.sprite.scale.setScalar(1.4);
+  audio.init();
+  audio.chime(0.75);
+  audio.note(PENTATONIC[2] * 0.5, 0, 0.3);
+}
+
+function celebrateIsland(island) {
+  if (!island) return;
+  island.userData.glow = 1;
+  const p = island.position.clone();
+  p.y += 0.6;
+  spawnSparks(p, 24);
+  const ring = rings.find((r) => r.life <= 0) || rings[0];
+  ring.life = 1;
+  ring.sprite.visible = true;
+  ring.sprite.position.copy(p);
+  ring.sprite.material.color.copy(palette.accent).multiplyScalar(1.3);
+  ring.scale = 1.6;
+  ring.sprite.scale.setScalar(2.2);
+  audio.init();
+  audio.chime(0.55);
+  audio.note(PENTATONIC[4] * 0.5, clamp(p.x / 30, -0.7, 0.7), 0.34);
+}
+
+function pickWorld(event) {
+  const rect = canvas.getBoundingClientRect();
+  ndc.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  ndc.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+  raycaster.setFromCamera(ndc, camera);
+
+  const starHit = raycaster.intersectObjects(clickableStars, false)[0];
+  if (starHit) {
+    bloomStar(starHit.object);
+    return true;
+  }
+  const boatHit = raycaster.intersectObjects(boatMeshes, false)[0];
+  if (boatHit) {
+    celebrateBoat();
+    return true;
+  }
+  const islandHit = raycaster.intersectObjects(islandRocks, false)[0];
+  if (islandHit) {
+    celebrateIsland(islandHit.object.userData.islandRoot);
+    return true;
+  }
+  spawnRippleAt(event);
+  return false;
+}
+
+const trailPoint = new THREE.Vector3();
+let lastTrail = 0;
+function pointerWorldPoint(event, distance) {
+  const rect = canvas.getBoundingClientRect();
+  ndc.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  ndc.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+  raycaster.setFromCamera(ndc, camera);
+  return raycaster.ray.at(distance, trailPoint);
 }
 
 /* ------------------------------------------------------------
@@ -1507,6 +1778,10 @@ canvas.addEventListener("pointermove", (event) => {
     if (Math.abs(dx) > 5 || Math.abs(dy) > 5) state.dragMoved = true;
     state.targetX = clamp(state.dragStartTarget + (dx / window.innerWidth) * 9.5, -6.5, 6.5);
     state.idle = 0;
+    if (state.time - lastTrail > 0.07) {
+      lastTrail = state.time;
+      spawnSparks(pointerWorldPoint(event, rand(14, 26)), 2);
+    }
     return;
   }
   if (event.pointerType === "mouse" && !state.dragging) {
@@ -1528,7 +1803,7 @@ function endDrag(event) {
   state.dragId = null;
   canvas.classList.remove("is-dragging");
   if (!state.dragMoved && performance.now() - state.dragTime < 650) {
-    if (!pickStar(event)) spawnRippleAt(event);
+    pickWorld(event);
     hideHint();
   }
   if (canvas.hasPointerCapture?.(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
@@ -1542,9 +1817,21 @@ canvas.addEventListener("pointercancel", (event) => {
   canvas.classList.remove("is-dragging");
 });
 
+canvas.addEventListener("wheel", (event) => {
+  event.preventDefault();
+  state.targetFov = clamp(state.targetFov + event.deltaY * 0.018, 30, 72);
+  hideHint();
+}, { passive: false });
+
 const steerKeys = new Set();
 window.addEventListener("keydown", (event) => {
   if (event.ctrlKey || event.metaKey || event.altKey) return;
+  if (["Digit1", "Digit2", "Digit3"].includes(event.code)) {
+    setScene(Number(event.code.slice(-1)) - 1);
+    hideHint();
+    audio.init();
+    return;
+  }
   const keys = ["ArrowLeft", "ArrowRight", "KeyA", "KeyD"];
   if (!keys.includes(event.code)) return;
   event.preventDefault();
@@ -1662,9 +1949,11 @@ function updateBoat(dt) {
   boat.rotation.z = state.boatVX * 0.045;
   boat.rotation.x = Math.sin(state.time * 0.7) * 0.02;
 
-  // 灯随风轻轻摇
-  lanternGlow.material.opacity = 0.26 + Math.sin(state.time * 2.1) * 0.05;
-  lanternLight.intensity = 0.3 + Math.sin(state.time * 2.1) * 0.07;
+  // 灯随风轻轻摇，轻触纸船时会有一次更暖的呼吸
+  state.lanternBoost = Math.max(0, state.lanternBoost - dt * 1.1);
+  const glow = state.lanternBoost * state.lanternBoost;
+  lanternGlow.material.opacity = 0.26 + Math.sin(state.time * 2.1) * 0.05 + glow * 0.5;
+  lanternLight.intensity = 0.3 + Math.sin(state.time * 2.1) * 0.07 + glow * 1.1;
   boatGlow.material.opacity = palette.sea * (0.16 + Math.sin(state.time * 1.3) * 0.02);
 }
 
@@ -1689,6 +1978,10 @@ function updateCamera(dt) {
   look.lerp(boardTarget, damp(dt, 2.2));
   camera.lookAt(look);
   camera.rotateZ(Math.sin(state.time * 0.13) * 0.006 + state.boatVX * 0.0035);
+  if (Math.abs(camera.fov - state.targetFov) > 0.02) {
+    camera.fov = lerp(camera.fov, state.targetFov, damp(dt, 3.4));
+    camera.updateProjectionMatrix();
+  }
   sky.position.copy(camera.position);
   sea.position.x = camera.position.x;
   sea.position.z = camera.position.z;
@@ -1762,16 +2055,19 @@ function updateNebula(dt) {
     mesh.material.uniforms.uColorA.value.copy(palette.nebulaA);
     mesh.material.uniforms.uColorB.value.copy(palette.nebulaB);
     mesh.material.uniforms.uOpacity.value =
-      mesh.userData.opacity * (0.55 + palette.sea * -0.18) * (sceneIndex === 2 ? 0.6 : 1);
+      mesh.userData.opacity * (0.85 - palette.sea * 0.25) * (sceneIndex === 2 ? 0.7 : 1);
     mesh.material.uniforms.uSeed.value = mesh.userData.seed;
   }
 }
 
 function updateIslands(dt) {
   for (const island of islands) {
+    const glow = island.userData.glow || 0;
+    island.userData.glow = Math.max(0, glow - dt * 0.7);
     island.position.z += dt * (4.2 + island.userData.spin * 8);
     island.rotation.y += dt * island.userData.spin;
-    island.position.y = island.userData.baseY + Math.sin(state.time * 0.22 + island.userData.bob) * 0.55;
+    island.position.y = island.userData.baseY + Math.sin(state.time * 0.22 + island.userData.bob) * 0.55 + glow * 0.7;
+    if (island.userData.halo) island.userData.halo.material.opacity = 0.28 + glow * 0.45;
     if (island.position.z > 34) {
       island.position.z -= 300;
       island.position.x = rand(-26, 26);
@@ -1912,6 +2208,16 @@ function updatePalette(dt) {
   sunSprite.material.opacity = palette.sun * 0.55;
   sunSprite.material.color.copy(palette.accent);
 
+  planetLightTmp.copy(palette.accent).lerp(palette.star, 0.4);
+  planetDarkTmp.copy(palette.top).lerp(planetDeep, 0.55);
+  planetMat.uniforms.uLight.value.copy(planetLightTmp);
+  planetMat.uniforms.uDark.value.copy(planetDarkTmp);
+  planetMat.uniforms.uGlow.value.copy(palette.accent);
+  planetGlow.material.color.copy(palette.accent);
+  planetRing.material.color.copy(palette.accent).lerp(palette.star, 0.35);
+  planetRing.material.opacity = 0.14 + (1 - palette.sea) * 0.05;
+  planetGroup.visible = palette.sea < 0.32;
+
   bloom.strength = palette.bloom;
   renderer.toneMappingExposure = palette.exposure;
   grade.uniforms.uTint.value.copy(palette.tint);
@@ -1939,6 +2245,10 @@ function update(dt) {
   updateStars(dt);
   updateNebula(dt);
   updateIslands(dt);
+  planet.rotation.y += dt * 0.018;
+  planetRing.rotation.z += dt * 0.004;
+  updateMeteor(dt);
+  updateConstellation(dt);
   updateWake(dt);
   updateRingsAndSparks(dt);
   updateSunset(dt);
@@ -2004,6 +2314,11 @@ window.__starDrift = {
   bloom,
   parts: { boat, hull, deck, sail, mast, lantern, lanternGlow, boatGlow, sunSprite, wakeMesh },
   stars: clickableStars,
+  constellation: constellationStars,
+  islandRocks,
+  boatMeshes,
+  planetGroup,
+  meteor,
   state,
   render: () => {
     update(0);

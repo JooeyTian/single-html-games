@@ -219,6 +219,7 @@
       .divider { margin: 0 1px; height: 18px; }
       .icon { width: 36px; height: 36px; }
       .hint { font-size: 10px; letter-spacing: .14em; text-indent: .14em; max-width: 78vw; line-height: 1.9; }
+      .hint .desktop-only { display: none; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -236,7 +237,7 @@
   </header>
 
   <div class="dock">
-    <p class="hint" id="hint" role="status">拖动 · 拨动航向　·　点击星辰 · 让它绽放</p>
+    <p class="hint" id="hint" role="status">拖动 · 拨动航向　·　连点星辰 · 连成星座　·　轻触船与浮岛<span class="desktop-only">　·　滚轮缩放</span></p>
     <div class="bar" role="group" aria-label="场景与声音">
       <nav class="scenes" id="scenes" aria-label="氛围场景">
         <button class="scene" data-scene="0" aria-pressed="true"><i class="dot"></i>蓝色深空</button>
