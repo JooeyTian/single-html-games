@@ -9,3 +9,6 @@ desktop.ini
 # 临时文件
 *.tmp
 ~$*
+
+# 构建中间产物
+.build/

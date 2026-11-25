@@ -18,9 +18,15 @@ single-html-games/
 │   ├── winxp-c-drive/       # Windows XP · C盘考古
 │   │   ├── index.html
 │   │   └── thumbnail.jpg    # 首页卡片缩略图
-│   └── neon-survivor/       # 霓虹幸存者（弹幕割草生存）
-│       ├── index.html
-│       └── thumbnail.jpg    # 首页卡片缩略图（待截图）
+│   ├── neon-survivor/       # 霓虹幸存者（弹幕割草生存）
+│   │   ├── index.html
+│   │   └── thumbnail.jpg    # 首页卡片缩略图（待截图）
+│   └── star-drift/          # 星海漂流（Three.js 星空漫游）
+│       ├── index.html       # 自包含构建产物，双击即可离线运行
+│       ├── src/             # 源码（main.js / index.html）
+│       ├── vendor/          # 内置 Three.js 与后期处理依赖
+│       ├── build.mjs        # esbuild 打包脚本
+│       └── thumbnail.jpg    # 首页卡片缩略图
 └── scripts/
     └── new-app.ps1          # 从模板创建新应用的脚本
 ```
@@ -94,3 +100,4 @@ powershell -ExecutionPolicy Bypass -File .\scripts\new-app.ps1 my-new-game
 | 一拳 | `apps/one-punch/` | 点击打击怪物的爽快小游戏 |
 | Windows XP · C盘考古 | `apps/winxp-c-drive/` | 复古 Windows XP 桌面与 C 盘探索，含多个小游戏彩蛋 |
 | 霓虹幸存者 | `apps/neon-survivor/` | 弹幕割草生存：限时存活 / 20 波挑战双模式，20 种武器、26 种被动、6 大流派羁绊（弹幕/元素/召唤/暴击/血怒/领域支配） |
+| 星海漂流 | `apps/star-drift/` | Three.js 程序化星空漫游：蓝色深空 / 粉紫星云 / 晨光海面三场景，点击星辰绽放发声，拖动拨动航向，无计时无失败 |
