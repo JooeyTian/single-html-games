@@ -399,6 +399,23 @@ function arp(freqs, gap, dur, type, vol, dest){
   const t = AC.currentTime;
   freqs.forEach((f, i) => toneAt(f, t+i*gap, dur, type, vol, 0, dest));
 }
+// 电流爆裂：一串极短的带通/高通噪声脉冲，模拟“兹拉兹拉”
+function crackle(dur, vol, dest){
+  if(!AC) return;
+  const t = AC.currentTime, gap = .016;
+  const count = Math.max(2, Math.floor(dur/gap));
+  for(let i = 0; i < count; i++){
+    const tt = t + i*gap + Math.random()*.008;
+    noiseAt(tt, .008 + Math.random()*.012, vol*(.35 + Math.random()*.75),
+      Math.random() < .5 ? 'bandpass' : 'highpass', 1800 + Math.random()*3800, dest);
+  }
+}
+// 电弧尖啸：两路轻微失谐的方波快速下滑，带“电嗡”质感
+function zap(base, dur, vol, dest){
+  if(!AC) return;
+  toneAt(base, AC.currentTime, dur, 'square', vol, -base*.7, dest, {detune: 28});
+  toneAt(base*1.01, AC.currentTime, dur*.85, 'square', vol*.6, -base*.6, dest, {detune:-28});
+}
 
 // 每个技能一套音色：高频金属、低频轰鸣、噪声嘶鸣、颤音回旋……并带音高随机避免重复感
 const SFX = {
@@ -410,11 +427,11 @@ const SFX = {
   scatter(){ noise(.11,.1,'lowpass',1500,null,-1000); tone(120,.13,'triangle',.055,-70); },
   laser(){ const f=vary(380); tone(f,.16,'sawtooth',.026,1500); tone(f*2,.12,'square',.014,1100); },
   orbit(){ noise(.2,.04,'bandpass',650,null,1300); tone(vary(520),.12,'triangle',.013,200); },
-  lightning(){ noise(.08,.07,'highpass',2200); tone(vary(1500),.06,'square',.026,-1100); noise(.14,.04,'bandpass',850); },
+  lightning(){ crackle(.18,.055); zap(vary(1600),.07,.022); tone(vary(120),.16,'sawtooth',.028,-50); },
   fireball(){ noise(.24,.075,'lowpass',950,null,-600); tone(vary(270),.2,'sawtooth',.027,-150); },
   drone(){ const f=vary(860); tone(f,.05,'square',.012,-160); tone(f*1.5,.035,'triangle',.008,-100); },
   nova(){ tone(vary(88),.3,'sine',.085,-38); noise(.26,.06,'lowpass',650,null,700); tone(vary(430),.22,'triangle',.018,320); },
-  thunder(){ noise(.36,.14,'lowpass',1300,null,-950); tone(vary(115),.34,'sawtooth',.075,-70); tone(vary(1750),.08,'square',.028,-1400); },
+  thunder(){ crackle(.34,.075); zap(vary(2100),.1,.03); noise(.32,.1,'lowpass',1100,null,-850); tone(vary(100),.36,'sawtooth',.07,-60); },
   poison(){ tone(vary(230),.15,'sine',.026,-55); tone(vary(310),.13,'triangle',.016,-75); noise(.1,.018,'lowpass',480); },
   meteor(){ noise(.5,.095,'lowpass',430,null,-230); tone(vary(72),.48,'sine',.085,-28); },
   frost(){ tone(vary(1720),.17,'triangle',.018,-640); tone(vary(2560),.12,'sine',.012,-900); },
@@ -424,7 +441,7 @@ const SFX = {
   spikes(){ noise(.06,.065,'bandpass',2300); tone(vary(920),.05,'square',.018,-520); },
   flame(){ noise(.22,.07,'bandpass',820,null,760); tone(vary(155),.18,'sawtooth',.016,-55); },
   shield(){ tone(vary(1180),.13,'sine',.022,420); tone(vary(1760),.1,'triangle',.012,620); },
-  tesla(){ noise(.1,.045,'highpass',2600); tone(vary(1480),.09,'square',.02,-920); tone(vary(2900),.05,'sine',.01,-1500); },
+  tesla(){ crackle(.1,.032); zap(vary(1350),.045,.012); tone(vary(95),.08,'square',.014,-15); },
   bat(){ tone(vary(1300),.12,'square',.018,-720); tone(vary(1900),.09,'triangle',.011,-920); },
   level(){ arp([523,659,784,1046],.075,.19,'square',.038); },
   hurt(){ noise(.14,.055,'bandpass',620); tone(vary(180),.18,'sawtooth',.065,-90); },
