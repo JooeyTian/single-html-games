@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>地牢领主 · Dungeon Overlord</title>
+<style>
+  :root {
+    --bg:#0b0710; --panel:#160f20; --panel2:#1d142a; --line:#3b2a4c;
+    --text:#efe6ff; --dim:#a992bd; --accent:#b26bff; --gold:#ffc35b; --blood:#ff5a6e; --green:#4ade80;
+  }
+  * { box-sizing:border-box; }
+  html,body { margin:0; height:100%; background:var(--bg); color:var(--text); overflow:hidden;
+    font-family:system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif; }
+  body { background:radial-gradient(900px 500px at 85% -10%,rgba(178,107,255,.12),transparent 70%),var(--bg); }
+  #app { height:100vh; height:100dvh; display:flex; flex-direction:column; gap:7px; padding:7px; max-width:1240px; margin:0 auto; }
+  .top { display:flex; align-items:center; gap:9px; flex-wrap:wrap; background:var(--panel); border:1px solid var(--line); border-radius:11px; padding:7px 11px; }
+  .brand { font-size:16px; font-weight:900; white-space:nowrap; }
+  .brand small { font-size:9px; color:var(--accent); letter-spacing:2px; margin-left:5px; }
+  .hud { display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-left:auto; }
+  .hv { display:flex; flex-direction:column; min-width:48px; }
+  .hv span { font-size:9px; color:var(--dim); letter-spacing:1px; }
+  .hv b { font-size:16px; line-height:1.1; }
+  #goldV { color:var(--gold); } #manaV { color:#67e8f9; } #coreV { color:var(--blood); } #ascV { color:var(--accent); }
+  button { font-family:inherit; cursor:pointer; color:var(--text); background:#241734; border:1px solid var(--line); border-radius:8px; padding:7px 10px; font-size:12px; }
+  button:hover:not(:disabled) { border-color:var(--accent); }
+  button:active:not(:disabled) { transform:translateY(1px); }
+  button:disabled { opacity:.4; cursor:not-allowed; }
+  .btn-main { background:linear-gradient(135deg,#7c3aed,#b26bff); border-color:transparent; font-weight:800; }
+  .btn-blood { background:linear-gradient(135deg,#b91c3c,#ff5a6e); border-color:transparent; font-weight:800; }
+  .main { flex:1; min-height:0; display:flex; gap:9px; }
+  .board { flex:none; width:min(520px, 60vh, 100%); display:flex; flex-direction:column; gap:5px; }
+  canvas#cv { display:block; width:100%; aspect-ratio:1; height:auto; border:1px solid var(--line); border-radius:12px; background:#100a18; touch-action:none; }
+  .board-hint { font-size:11px; color:var(--dim); text-align:center; min-height:16px; }
+  .panel { flex:1; min-width:0; display:flex; flex-direction:column; background:var(--panel); border:1px solid var(--line); border-radius:12px; overflow:hidden; }
+  .tabs { display:flex; gap:4px; padding:6px; border-bottom:1px solid var(--line); overflow-x:auto; flex:none; }
+  .tab { flex:none; padding:6px 11px; border-radius:7px; }
+  .tab.active { background:linear-gradient(135deg,#7c3aed,#b26bff); border-color:transparent; font-weight:700; }
+  .panes { flex:1; min-height:0; overflow-y:auto; padding:10px; scrollbar-width:thin; }
+  .pane { display:none; } .pane.active { display:block; }
+  .grid2 { display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:7px; }
+  .card { background:var(--panel2); border:1px solid var(--line); border-radius:9px; padding:9px 10px; }
+  .card .t { font-size:13px; font-weight:800; display:flex; align-items:center; gap:6px; }
+  .card .d { font-size:10px; color:var(--dim); line-height:1.6; margin-top:4px; }
+  .card button { margin-top:6px; padding:5px 8px; font-size:11px; }
+  .bar { height:6px; border-radius:4px; background:#2b1c3b; overflow:hidden; margin-top:5px; }
+  .bar i { display:block; height:100%; background:linear-gradient(90deg,#b26bff,#ff5a6e); }
+  .bar.g i { background:linear-gradient(90deg,#22c55e,#4ade80); }
+  .row { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+  .pill { font-size:10px; padding:2px 7px; border-radius:99px; background:#2b1c3b; border:1px solid var(--line); color:var(--dim); }
+  .pill.g { color:var(--green); border-color:rgba(74,222,128,.35); }
+  .pill.r { color:var(--gold); border-color:rgba(255,195,91,.35); }
+  .log { font-size:11px; line-height:1.8; color:var(--dim); }
+  .log div { border-bottom:1px solid rgba(59,42,76,.5); padding:2px 0; }
+  .actions { display:flex; gap:7px; flex:none; padding:7px 10px; border-top:1px solid var(--line); background:var(--panel); flex-wrap:wrap; }
+  .actions .spacer { flex:1; }
+  select { font-family:inherit; font-size:11px; color:var(--text); background:#241734; border:1px solid var(--line); border-radius:7px; padding:6px; }
+  .toast { position:fixed; left:50%; top:14px; transform:translateX(-50%); z-index:20; background:#241734; border:1px solid var(--accent); border-radius:9px; padding:8px 16px; font-size:12px; opacity:0; transition:opacity .2s; pointer-events:none; }
+  .toast.show { opacity:1; }
+  @media (max-width:820px){
+    #app { padding:5px; gap:5px; }
+    .brand { width:100%; font-size:15px; }
+    .hud { width:100%; margin-left:0; justify-content:space-between; gap:8px; }
+    .hv b { font-size:14px; }
+    .main { flex-direction:column; }
+    .board { width:min(100%,46dvh); align-self:center; }
+    canvas#cv { max-height:none; }
+    .panel { flex:1; }
+    .actions button { flex:1; min-height:40px; }
+  }
+  * { -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; -webkit-tap-highlight-color:transparent; }
+  select { -webkit-user-select:text; user-select:text; }
+  html,body { touch-action:manipulation; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="top">
+    <div class="brand">👹 地牢领主 <small>DUNGEON OVERLORD</small></div>
+    <div class="hud">
+      <div class="hv"><span>波次</span><b id="waveV">1</b></div>
+      <div class="hv"><span>金币</span><b id="goldV">0</b></div>
+      <div class="hv"><span>魔能</span><b id="manaV">0</b></div>
+      <div class="hv"><span>核心</span><b id="coreV">100</b></div>
+      <div class="hv"><span>深渊</span><b id="ascV">0</b></div>
+      <button id="mute">🔊</button>
+    </div>
+  </div>
+  <div class="main">
+    <div class="board">
+      <canvas id="cv" width="572" height="572"></canvas>
+      <div class="board-hint" id="hint">选择房间类型后点击空地建造；点击已有房间升级</div>
+    </div>
+    <div class="panel">
+      <div class="tabs">
+        <button class="tab active" data-tab="build">建造</button>
+        <button class="tab" data-tab="monster">怪物</button>
+        <button class="tab" data-tab="forge">锻造</button>
+        <button class="tab" data-tab="codex">图鉴</button>
+        <button class="tab" data-tab="log">战报</button>
+      </div>
+      <div class="panes" id="panes">
+        <div class="pane active" data-pane="build"></div>
+        <div class="pane" data-pane="monster"></div>
+        <div class="pane" data-pane="forge"></div>
+        <div class="pane" data-pane="codex"></div>
+        <div class="pane" data-pane="log"></div>
+      </div>
+      <div class="actions">
+        <button id="startWave" class="btn-main">⚔ 开始波次</button>
+        <button id="speedBtn">速度 ×1</button>
+        <button id="ascBtn" class="btn-blood" disabled>深渊跃迁</button>
+        <span class="spacer"></span>
+        <span class="pill" id="statePill">建设阶段</span>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  'use strict';
+  const SAVE_KEY='dungeonOverlordSave_v1';
+  const N=11,CELL=52,OX=0,OY=0;
+  const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+  const dpr=Math.min(2,window.devicePixelRatio||1);
+  cv.width=Math.round((N*CELL)*dpr); cv.height=Math.round((N*CELL)*dpr); ctx.setTransform(dpr,0,0,dpr,0,0);
+  const panes=document.getElementById('panes');
+  const $=(s)=>document.querySelector(s);
+  let toastTimer=null;
+  function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),1600); }
+  function log(msg){ const s=state; s.log.unshift(msg); if(s.log.length>60) s.log.length=60; }
+
+  const ROOMS={
+    corridor:{n:'通道',cost:6,c:'#3b3350',icon:'·',d:'连接房间的通路，英雄可通行。'},
+    nest:{n:'巢穴',cost:65,c:'#7c3aed',icon:'🐲',d:'容纳 3 只怪物，怪物在此驻守。'},
+    hatchery:{n:'孵化室',cost:85,c:'#22c55e',icon:'🥚',d:'每波结束为怪物提供额外经验。'},
+    vault:{n:'宝库',cost:75,c:'#eab308',icon:'💰',d:'每波结束额外获得金币。'},
+    lab:{n:'实验室',cost:95,c:'#06b6d4',icon:'⚗️',d:'每波结束额外获得魔能。'},
+    trap:{n:'陷阱走廊',cost:60,c:'#ef4444',icon:'⚠️',d:'英雄经过时造成伤害，每波充能 2×等级。'}
+  };
+  const SPECIES=[
+    {n:'哥布林',hp:60,atk:9,def:3,spd:1.05,unlock:0,icon:'👺',c:'#a3e635'},
+    {n:'骷髅兵',hp:85,atk:12,def:6,spd:0.9,unlock:0,icon:'💀',c:'#d4d4d8'},
+    {n:'黏液怪',hp:140,atk:9,def:11,spd:0.7,unlock:5,icon:'🟢',c:'#4ade80'},
+    {n:'小恶魔',hp:78,atk:19,def:4,spd:1.25,unlock:10,icon:'😈',c:'#fb7185'},
+    {n:'蛛后',hp:115,atk:16,def:8,spd:1.15,unlock:15,icon:'🕷️',c:'#c4b5fd'},
+    {n:'石像鬼',hp:190,atk:17,def:15,spd:0.8,unlock:20,icon:'🗿',c:'#94a3b8'}
+  ];
+  const CLASSES=[
+    {n:'战士',hp:100,atk:12,def:8,spd:0.9,c:'#f87171',icon:'⚔️'},
+    {n:'法师',hp:65,atk:20,def:2,spd:0.8,c:'#60a5fa',icon:'🔮'},
+    {n:'盗贼',hp:70,atk:15,def:3,spd:1.4,c:'#34d399',icon:'🗡️'},
+    {n:'牧师',hp:85,atk:10,def:5,spd:0.85,c:'#fde68a',icon:'✝️'}
+  ];
+  const AFFIXES=[
+    {k:'atk',n:'攻击',lo:2,hi:9},{k:'hp',n:'生命',lo:12,hi:40},{k:'def',n:'防御',lo:1,hi:7},
+    {k:'crit',n:'暴击',lo:3,hi:13},{k:'spd',n:'速度',lo:5,hi:22}
+  ];
+  const SLOTS=['武器','护甲','饰品'];
+  const RARITY=['','普通','精良','稀有','传奇'];
+  const RCOLOR=['#aaa','#d4d4d8','#4ade80','#60a5fa','#fbbf24'];
+  const GT={
+    armor:{n:'加固核心',d:'核心生命上限 +25 / 级'},
+    blade:{n:'淬毒利刃',d:'怪物攻击 +8% / 级'},
+    greed:{n:'贪婪之心',d:'金币收益 +12% / 级'},
+    trap:{n:'陷阱精通',d:'陷阱伤害 +25% / 级'},
+    arcane:{n:'秘术研究',d:'魔能收益 +15% / 级'}
+  };
+  const DEFAULT={
+    version:1,wave:1,gold:180,mana:0,coreHp:100,ascension:0,
+    grid:[],monsters:[],inventory:[],codex:[0],gt:{armor:0,blade:0,greed:0,trap:0,arcane:0},
+    log:[],nextId:1,bestWave:1,kills:0,rounds:0
+  };
+  function initGrid(){
+    const g=new Array(N*N).fill(null).map(()=>({type:null,level:1,charges:0}));
+    const put=(c,r,type)=>{ g[r*N+c]={type,level:1,charges:type==='trap'?2:0}; };
+    for(let c=0;c<=5;c++) put(c,5,'corridor');
+    for(let r=0;r<N;r++) put(5,r,'corridor');
+    put(4,5,'nest'); put(5,4,'vault'); put(6,5,'trap'); put(5,6,'nest');
+    put(5,5,'core');
+    return g;
+  }
+  function newMonster(species){
+    const s=SPECIES[species];
+    return {id:state.nextId++,species,level:1,xp:0,tp:0,talents:{atk:0,hp:0,def:0},nest:-1,equip:[null,null,null]};
+  }
+  let state=null;
+  function load(){
+    try{
+      const raw=localStorage.getItem(SAVE_KEY);
+      if(raw){ const d=JSON.parse(raw); if(d&&d.version===1){ state=Object.assign({},DEFAULT,d); state.gt=Object.assign({},DEFAULT.gt,d.gt||{}); return; } }
+    }catch(e){}
+    state=JSON.parse(JSON.stringify(DEFAULT));
+    state.grid=initGrid(); state.monsters=[newMonster(0)]; assignNests();
+    log('地牢初建，哥布林已就位。');
+  }
+  function save(){
+    if(!state) return;
+    try{ state.phase='build'; state.heroes=[]; state.floaters=[]; state.particles=[]; localStorage.setItem(SAVE_KEY,JSON.stringify(state)); }catch(e){}
+  }
+  function assignNests(){
+    const nests=[]; for(let i=0;i<state.grid.length;i++) if(state.grid[i].type==='nest') nests.push(i);
+    let free=0;
+    for(const m of state.monsters){
+      if(m.nest>=0 && state.grid[m.nest] && state.grid[m.nest].type==='nest') continue;
+      while(free<nests.length && state.monsters.filter(x=>x.nest===nests[free]).length>=3) free++;
+      m.nest=free<nests.length?nests[free]:-1;
+    }
+  }
+  function unlocked(i){ return state.wave>=SPECIES[i].unlock || state.ascension>0; }
+  function monsterStats(m){
+    const s=SPECIES[m.species];
+    let hp=s.hp+(m.level-1)*9+m.talents.hp*14, atk=s.atk+(m.level-1)*2.4+m.talents.atk*2.5, def=s.def+(m.level-1)*0.9+m.talents.def*1.5, spd=s.spd, crit=5;
+    for(const it of m.equip){ if(!it) continue; for(const a of it.affixes){ if(a.k==='atk') atk+=a.v; if(a.k==='hp') hp+=a.v; if(a.k==='def') def+=a.v; if(a.k==='crit') crit+=a.v; if(a.k==='spd') spd*=1+a.v/100; } }
+    atk*=1+state.gt.blade*0.08;
+    const same=state.monsters.filter(x=>x.species===m.species).length;
+    if(same>=3){ atk*=1.2; hp*=1.15; }
+    return {hp,atk,def,spd,crit};
+  }
+  function genItem(wave){
+    const slot=Math.floor(Math.random()*3);
+    let rarity=Math.random()<Math.min(.5,.06+wave*.02)?3:Math.random()<.35?2:1;
+    if(Math.random()<Math.min(.12,wave*.006)) rarity=4;
+    const scale=1+wave*.09+state.ascension*.2;
+    const affixes=[];
+    const count=rarity>=3?2:1;
+    for(let i=0;i<count;i++){ const a=AFFIXES[Math.floor(Math.random()*AFFIXES.length)]; affixes.push({k:a.k,n:a.n,v:Math.round((a.lo+Math.random()*(a.hi-a.lo))*scale*(1+(rarity-1)*.25))}); }
+    const names=['锈蚀','裂石','幽光','龙纹','深渊'];
+    return {id:state.nextId++,slot,rarity,name:names[rarity]+SLOTS[slot],affixes};
+  }
+  function addItem(it){ state.inventory.push(it); if(state.inventory.length>60) toast('背包已满，旧装备自动出售'); }
+
+  // ---------- pathfinding ----------
+  function walkable(i){ return !!state.grid[i] && state.grid[i].type!==null; }
+  function bfs(start,goal){
+    const prev=new Int32Array(N*N).fill(-2),q=[start]; prev[start]=-1;
+    for(let h=0;h<q.length;h++){ const cur=q[h]; if(cur===goal) break;
+      const c=cur%N,r=(cur/N)|0;
+      const ns=[[c+1,r],[c-1,r],[c,r+1],[c,r-1]];
+      for(const [nc,nr] of ns){ if(nc<0||nr<0||nc>=N||nr>=N) continue; const ni=nr*N+nc;
+        if(prev[ni]!==-2||!walkable(ni)) continue; prev[ni]=cur; q.push(ni); }
+    }
+    if(prev[goal]===-2) return null;
+    const path=[]; let cur=goal; while(cur!==-1){ path.push(cur); cur=prev[cur]; } return path.reverse();
+  }
+  const CORE=5*N+5;
+  function spawnCells(){
+    const out=[];
+    for(let i=0;i<N*N;i++){ if(!walkable(i)) continue; const c=i%N,r=(i/N)|0; if(c===0||r===0||c===N-1||r===N-1) out.push(i); }
+    return out;
+  }
+  let heroes=[],floaters=[],particles=[],spawnQueue=[],spawnTimer=0,corePulse=0,speed=1,battle=false;
+  function rewardHero(h){
+    if(h.rewarded||h.hp>0) return;
+    h.rewarded=true; state.kills++;
+    const gold=8+state.wave*2; state.gold+=Math.round(gold*(1+state.gt.greed*.12));
+    if(Math.random()<.4) addItem(genItem(state.wave));
+    floaters.push({x:h.x,y:h.y,text:'💀',c:'#ffc35b',life:1.2});
+  }
+
+  function startWave(){
+    if(battle) return;
+    const cells=spawnCells().filter(i=>bfs(i,CORE));
+    if(!cells.length){ toast('没有通往核心的通路！'); return; }
+    const count=Math.min(22,2+Math.ceil(state.wave*1.5));
+    spawnQueue=[];
+    for(let i=0;i<count;i++) spawnQueue.push(i);
+    heroes=[]; floaters=[]; particles=[]; spawnTimer=0; corePulse=0; battle=true;
+    for(const m of state.monsters){ m.hp=monsterStats(m).hp; m._hp=m.hp; }
+    for(const cell of state.grid) if(cell.type==='trap') cell.charges=cell.level*2;
+    log('第 '+state.wave+' 波入侵开始：'+count+' 名英雄。');
+    renderHUD();
+  }
+  function spawnHero(){
+    const cells=spawnCells().filter(i=>bfs(i,CORE));
+    if(!cells.length) return;
+    const cell=cells[Math.floor(Math.random()*cells.length)];
+    const path=bfs(cell,CORE); if(!path) return;
+    const cls=CLASSES[Math.floor(Math.random()*CLASSES.length)];
+    const boss=state.wave%5===0 && spawnQueue.length===0;
+    const scale=(1+state.wave*.14)*(1+state.ascension*.28)*(boss?2.6:1);
+    const mod=state.wave%5===0?['暴击强化','急速','重甲'][state.wave/5%3|0]:'';
+    heroes.push({x:cell%N+.5,y:((cell/N)|0)+.5,cls,hp:cls.hp*scale,maxHp:cls.hp*scale,
+      atk:cls.atk*scale,def:cls.def*(1+state.wave*.05),spd:cls.spd*(mod==='急速'?1.5:1),
+      crit:mod==='暴击强化'?30:5,path,pi:0,cd:0,boss,mod,coreCd:0});
+  }
+  function damageMonster(m,dmg){ m.hp-=dmg; if(m.hp<=0){ m.hp=0; m.deadAt=performance.now(); log('怪物 '+SPECIES[m.species].n+' 倒下了。'); } }
+  function battleStep(dt){
+    if(spawnQueue.length){ spawnTimer-=dt; if(spawnTimer<=0){ spawnHero(); spawnQueue.shift(); spawnTimer=Math.max(.35,.95-state.wave*.015); } }
+    const g=state.grid;
+    const mons=state.monsters.map(m=>({m,st:monsterStats(m),x:m.nest>=0?m.nest%N+.5:5.5,y:m.nest>=0?((m.nest/N)|0)+.5:5.5,hp:(m._hp===undefined?monsterStats(m).hp:m._hp),cd:0,dead:false}));
+    for(const mo of mons){ if(mo.m.hp<=0) mo.dead=true; mo.m._hp=mo.hp; }
+    for(const h of heroes){
+      if(h.hp<=0) continue;
+      h.cd-=dt; h.coreCd-=dt;
+      // combat
+      let target=null,bd=2.7;
+      for(const mo of mons){ if(mo.dead) continue; const d=Math.hypot(mo.x-h.x,mo.y-h.y); if(d<bd){ bd=d; target=mo; } }
+      if(target&&h.cd<=0){
+        h.cd=.8/Math.max(.6,h.spd);
+        let dmg=Math.max(1,h.atk-target.st.def*.5);
+        if(Math.random()*100<h.crit){ dmg*=1.8; floaters.push({x:target.x,y:target.y,text:Math.round(dmg)+'!',c:'#ff5a6e',life:1}); }
+        target.hp-=dmg; target.m._hp=target.hp;
+        particles.push({x:target.x,y:target.y,vx:(Math.random()-.5)*2,vy:(Math.random()-.5)*2,life:.5,c:'#ff5a6e'});
+        if(target.hp<=0){ target.dead=true; target.m.hp=0; log(SPECIES[target.m.species].n+' 阵亡。'); }
+        if(target.cd<=0){ let rd=Math.max(1,target.st.atk-h.def*.5); h.hp-=rd; target.cd=1; floaters.push({x:h.x,y:h.y,text:'+'+Math.round(rd),c:'#fff',life:.8}); }
+      }
+      if(h.hp<=0){ rewardHero(h); continue; }
+      if(h.hp<=0){ rewardHero(h); continue; }
+      // move
+      if(h.pi<h.path.length){
+        const idx=h.path[h.pi],tx=idx%N+.5,ty=((idx/N)|0)+.5;
+        const dx=tx-h.x,dy=ty-h.y,d=Math.hypot(dx,dy),step=h.spd*1.5*dt;
+        if(d<=step){ h.x=tx; h.y=ty; h.pi++;
+          const room=g[idx]; if(room&&room.type==='trap'&&room.charges>0){ room.charges--; const td=(24+state.wave*5)*room.level*(1+state.gt.trap*.25);
+            h.hp-=td; floaters.push({x:h.x,y:h.y,text:Math.round(td),c:'#ff8a3d',life:1});
+            for(let i=0;i<8;i++) particles.push({x:h.x,y:h.y,vx:(Math.random()-.5)*4,vy:(Math.random()-.5)*4,life:.5,c:'#ff8a3d'}); }
+        } else { h.x+=dx/d*step; h.y+=dy/d*step; }
+      } else if(h.coreCd<=0){
+        h.coreCd=1; const dmg=Math.max(2,h.atk*.55); state.coreHp-=dmg;
+        floaters.push({x:5.5,y:5.5,text:'核心 -'+Math.round(dmg),c:'#ff5a6e',life:1});
+      }
+    }
+    corePulse-=dt;
+    if(corePulse<=0){
+      corePulse=1.2;
+      const near=heroes.filter(h=>h.hp>0&&Math.hypot(h.x-5.5,h.y-5.5)<3.2).sort((a,b)=>Math.hypot(a.x-5.5,a.y-5.5)-Math.hypot(b.x-5.5,b.y-5.5));
+      if(near.length){ const h=near[0],dmg=18+state.wave*4+state.ascension*6;
+        h.hp-=dmg; floaters.push({x:h.x,y:h.y,text:'核心 -'+Math.round(dmg),c:'#b26bff',life:1});
+        for(let i=0;i<6;i++) particles.push({x:5.5,y:5.5,vx:(Math.random()-.5)*5,vy:(Math.random()-.5)*5,life:.5,c:'#b26bff'});
+        rewardHero(h);
+      }
+    }
+    heroes=heroes.filter(h=>h.hp>0);
+    for(const p of particles){ p.x+=p.vx*dt; p.y+=p.vy*dt; p.life-=dt*2; }
+    particles=particles.filter(p=>p.life>0);
+    for(const f of floaters){ f.y-=dt*1.1; f.life-=dt*1.4; }
+    floaters=floaters.filter(f=>f.life>0);
+    if(state.coreHp<=0){ finishWave(false); return; }
+    if(!spawnQueue.length&&!heroes.length) finishWave(true);
+  }
+  function finishWave(win){
+    battle=false;
+    for(const m of state.monsters){ m.hp=monsterStats(m).hp; m._hp=undefined; }
+    if(win){
+      const gold=(26+state.wave*12)*(1+state.gt.greed*.12),mana=(6+state.wave)*(1+state.gt.arcane*.15);
+      state.gold+=Math.round(gold); state.mana+=Math.round(mana); state.wave++; state.rounds++;
+      state.bestWave=Math.max(state.bestWave,state.wave);
+      for(const cell of state.grid){ if(cell.type==='vault') state.gold+=25*cell.level; if(cell.type==='lab') state.mana+=8*cell.level;
+        if(cell.type==='hatchery') for(const m of state.monsters) m.xp+=12*cell.level; }
+      for(const m of state.monsters){ m.xp+=18; while(m.xp>=100*m.level){ m.xp-=100*m.level; m.level++; m.tp++; } }
+      log('第 '+(state.wave-1)+' 波守住了！+'+Math.round(gold)+' 金币，+'+Math.round(mana)+' 魔能。');
+      if(Math.random()<.55) addItem(genItem(state.wave));
+      if((state.wave-1)%5===0) { addItem(genItem(state.wave+2)); toast('Boss 掉落传奇战利品！'); }
+      assignNests();
+    } else {
+      state.coreHp=Math.max(30,Math.round(coreMax()*.5)); state.gold=Math.round(state.gold*.7);
+      log('核心被攻破！损失 30% 金币，核心修复至半血。'); toast('核心失守，重新布防！');
+    }
+    $('#ascBtn').disabled=state.wave<=20;
+    renderAll(); save();
+  }
+  function coreMax(){ return 100+state.ascension*40+state.gt.armor*25; }
+  function ascend(){
+    if(state.wave<=20) return;
+    const legend=state.inventory.filter(i=>i.rarity===4);
+    const keepCodex=state.codex.slice(),keepGt=Object.assign({},state.gt);
+    const a=state.ascension+1;
+    state=Object.assign({},DEFAULT);
+    state.ascension=a; state.gold=180+a*60; state.codex=keepCodex; state.gt=keepGt;
+    state.grid=initGrid(); state.monsters=[newMonster(0)]; state.inventory=legend;
+    state.coreHp=coreMax(); state.log=[]; state.nextId=1000+a*10000;
+    log('跃迁至深渊第 '+a+' 层。实体资产重置，传承永久保留。');
+    $('#ascBtn').disabled=true; renderAll(); save(); toast('深渊跃迁完成！');
+  }
+
+  // ---------- render canvas ----------
+  function draw(){
+    ctx.clearRect(0,0,N*CELL,N*CELL);
+    ctx.fillStyle='#100a18'; ctx.fillRect(0,0,N*CELL,N*CELL);
+    for(let i=0;i<N*N;i++){
+      const x=(i%N)*CELL,y=((i/N)|0)*CELL,cell=state.grid[i];
+      ctx.fillStyle=cell&&cell.type?'#1a1228':'#150e20'; ctx.fillRect(x+1,y+1,CELL-2,CELL-2);
+      ctx.strokeStyle='rgba(178,107,255,.08)'; ctx.strokeRect(x+1.5,y+1.5,CELL-3,CELL-3);
+      if(cell&&cell.type){
+        const r=ROOMS[cell.type]||{c:'#ff5a6e',icon:'💎'};
+        ctx.fillStyle=r.c+'33'; ctx.fillRect(x+2,y+2,CELL-4,CELL-4);
+        ctx.font=(cell.type==='core'?'24px':'19px')+' serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText(r.icon,x+CELL/2,y+CELL/2+1);
+        if(cell.level>1){ ctx.font='9px system-ui'; ctx.fillStyle='#ffc35b'; ctx.fillText('Lv'+cell.level,x+CELL/2,y+CELL-10); }
+        if(cell.type==='trap'){ ctx.font='9px system-ui'; ctx.fillStyle='#ff8a3d'; ctx.fillText('⚡'+cell.charges,x+CELL/2,y+CELL-8); }
+      }
+    }
+    if(state.coreHp<coreMax()){
+      const hp=state.coreHp/coreMax(); ctx.strokeStyle='#ff5a6e'; ctx.lineWidth=3;
+      ctx.beginPath(); ctx.arc(5.5*CELL,5.5*CELL,CELL*.42,-Math.PI/2,-Math.PI/2+Math.PI*2*hp); ctx.stroke();
+    }
+    for(const m of state.monsters){
+      if(m.hp<=0) continue;
+      const x=(m.nest>=0?m.nest%N+.5:5.5)*CELL,y=(m.nest>=0?((m.nest/N)|0)+.5:5.5)*CELL;
+      ctx.font='20px serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(SPECIES[m.species].icon,x,y);
+      const st=monsterStats(m),ratio=Math.max(0,m._hp===undefined?st.hp:m._hp)/st.hp;
+      ctx.fillStyle='#2b1c3b'; ctx.fillRect(x-16,y+15,32,4); ctx.fillStyle='#4ade80'; ctx.fillRect(x-16,y+15,32*ratio,4);
+    }
+    for(const h of heroes){
+      const x=h.x*CELL,y=h.y*CELL;
+      ctx.fillStyle=h.c||h.cls.c; ctx.beginPath(); ctx.arc(x,y,h.boss?16:12,0,7); ctx.fill();
+      ctx.fillStyle='#fff'; ctx.font=(h.boss?'15px':'12px')+' serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(h.cls.icon,x,y);
+      const ratio=Math.max(0,h.hp/h.maxHp); ctx.fillStyle='#2b1c3b'; ctx.fillRect(x-14,y-20,28,4); ctx.fillStyle='#ff5a6e'; ctx.fillRect(x-14,y-20,28*ratio,4);
+    }
+    for(const p of particles){ ctx.globalAlpha=Math.max(0,p.life); ctx.fillStyle=p.c; ctx.fillRect(p.x*CELL,p.y*CELL,3,3); }
+    ctx.globalAlpha=1;
+    for(const f of floaters){ ctx.globalAlpha=Math.min(1,f.life); ctx.fillStyle=f.c; ctx.font='bold 12px system-ui'; ctx.textAlign='center'; ctx.fillText(f.text,f.x*CELL,f.y*CELL-8); }
+    ctx.globalAlpha=1;
+  }
+
+  // ---------- panels ----------
+  let selectedRoom='corridor',demolish=false;
+  function renderBuild(){
+    const g=state.grid;
+    let html='<div class="row" style="margin-bottom:8px"><span class="pill">金币 '+state.gold+'</span><span class="pill">魔能 '+state.mana+'</span><span class="pill">核心 '+Math.round(state.coreHp)+'/'+coreMax()+'</span></div>';
+    html+='<div class="grid2">';
+    for(const k in ROOMS){ const r=ROOMS[k];
+      html+='<div class="card"><div class="t">'+r.icon+' '+r.n+'</div><div class="d">'+r.d+'</div>'
+        +'<div class="d">造价 '+r.cost+' 金币</div>'
+        +'<button data-a="room" data-k="'+k+'" '+(selectedRoom===k&&!demolish?'class="btn-main"':'')+'>选择建造</button></div>'; }
+    html+='<div class="card"><div class="t">🧹 拆除</div><div class="d">返还 50% 造价，核心不可拆。</div>'
+      +'<button data-a="demolish" '+(demolish?'class="btn-main"':'')+'>'+(demolish?'拆除模式已开':'切换拆除')+'</button></div></div>';
+    html+='<div class="d" style="margin-top:8px">已建房间：'+Object.values(g).filter(c=>c.type&&c.type!=='corridor').length+' 个 · 通道 '+Object.values(g).filter(c=>c.type==='corridor').length+' 个</div>';
+    return html;
+  }
+  function renderMonster(){
+    let html='<div class="row" style="margin-bottom:8px"><span class="pill">怪物 '+state.monsters.length+'</span><span class="pill">点击训练获得经验</span></div><div class="grid2">';
+    for(const m of state.monsters){
+      const sp=SPECIES[m.species],st=monsterStats(m);
+      html+='<div class="card"><div class="t">'+sp.icon+' '+sp.n+' Lv'+m.level+(m.tp?' <span class="pill r">天赋 '+m.tp+'</span>':'')+'</div>'
+        +'<div class="d">生命 '+Math.round(st.hp)+' · 攻击 '+st.atk.toFixed(1)+' · 防御 '+st.def.toFixed(1)+' · 速度 '+st.spd.toFixed(2)+'</div>'
+        +'<div class="bar g"><i style="width:'+Math.min(100,m.xp/(100*m.level)*100)+'%"></i></div>'
+        +'<div class="d">经验 '+m.xp+' / '+(100*m.level)+' · 驻守 '+(m.nest>=0?'是':'无巢穴')+'</div>'
+        +'<div class="row"><button data-a="train" data-id="'+m.id+'">训练(20金)</button>'
+        +'<button data-a="talent" data-id="'+m.id+'" '+(!m.tp?'disabled':'')+'>加点</button>'
+        +'<button data-a="evolve" data-id="'+m.id+'" '+(m.level<10?'disabled':'')+'>进化</button>'
+        +'<button data-a="fire" data-id="'+m.id+'">解散</button></div></div>';
+    }
+    html+='</div><div class="row" style="margin-top:9px">';
+    for(let i=0;i<SPECIES.length;i++){ if(!unlocked(i)) continue;
+      html+='<button data-a="recruit" data-i="'+i+'">招募 '+SPECIES[i].icon+' '+SPECIES[i].n+' (80金)</button>'; }
+    html+='</div><div class="d" style="margin-top:8px">羁绊：同系 3 只以上 → 攻击 +20%、生命 +15%。怪物在巢穴中驻守，战斗时自动迎敌。</div>';
+    return html;
+  }
+  function renderForge(){
+    let html='<div class="row" style="margin-bottom:8px"><span class="pill">背包 '+state.inventory.length+' / 60</span><select id="equipTarget">'
+      +state.monsters.map(m=>'<option value="'+m.id+'">'+SPECIES[m.species].n+' Lv'+m.level+'</option>').join('')+'</select></div><div class="grid2">';
+    if(!state.inventory.length) html+='<div class="card"><div class="d">暂无装备。守住波次或击杀英雄可获得战利品。</div></div>';
+    for(const it of state.inventory){
+      html+='<div class="card" style="border-color:'+RCOLOR[it.rarity]+'"><div class="t" style="color:'+RCOLOR[it.rarity]+'">'+it.name+'</div>'
+        +'<div class="d">'+SLOTS[it.slot]+' · '+RARITY[it.rarity]+' · '+it.affixes.map(a=>a.n+' +'+a.v).join(' / ')+'</div>'
+        +'<div class="row"><button data-a="equip" data-id="'+it.id+'">装备</button>'
+        +'<button data-a="upgrade" data-id="'+it.id+'">熔铸('+(80*it.rarity)+'金)</button>'
+        +'<button data-a="reroll" data-id="'+it.id+'">重铸(30金)</button>'
+        +'<button data-a="sell" data-id="'+it.id+'">出售</button></div></div>';
+    }
+    html+='</div><div class="d" style="margin-top:8px">熔铸提升品质与词缀；重铸随机新数值；出售返还金币。</div>';
+    return html;
+  }
+  function renderCodex(){
+    let html='<div class="grid2">';
+    for(let i=0;i<SPECIES.length;i++){ const s=SPECIES[i],ok=unlocked(i),seen=state.codex.includes(i);
+      html+='<div class="card"><div class="t">'+s.icon+' '+(seen?s.n:'未知生物')+'</div>'
+        +'<div class="d">'+(ok?'基础：生命 '+s.hp+' / 攻击 '+s.atk+' / 防御 '+s.def:'第 '+s.unlock+' 波解锁')+'</div></div>'; }
+    html+='</div><div class="t" style="margin:12px 0 6px">永久天赋（跃迁保留）</div><div class="grid2">';
+    for(const k in GT){ const t=GT[k],lv=state.gt[k],cost=20*(lv+1);
+      html+='<div class="card"><div class="t">'+t.n+' <span class="pill r">Lv'+lv+'/5</span></div><div class="d">'+t.d+'</div>'
+        +'<button data-a="gt" data-k="'+k+'" '+((lv>=5||state.mana<cost)?'disabled':'')+'>升级 ('+cost+' 魔能)</button></div>'; }
+    html+='</div>';
+    return html;
+  }
+  function renderLog(){ return '<div class="log">'+state.log.map(x=>'<div>· '+x+'</div>').join('')+'</div>'; }
+  function renderPanes(){
+    const map={build:renderBuild,monster:renderMonster,forge:renderForge,codex:renderCodex,log:renderLog};
+    for(const pane of panes.querySelectorAll('.pane')) if(pane.classList.contains('active')) pane.innerHTML=map[pane.dataset.pane]();
+  }
+  function renderHUD(){
+    $('#waveV').textContent=state.wave; $('#goldV').textContent=state.gold; $('#manaV').textContent=state.mana;
+    $('#coreV').textContent=Math.max(0,Math.round(state.coreHp)); $('#ascV').textContent=state.ascension;
+    $('#ascBtn').disabled=state.wave<=20||battle;
+    $('#startWave').disabled=battle; $('#startWave').textContent=battle?'⚔ 战斗中…':'⚔ 开始波次';
+    $('#startWave').className=battle?'':'btn-main';
+    $('#speedBtn').textContent='速度 ×'+speed;
+    $('#statePill').textContent=battle?'战斗 '+heroes.length+' 名英雄':'建设阶段';
+    $('#hint').textContent=battle?'战斗中：怪物自动迎敌，陷阱自动触发':'选择房间类型后点击空地建造；点击已有房间升级';
+  }
+  function renderAll(){ renderHUD(); renderPanes(); }
+
+  // ---------- input ----------
+  cv.addEventListener('pointerdown',e=>{
+    if(battle) return;
+    const r=cv.getBoundingClientRect();
+    const c=Math.floor((e.clientX-r.left)/r.width*N),rr=Math.floor((e.clientY-r.top)/r.height*N);
+    if(c<0||rr<0||c>=N||rr>=N) return;
+    const i=rr*N+c,cell=state.grid[i];
+    if(demolish){ if(cell.type&&cell.type!=='core'){ state.gold+=Math.round(ROOMS[cell.type].cost*.5*(cell.level)); state.grid[i]={type:null,level:1,charges:0}; toast('已拆除'); save(); renderAll(); } return; }
+    if(!cell.type){
+      // must be adjacent to existing carved cell
+      let adj=false; for(const ni of [i-1,i+1,i-N,i+N]){ if(ni<0||ni>=N*N) continue; if(Math.abs((i%N)-(ni%N))>1) continue; if(walkable(ni)) adj=true; }
+      if(!adj && i!==CORE){ toast('必须紧邻已开凿的房间'); return; }
+      if(state.gold<ROOMS[selectedRoom].cost){ toast('金币不足'); return; }
+      state.gold-=ROOMS[selectedRoom].cost;
+      state.grid[i]={type:selectedRoom,level:1,charges:selectedRoom==='trap'?2:0};
+      assignNests(); save(); renderAll();
+    } else if(cell.type!=='core'){
+      const cost=Math.round(ROOMS[cell.type].cost*cell.level*.8);
+      if(state.gold<cost){ toast('升级需要 '+cost+' 金币'); return; }
+      state.gold-=cost; cell.level++; if(cell.type==='trap') cell.charges=cell.level*2;
+      toast(ROOMS[cell.type].n+' 升至 Lv'+cell.level); save(); renderAll();
+    }
+  });
+  document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===t));
+    document.querySelectorAll('.pane').forEach(x=>x.classList.toggle('active',x.dataset.pane===t.dataset.tab));
+    renderPanes();
+  }));
+  panes.addEventListener('click',e=>{
+    const b=e.target.closest('button[data-a]'); if(!b) return;
+    const a=b.dataset.a,id=+b.dataset.id;
+    const m=state.monsters.find(x=>x.id===id),it=state.inventory.find(x=>x.id===id);
+    if(a==='room'){ selectedRoom=b.dataset.k; demolish=false; renderAll(); }
+    else if(a==='demolish'){ demolish=!demolish; renderAll(); }
+    else if(a==='train'&&m){ if(state.gold<20) return toast('金币不足'); state.gold-=20; m.xp+=25;
+      while(m.xp>=100*m.level){ m.xp-=100*m.level; m.level++; m.tp++; } state.codex.includes(m.species)||state.codex.push(m.species); toast('训练完成'); }
+    else if(a==='talent'&&m&&m.tp>0){ m.tp--; const k=['atk','hp','def'][Math.floor(Math.random()*3)]; m.talents[k]++; toast('天赋：'+({atk:'攻击',hp:'生命',def:'防御'})[k]+' +1'); }
+    else if(a==='evolve'&&m&&m.level>=10&&state.gold>=200){ state.gold-=200; m.level+=2; m.tp+=2; toast('进化成功！'); }
+    else if(a==='fire'&&m){ if(state.monsters.length<=1) return toast('至少保留一只怪物'); state.monsters=state.monsters.filter(x=>x!==m); assignNests(); }
+    else if(a==='recruit'){ if(state.gold<80) return toast('金币不足'); state.gold-=80; const nm=newMonster(+b.dataset.i); state.monsters.push(nm); assignNests(); state.codex.includes(nm.species)||state.codex.push(nm.species); }
+    else if(a==='equip'&&it){ const target=+$('#equipTarget').value; const mm=state.monsters.find(x=>x.id===target); if(!mm) return; mm.equip[it.slot]=it; state.inventory=state.inventory.filter(x=>x!==it); toast('已装备给 '+SPECIES[mm.species].n); }
+    else if(a==='upgrade'&&it&&it.rarity<4){ const cost=80*it.rarity; if(state.gold<cost) return toast('金币不足'); state.gold-=cost; it.rarity++; it.affixes.forEach(x=>x.v=Math.round(x.v*1.35)); }
+    else if(a==='reroll'&&it){
+      if(state.gold<30) return toast('金币不足');
+      state.gold-=30;
+      it.affixes=it.affixes.map(x=>{
+        const def=AFFIXES.find(z=>z.k===x.k);
+        return {k:x.k,n:x.n,v:Math.round((def.lo+Math.random()*(def.hi-def.lo))*(1+state.wave*.09))};
+      });
+    }
+    else if(a==='sell'&&it){ state.gold+=25*it.rarity; state.inventory=state.inventory.filter(x=>x!==it); }
+    else if(a==='gt'){ const k=b.dataset.k,lv=state.gt[k],cost=20*(lv+1); if(lv>=5||state.mana<cost) return; state.mana-=cost; state.gt[k]++; if(k==='armor') state.coreHp+=25; toast(GT[k].n+' 提升到 Lv'+state.gt[k]); }
+    save(); renderAll();
+  });
+  $('#startWave').onclick=()=>{ startWave(); };
+  $('#speedBtn').onclick=()=>{ speed=speed===1?2:speed===2?4:1; renderHUD(); };
+  $('#ascBtn').onclick=ascend;
+  $('#mute').onclick=()=>{ const b=$('#mute'); b.textContent=b.textContent==='🔊'?'🔇':'🔊'; };
+
+  let last=0,acc=0;
+  function loop(t){
+    const dt=Math.min(.05,(t-last)/1000||0); last=t;
+    if(battle){ acc+=dt*speed; let guard=0; while(acc>=.05&&guard++<20){ battleStep(.05); acc-=.05; if(!battle) break; } }
+    else acc=0;
+    draw(); renderHUD();
+    requestAnimationFrame(loop);
+  }
+  window.addEventListener('beforeunload',save);
+  document.addEventListener('visibilitychange',()=>{ if(document.hidden) save(); });
+  setInterval(()=>{ if(!battle){ save(); renderPanes(); } },10000);
+  load(); state.coreHp=Math.min(state.coreHp,coreMax()); renderAll(); requestAnimationFrame(loop);
+})();
+</script>
+<!-- 应用模式：屏蔽浏览器原生交互（选中/拖拽/右键菜单/双击缩放） -->
+<script>
+(function(){
+  var EDITABLE='input,textarea,select,[contenteditable]';
+  ['selectstart','dragstart'].forEach(function(type){ document.addEventListener(type,function(e){ if(e.target&&e.target.closest&&e.target.closest(EDITABLE))return; e.preventDefault(); }); });
+  document.addEventListener('contextmenu',function(e){ e.preventDefault(); });
+  ['gesturestart','gesturechange','gestureend'].forEach(function(type){ document.addEventListener(type,function(e){ e.preventDefault(); },{passive:false}); });
+  window.addEventListener('wheel',function(e){ if(e.ctrlKey||e.metaKey)e.preventDefault(); },{passive:false});
+  window.addEventListener('keydown',function(e){ if((e.ctrlKey||e.metaKey)&&['+','-','=','0'].indexOf(e.key)>=0)e.preventDefault(); });
+})();
+</script>
+</body>
+</html>

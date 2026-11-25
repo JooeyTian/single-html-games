@@ -136,7 +136,7 @@
     .game-card:hover .thumb img { transform: scale(1.06); }
     .thumb::after { content: ""; position: absolute; inset: 0; background: linear-gradient(transparent 55%, rgba(8,12,25,.55)); }
     .thumb-fallback::before {
-      content: "⚡"; position: absolute; inset: 0; display: grid; place-items: center;
+      content: var(--emoji, "⚡"); position: absolute; inset: 0; display: grid; place-items: center;
       font-size: 56px; color: #7aa2ff;
       background: radial-gradient(circle at 50% 40%, #1b2b58, #0d1428);
     }
@@ -152,6 +152,8 @@
     .tag { font-size: 10px; padding: 3px 9px; border-radius: 99px; color: #a9b8dc; background: var(--surface-2); border: 1px solid var(--line); }
     .tag.hot { color: #ffd7a8; border-color: rgba(255,167,90,.35); background: rgba(255,167,90,.10); }
     .tag.retro { color: #a7f3d0; border-color: rgba(52,211,153,.3); background: rgba(52,211,153,.1); }
+    .tag.puzzle { color: #c9b8ff; border-color: rgba(167,139,250,.35); background: rgba(167,139,250,.12); }
+    .tag.strategy { color: #ffb3ad; border-color: rgba(201,72,63,.35); background: rgba(201,72,63,.12); }
     .info h3 { margin: 0 0 6px; font-size: 19px; }
     .info p { margin: 0; min-height: 42px; font-size: 13px; line-height: 1.6; color: var(--muted); }
     .card-foot {
@@ -217,6 +219,8 @@
         <button class="chip" data-filter="action">动作</button>
         <button class="chip" data-filter="idle">放置</button>
         <button class="chip" data-filter="sim">模拟</button>
+        <button class="chip" data-filter="puzzle">益智</button>
+        <button class="chip" data-filter="strategy">策略</button>
         <button class="chip" data-filter="retro">复古</button>
       </div>
 
@@ -289,6 +293,62 @@
             <h3>星海漂流</h3>
             <p>Three.js 星空漂流：三场景一键切换，连点星辰连成星座，轻触纸船与浮岛，拖动留下星尘光迹。</p>
             <div class="card-foot"><span>单文件 HTML</span><span class="arrow">→</span></div>
+          </div>
+        </a>
+
+        <a class="game-card" href="apps/stack-tower/index.html" target="_blank" rel="noopener"
+           data-title="叠叠塔 Stack Tower 精准堆叠" data-tags="action" data-desc="左右移动的方块，点击落下。精准对齐触发 PERFECT 连击，塔越高越快，方块还会回血变宽。">
+          <div class="thumb" style="--emoji:'🧱'">
+            <img src="apps/stack-tower/thumbnail.jpg" alt="叠叠塔游戏画面：霓虹方块越叠越高" onerror="this.style.display='none';this.parentNode.classList.add('thumb-fallback')">
+            <span class="play">▶ 开始游戏</span>
+          </div>
+          <div class="info">
+            <div class="tags"><span class="tag hot">动作</span></div>
+            <h3>叠叠塔</h3>
+            <p>点击落下移动的方块，精准对齐触发 PERFECT 连击；越叠越高、越来越快，连击还能让方块回血变宽。</p>
+            <div class="card-foot"><span>单文件 HTML · 反应挑战</span><span class="arrow">→</span></div>
+          </div>
+        </a>
+
+        <a class="game-card" href="apps/fruit-merge/index.html" target="_blank" rel="noopener"
+           data-title="合成大西瓜 Fruit Merge 物理合成" data-tags="puzzle sim" data-desc="投下水果，相同的碰撞合成更大的水果。连锁合成加分，一路合出大西瓜。">
+          <div class="thumb" style="--emoji:'🍉'">
+            <img src="apps/fruit-merge/thumbnail.jpg" alt="合成大西瓜游戏画面：水果在瓶子里碰撞合成" onerror="this.style.display='none';this.parentNode.classList.add('thumb-fallback')">
+            <span class="play">▶ 开始游戏</span>
+          </div>
+          <div class="info">
+            <div class="tags"><span class="tag puzzle">益智</span><span class="tag">模拟</span></div>
+            <h3>合成大西瓜</h3>
+            <p>物理碰撞 + 合成：相同水果碰到一起就升级，连锁合成倍率飙升，目标是一路合出大西瓜。</p>
+            <div class="card-foot"><span>单文件 HTML · 物理合成</span><span class="arrow">→</span></div>
+          </div>
+        </a>
+
+        <a class="game-card" href="apps/hex-puzzle/index.html" target="_blank" rel="noopener"
+           data-title="六角拼图 Hex Puzzle 六边形消行" data-tags="puzzle" data-desc="在六边形棋盘上摆放砖块，填满横排或斜排即可消除，连续消行分数翻倍。">
+          <div class="thumb" style="--emoji:'⬡'">
+            <img src="apps/hex-puzzle/thumbnail.jpg" alt="六角拼图游戏画面：彩色六边形铺满棋盘" onerror="this.style.display='none';this.parentNode.classList.add('thumb-fallback')">
+            <span class="play">▶ 开始游戏</span>
+          </div>
+          <div class="info">
+            <div class="tags"><span class="tag puzzle">益智</span></div>
+            <h3>六角拼图</h3>
+            <p>六边形铺砖消行：三个方向都能消，连续消行倍率叠加，越到后面越考验空间规划。</p>
+            <div class="card-foot"><span>单文件 HTML · 策略消除</span><span class="arrow">→</span></div>
+          </div>
+        </a>
+
+        <a class="game-card" href="apps/mecha-expedition/index.html" target="_blank" rel="noopener"
+           data-title="机甲远征 Mecha Expedition 俯视角射击 Build 远征" data-tags="action strategy sim" data-desc="实时驾驶机甲射击，闪避与技能全靠操作；掉落模块、升级三选一、六星区远征与永久机库强化。">
+          <div class="thumb" style="--emoji:'🤖'">
+            <img src="apps/mecha-expedition/thumbnail.jpg" alt="机甲远征：霓虹战场、机甲与满屏敌人" onerror="this.style.display='none';this.parentNode.classList.add('thumb-fallback')">
+            <span class="play">▶ 开始远征</span>
+          </div>
+          <div class="info">
+            <div class="tags"><span class="tag hot">动作</span><span class="tag strategy">策略</span><span class="tag">模拟</span></div>
+            <h3>机甲远征</h3>
+            <p>俯视角实时射击：走位、闪避、技能全部要操作；4 种武器、模块套装、升级三选一、6 星区远征，失败也能变强。</p>
+            <div class="card-foot"><span>单文件 HTML · 主动操作</span><span class="arrow">→</span></div>
           </div>
         </a>
       </div>
