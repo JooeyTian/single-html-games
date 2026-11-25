@@ -168,10 +168,50 @@
 *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
 input,textarea,select,[contenteditable]{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
 html,body{touch-action:manipulation}
+  button{touch-action:manipulation;font-family:inherit}
+  #touchControls{position:fixed;inset:0;z-index:4;pointer-events:none;display:none}
+  .stick{position:absolute;bottom:max(22px,env(safe-area-inset-bottom));width:124px;height:124px;border-radius:50%;border:1px solid #7395c066;background:#111d344a;pointer-events:auto;touch-action:none;display:grid;place-items:center}
+  #moveStick{left:max(26px,env(safe-area-inset-left))}#aimStick{right:max(26px,env(safe-area-inset-right));border-color:#f472b666}
+  .stick:before{content:'';position:absolute;inset:16px;border:1px dashed #abc5e333;border-radius:50%}
+  .stick-knob{width:48px;height:48px;border:1px solid #22d3eeaa;border-radius:50%;background:#22d3ee38;box-shadow:0 0 18px #22d3ee22;pointer-events:none}
+  #aimStick .stick-knob{border-color:#f472b6aa;background:#f472b638}
+  .stick-label{position:absolute;bottom:-18px;font-size:10px;letter-spacing:2px;color:#b8c6df;pointer-events:none}
+  .stick.active{background:#172a4466;border-color:var(--cyan)}
+  #dashBtn{position:absolute;right:max(174px,calc(env(safe-area-inset-right) + 150px));bottom:max(32px,env(safe-area-inset-bottom));width:58px;height:58px;border-radius:50%;border:1px solid var(--cyan);background:#10283bd9;color:var(--cyan);pointer-events:auto;font-size:20px;touch-action:none}
+  #dashBtn small{display:block;font-size:10px}#dashBtn:disabled{color:var(--dim);border-color:var(--line)}
+  #rotateHint{display:none;position:fixed;inset:0;z-index:30;background:#050914f5;align-items:center;justify-content:center;text-align:center;padding:30px}
+  #rotateHint strong{font-size:24px;color:var(--cyan)}#rotateHint p{color:var(--dim);line-height:1.9}
+  .touch-help{display:none}
+  @media(pointer:coarse){
+    #touchControls.playing{display:block}.desktop-help{display:none}.touch-help{display:block}
+    #hud{padding:max(7px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) 0 max(12px,env(safe-area-inset-left));gap:5px}
+    .toprow{gap:8px;align-items:center}.barwrap{width:clamp(120px,23vw,230px);flex-shrink:0}.barlabel{font-size:10px;margin-bottom:2px}.bar{height:10px}
+    .timer{gap:3px}.timer span{font-size:21px}.timer small{font-size:9px}.stats{gap:9px}.stats>div{min-width:30px}.stats b{font-size:15px}.stats small{font-size:8px}
+    .iconbtn{width:44px;height:44px;flex-shrink:0;font-size:17px}.wavebox{font-size:10px;padding:4px 6px}.wavebox b{font-size:12px}
+    .xpbar{position:absolute;top:0;left:env(safe-area-inset-left);right:env(safe-area-inset-right);max-width:none;height:4px;border:0;border-radius:0}.xpbar span{display:none}
+    .weaponbar{position:absolute;bottom:max(14px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);max-width:calc(100% - 430px);gap:5px;justify-content:center;margin:0}
+    .wicon{width:32px;height:32px;font-size:19px;border-radius:7px}.wicon .lv{font-size:8px;right:-2px;bottom:-3px;padding:0 2px}.wicon .cdmask{border-radius:6px}
+    .buffs{max-width:38%;gap:3px}.buff{font-size:9px;padding:1px 5px}.bondbar{position:absolute;right:max(12px,env(safe-area-inset-right));top:61px;max-width:38%;justify-content:flex-end;gap:3px}.bond{font-size:9px;padding:2px 5px}.bond.locked{display:none}
+    .overlay{padding:max(12px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));overflow:auto;touch-action:pan-y}
+    .panel{max-height:100%;overflow:auto;padding:18px 24px;border-radius:14px}.panel.wide{width:min(850px,100%)}
+    .logo{font-size:30px;line-height:1}.logo br{display:none}.logo span{font-size:25px;letter-spacing:3px}.sub{margin:7px 0 10px;font-size:11px}
+    .howto{grid-template-columns:1fr 1fr;gap:5px;margin-bottom:10px}.howto div{font-size:10px;padding:6px 8px}.modes{gap:8px;margin-bottom:10px}.modebtn{padding:9px}.modebtn .mt{font-size:13px}.modebtn .md{font-size:10px}.bigbtn{min-height:44px;padding:10px;font-size:15px}.tip{font-size:10px;margin:8px 0 0}
+    .cards{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.card{min-height:0;padding:12px 10px}.rerollbtn{min-height:44px;margin-top:10px}.lv-tag{font-size:11px}h2{font-size:18px;margin:7px 0 12px}
+    .banner{top:29%}#comboPop{top:48%}
+  }
+  @media(pointer:coarse) and (orientation:portrait){#rotateHint{display:flex}#touchControls{display:none!important}}
+  @media(pointer:coarse) and (max-width:700px){.timer small{display:none}.wavebox{position:absolute;top:56px;left:50%;transform:translateX(-50%)}.buffs{max-width:30%}.bondbar{max-width:30%}}
+  @media(pointer:coarse) and (max-height:390px){.stick{width:104px;height:104px;bottom:20px}.stick-knob{width:42px;height:42px}#dashBtn{width:50px;height:50px;right:max(148px,calc(env(safe-area-inset-right) + 124px))}.weaponbar{max-width:calc(100% - 375px)}.panel{padding:12px 20px}.howto{margin-bottom:6px}.tip{font-size:9px}.wicon{width:28px;height:28px;font-size:17px}}
 </style>
 </head>
 <body>
 <canvas id="game"></canvas>
+<div id="touchControls" aria-label="触屏战斗控制">
+  <div id="moveStick" class="stick" role="group" aria-label="左摇杆：移动"><div class="stick-knob"></div><span class="stick-label">移动</span></div>
+  <div id="aimStick" class="stick" role="group" aria-label="右摇杆：瞄准"><div class="stick-knob"></div><span class="stick-label">瞄准</span></div>
+  <button id="dashBtn" aria-label="冲刺">ϟ<small>冲刺</small></button>
+</div>
+<div id="rotateHint"><div><strong>↻ 请横屏游玩</strong><p>左摇杆移动 · 右摇杆瞄准<br>旋转手机后继续，战斗会在竖屏时暂停。</p></div></div>
 
 <div id="hud" class="hidden">
   <div class="toprow">
@@ -202,12 +242,13 @@ html,body{touch-action:manipulation}
   <div class="panel">
     <div class="logo">NEON<br><span>SURVIVOR</span></div>
     <p class="sub">霓虹幸存者 · 弹幕割草生存</p>
-    <div class="howto">
+    <div class="howto desktop-help">
       <div><kbd>WASD</kbd><kbd>方向键</kbd> 移动走位</div>
       <div><kbd>鼠标左键</kbd> 按住出现瞄准线，朝指向攻击</div>
       <div><kbd>空格</kbd><kbd>Shift</kbd> 冲刺（短暂无敌）</div>
       <div><kbd>Esc</kbd><kbd>P</kbd> 暂停游戏</div>
     </div>
+    <div class="howto touch-help">左摇杆移动 · 右摇杆控制瞄准方向 · ϟ 冲刺<br>松开右摇杆自动索敌，武器持续自动攻击。</div>
     <div class="modes">
       <button id="modeTime" class="modebtn active" data-mode="time">
         <div class="mt">⏱ 限时生存</div>
@@ -219,7 +260,7 @@ html,body{touch-action:manipulation}
       </button>
     </div>
     <button id="startBtn" class="bigbtn">开始游戏</button>
-    <p class="tip">武器自动攻击 · 按住左键瞄准 · 升级三选一<br>同类武器 / 被动叠加可激活<b style="color:#7dd3fc">流派羁绊</b>，6 大流派自由 build<br>限时 3:00 / 5:30 有领主，波次第 10 / 20 波有领主</p>
+    <p class="tip">武器自动攻击 · 支持手动瞄准 · 升级三选一<br>同类武器 / 被动叠加可激活<b style="color:#7dd3fc">流派羁绊</b>，6 大流派自由 build<br>限时 3:00 / 5:30 有领主，波次第 10 / 20 波有领主</p>
   </div>
 </div>
 
@@ -276,6 +317,7 @@ function resize(){
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 }
 window.addEventListener('resize', resize); resize();
+window.visualViewport?.addEventListener('resize', resize);
 
 const WIN_TIME = 360;          // 6 分钟胜利
 const $ = id => document.getElementById(id);
@@ -1266,16 +1308,17 @@ function updateWeapons(dt){
 /* ---------------- 更新各实体 ---------------- */
 function updatePlayer(dt){
   const p = G.p;
-  let dx = 0, dy = 0;
+  let dx = touchInput.move.x, dy = touchInput.move.y;
   if(keys.KeyA || keys.ArrowLeft) dx--;
   if(keys.KeyD || keys.ArrowRight) dx++;
   if(keys.KeyW || keys.ArrowUp) dy--;
   if(keys.KeyS || keys.ArrowDown) dy++;
   const len = Math.hypot(dx, dy);
-  if(len > 0){ dx /= len; dy /= len; p.lastDX = dx; p.lastDY = dy; }
+  if(len > 0){ if(len>1){dx /= len; dy /= len;} p.lastDX = dx/Math.min(len,1); p.lastDY = dy/Math.min(len,1); }
   if(p.dashT > 0){ p.x += p.dvx*dt; p.y += p.dvy*dt; }
   else { p.x += dx*p.speed*dt; p.y += dy*p.speed*dt; }
   p.x = clamp(p.x, p.r+4, W-p.r-4); p.y = clamp(p.y, p.r+4, H-p.r-4);
+  if(touchInput.aim.id!==null&&pointer.down){const a=Math.atan2(touchInput.aim.y,touchInput.aim.x);pointer.x=p.x+Math.cos(a)*210;pointer.y=p.y+Math.sin(a)*210;}
   if(p.dashT > 0 && Math.random() < .8) G.particles.push({x:p.x, y:p.y, vx:rand(-30,30), vy:rand(-30,30), life:.3, max:.3, r:rand(3,8), color:'#22d3ee'});
 }
 function tryDash(){
@@ -1283,8 +1326,8 @@ function tryDash(){
   const p = G.p;
   if(p.dashCd > 0) return;
   p.dashCd = 3; p.dashT = .18; p.dashReadyFx = 0;
-  // 按住左键时朝瞄准方向冲刺，否则朝当前移动方向
-  const a = pointer.down ? getAimAngle() : Math.atan2(p.lastDY, p.lastDX);
+  // 双摇杆优先沿移动方向冲刺；鼠标模式保留朝瞄准方向冲刺。
+  const a = touchInput.move.id!==null && Math.hypot(touchInput.move.x,touchInput.move.y)>.1 ? Math.atan2(touchInput.move.y,touchInput.move.x) : pointer.down ? getAimAngle() : Math.atan2(p.lastDY, p.lastDX);
   p.dvx = Math.cos(a) * p.speed * 4.5;
   p.dvy = Math.sin(a) * p.speed * 4.5;
   p.invuln = Math.max(p.invuln, .35);
@@ -2031,6 +2074,7 @@ function draw(){
 let last = performance.now();
 function frame(now){
   const dt = Math.min(.033, (now - last)/1000); last = now;
+  syncTouchControls();
   if(G && G.screen === 'playing') update(dt);
   draw();
   requestAnimationFrame(frame);
@@ -2038,6 +2082,41 @@ function frame(now){
 requestAnimationFrame(frame);
 
 /* ---------------- 输入与按钮 ---------------- */
+const touchInput={move:{id:null,x:0,y:0},aim:{id:null,x:0,y:0}};
+const coarseScreen=window.matchMedia('(pointer:coarse)');
+function resetTouch(){
+  for(const [name,id] of [['move','moveStick'],['aim','aimStick']]){
+    const s=touchInput[name],el=$(id);s.id=null;s.x=0;s.y=0;el.classList.remove('active');el.querySelector('.stick-knob').style.transform='';
+  }
+  pointer.down=false;
+  for(const code of Object.keys(keys))keys[code]=false;
+}
+function syncTouchControls(){
+  if(coarseScreen.matches&&W<H&&G?.screen==='playing')togglePause();
+  const active=coarseScreen.matches&&W>=H&&G?.screen==='playing';
+  $('touchControls').classList.toggle('playing',!!active);
+  if(!active&&(touchInput.move.id!==null||touchInput.aim.id!==null))resetTouch();
+  if(active&&touchInput.aim.id!==null){
+    const s=touchInput.aim;pointer.down=Math.hypot(s.x,s.y)>.08;
+    if(pointer.down){const a=Math.atan2(s.y,s.x);pointer.x=G.p.x+Math.cos(a)*210;pointer.y=G.p.y+Math.sin(a)*210;}
+  }
+  if(active){const cd=G.p.dashCd;$('dashBtn').disabled=cd>0;$('dashBtn').querySelector('small').textContent=cd>0?cd.toFixed(1)+'s':'冲刺';}
+}
+for(const [name,id] of [['move','moveStick'],['aim','aimStick']]){
+  const el=$(id),s=touchInput[name];
+  function track(e){
+    const r=el.getBoundingClientRect(),radius=r.width*.34,dx=e.clientX-r.left-r.width/2,dy=e.clientY-r.top-r.height/2,len=Math.hypot(dx,dy),scale=Math.min(1,radius/(len||1));
+    s.x=len<radius*.08?0:dx*scale/radius;s.y=len<radius*.08?0:dy*scale/radius;
+    el.querySelector('.stick-knob').style.transform='translate('+s.x*radius+'px,'+s.y*radius+'px)';
+  }
+  el.addEventListener('pointerdown',e=>{if(G?.screen!=='playing'||s.id!==null)return;e.preventDefault();s.id=e.pointerId;el.setPointerCapture(e.pointerId);el.classList.add('active');track(e);initAudio();});
+  el.addEventListener('pointermove',e=>{if(s.id===e.pointerId){e.preventDefault();track(e);}});
+  function release(e){if(s.id!==e.pointerId)return;s.id=null;s.x=0;s.y=0;el.classList.remove('active');el.querySelector('.stick-knob').style.transform='';if(name==='aim')pointer.down=false;}
+  for(const type of ['pointerup','pointercancel','lostpointercapture'])el.addEventListener(type,release);
+}
+$('dashBtn').addEventListener('pointerdown',e=>{e.preventDefault();tryDash();});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){resetTouch();if(G?.screen==='playing')togglePause();}});
+window.addEventListener('resize',resetTouch);
 window.addEventListener('keydown', e => {
   keys[e.code] = true;
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)) e.preventDefault();
@@ -2047,17 +2126,19 @@ window.addEventListener('keydown', e => {
 });
 window.addEventListener('keyup', e => { keys[e.code] = false; });
 cvs.addEventListener('pointerdown', e => {
+  if(e.pointerType==='touch')return;
   if(e.button !== 0) return;
   pointer.down = true; pointer.x = e.clientX; pointer.y = e.clientY;
   initAudio(); cvs.setPointerCapture(e.pointerId);
 });
-cvs.addEventListener('pointermove', e => { pointer.x = e.clientX; pointer.y = e.clientY; });
-window.addEventListener('pointerup', e => { if(e.button === 0) pointer.down = false; });
-window.addEventListener('blur', () => { pointer.down = false; });
+cvs.addEventListener('pointermove', e => { if(e.pointerType!=='touch'){pointer.x = e.clientX; pointer.y = e.clientY;} });
+window.addEventListener('pointerup', e => { if(e.pointerType!=='touch'&&e.button === 0) pointer.down = false; });
+window.addEventListener('blur', () => { resetTouch();if(G?.screen==='playing')togglePause(); });
 cvs.addEventListener('contextmenu', e => e.preventDefault());
 
 function togglePause(){
   if(!G) return;
+  resetTouch();
   if(G.screen === 'playing'){ G.screen = 'paused'; $('pause').classList.remove('hidden'); }
   else if(G.screen === 'paused'){ G.screen = 'playing'; $('pause').classList.add('hidden'); }
 }

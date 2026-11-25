@@ -103,7 +103,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\new-app.ps1 my-new-game
 | 废土自动工厂 | `apps/wasteland-foundry/` | 单文件机械城增量：8 项扩建工程、独立双线、机械蜂群、电子回收、废热发电、机器人装配、铁路与移动工厂，支持离线结算和旧存档迁移 |
 | 一拳 | `apps/one-punch/` | 点击打击怪物的爽快小游戏 |
 | Windows XP · C盘考古 | `apps/winxp-c-drive/` | 复古 Windows XP 桌面与 C 盘探索，含多个小游戏彩蛋 |
-| 霓虹幸存者 | `apps/neon-survivor/` | 弹幕割草生存：限时存活 / 20 波挑战双模式，20 种武器、26 种被动、6 大流派羁绊（弹幕/元素/召唤/暴击/血怒/领域支配） |
+| 霓虹幸存者 | `apps/neon-survivor/` | 弹幕割草生存：限时存活 / 20 波挑战双模式，20 种武器、26 种被动、6 大流派羁绊；支持手机横屏双摇杆（左移动、右瞄准）与独立冲刺按钮 |
 | 星海漂流 | `apps/star-drift/` | Three.js 程序化星空漫游：蓝色深空 / 粉紫星云 / 晨光海面三场景；连点星辰连成星座、轻触纸船与浮岛、拖动留下星尘光迹、滚轮缩放，无计时无失败 |
 
 ## 废土自动工厂
