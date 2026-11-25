@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>游戏库 · Game Hub</title>
   <style>
     :root {
@@ -172,6 +172,11 @@
       .hero-art { opacity: .25; width: 80%; }
       .grid { grid-template-columns: 1fr; }
     }
+
+  /* 应用模式：禁用文字选中、长按菜单、点击高亮与双击/双指缩放 */
+  * { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+  input, textarea, select, [contenteditable] { -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
+  html, body { touch-action: manipulation; }
   </style>
 </head>
 <body>
@@ -300,5 +305,27 @@
       applyFilters();
     }));
   </script>
+<!-- 应用模式：屏蔽浏览器原生交互（选中/拖拽/右键菜单/双击缩放） -->
+<script>
+(function () {
+  var EDITABLE = 'input,textarea,select,[contenteditable]';
+  ['selectstart', 'dragstart'].forEach(function (type) {
+    document.addEventListener(type, function (e) {
+      if (e.target && e.target.closest && e.target.closest(EDITABLE)) return;
+      e.preventDefault();
+    });
+  });
+  document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+  ['gesturestart', 'gesturechange', 'gestureend'].forEach(function (type) {
+    document.addEventListener(type, function (e) { e.preventDefault(); }, { passive: false });
+  });
+  window.addEventListener('wheel', function (e) {
+    if (e.ctrlKey || e.metaKey) e.preventDefault();
+  }, { passive: false });
+  window.addEventListener('keydown', function (e) {
+    if ((e.ctrlKey || e.metaKey) && ['+','-','=','0'].indexOf(e.key) >= 0) e.preventDefault();
+  });
+})();
+</script>
 </body>
 </html>

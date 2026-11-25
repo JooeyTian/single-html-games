@@ -384,6 +384,10 @@ body.phone .sm-foot span{font-size:11px}
 .secret-page p{font-size:14px;margin:10px 0;text-shadow:0 1px 2px #000}
 .secret-page .sign{text-align:right;margin-top:24px;color:#ffb9d2}
 .clue-box{background:#fff8dc;border:1px solid #e8cf82;border-left:4px solid #e0a800;padding:9px 12px;margin:10px 0;color:#6b5420;line-height:1.8}
+/* 应用模式：禁用文字选中、长按菜单、点击高亮与双击/双指缩放（应用自身的双击/右键逻辑不受影响） */
+*{ -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; -webkit-tap-highlight-color:transparent }
+input,textarea,select,[contenteditable]{ -webkit-user-select:text; user-select:text; -webkit-touch-callout:default }
+html,body{ touch-action:manipulation }
 </style>
 </head>
 <body>
@@ -2004,6 +2008,28 @@ window.addEventListener('pointerdown',function(){
 document.addEventListener('contextmenu',function(e){if(!e.target.closest('.file'))e.preventDefault()});
 syncPhoneUI();renderDesk();renderStart();tickClock();
 
+})();
+</script>
+<!-- 应用模式：屏蔽浏览器原生交互（选中/拖拽/右键原生菜单/双击缩放）；自定义右键菜单与双击仍可用 -->
+<script>
+(function () {
+  var EDITABLE = 'input,textarea,select,[contenteditable]';
+  ['selectstart', 'dragstart'].forEach(function (type) {
+    document.addEventListener(type, function (e) {
+      if (e.target && e.target.closest && e.target.closest(EDITABLE)) return;
+      e.preventDefault();
+    });
+  });
+  document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+  ['gesturestart', 'gesturechange', 'gestureend'].forEach(function (type) {
+    document.addEventListener(type, function (e) { e.preventDefault(); }, { passive: false });
+  });
+  window.addEventListener('wheel', function (e) {
+    if (e.ctrlKey || e.metaKey) e.preventDefault();
+  }, { passive: false });
+  window.addEventListener('keydown', function (e) {
+    if ((e.ctrlKey || e.metaKey) && ['+','-','=','0'].indexOf(e.key) >= 0) e.preventDefault();
+  });
 })();
 </script>
 </body>
